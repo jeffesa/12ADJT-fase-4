@@ -45,3 +45,6 @@ logs/
 *.zip
 *.tar.gz
 *.rar
+
+# Kiro agent internal files
+.agents/

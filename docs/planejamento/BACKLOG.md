@@ -109,13 +109,13 @@ Criar o template SAM completo (`infra/template.yaml`) definindo todos os recurso
 
 ---
 
-### TASK-005: Configurar CI/CD (GitHub Actions)
+### TASK-005: Configurar CI/CD e SonarCloud (GitHub Actions)
 
-**Labels:** `priority: high`, `épico: setup`, `pontos: 3`, `type: infra`
+**Labels:** `priority: high`, `épico: setup`, `pontos: 4`, `type: infra`
 **Milestone:** Sprint 1 - Fundação
 
 ## 📋 Descrição
-Configurar GitHub Actions com pipeline de build, testes e deploy SAM. Reutilizar o padrão dos workflows das Fases 2 e 3 adaptados para Quarkus + SAM.
+Configurar GitHub Actions com pipeline de build, testes e análise SonarCloud desde o início do projeto. O SonarCloud entra na Sprint 1 porque análise de qualidade de código deve acontecer desde o primeiro PR — não só no final. O SAM deploy é adicionado ao pipeline na TASK-019 (quando o template SAM estiver pronto).
 
 ## ✅ Critérios de Aceitação
 - [ ] `.github/workflows/ci-cd.yml`:
@@ -123,13 +123,17 @@ Configurar GitHub Actions com pipeline de build, testes e deploy SAM. Reutilizar
   - [ ] Build multi-module Maven (`mvn -B clean verify`)
   - [ ] Cache Maven configurado
   - [ ] Java 17 (temurin)
-  - [ ] SAM build + SAM deploy (apenas na `main`, usando secrets AWS)
-  - [ ] Secrets necessários: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `SONAR_TOKEN`
+  - [ ] SonarCloud analysis (`org.sonarsource.scanner.maven:sonar-maven-plugin:sonar`)
+  - [ ] Secrets necessários: `GITHUB_TOKEN`, `SONAR_TOKEN`
+  - [ ] Build falha se testes falharem
 - [ ] `.github/workflows/branch-naming.yml`:
   - [ ] Prefixos permitidos: feature/, bugfix/, hotfix/, release/, chore/, docs/, test/, refactor/, perf/, ci/, style/
 - [ ] `.github/workflows/auto-pr-to-main.yml`:
   - [ ] Auto PR develop → main
-- [ ] Build falha se testes falharem
+- [ ] `sonar-project.properties` na raiz configurado para multi-module
+- [ ] SonarCloud projeto criado em sonarcloud.io (organização: jeffesa)
+- [ ] `SONAR_TOKEN` adicionado nos secrets do repositório GitHub
+- [ ] Pipeline verde no primeiro push
 
 ## 🔧 Dependências Técnicas
 - [TASK-001] concluída (projeto compila)
