@@ -1,0 +1,47 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Quarkus
+.quarkus/
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+*.code-workspace
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+samconfig.toml.local
+
+# AWS SAM
+.aws-sam/
+
+# Logs
+*.log
+logs/
+
+# Test reports
+**/target/site/
+**/target/surefire-reports/
+
+# Misc
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
