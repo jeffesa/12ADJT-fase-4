@@ -1,0 +1,61 @@
+# ==========================================
+# .dockerignore — Arquivos excluídos do build Docker
+# ==========================================
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build
+target/
+*.jar
+*.war
+*.nar
+
+# Maven
+.m2/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+*.swp
+*.swo
+*~
+.classpath
+.project
+.settings/
+
+# Node (se usado em futuro)
+node_modules/
+package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Documentation
+docs/
+README.md
+LICENSE
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Scripts
+run.sh
+
+# Agent artifacts
+.agents/
+.kiro/

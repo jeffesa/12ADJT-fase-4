@@ -1,0 +1,52 @@
+version: '3.9'
+services:
+  # ========================================
+  # LocalStack — emula AWS services localmente
+  # ========================================
+  localstack:
+    image: localstack/localstack:3.0
+    ports:
+      # Edge service (all AWS APIs)
+      - "4566:4566"
+      # S3
+      - "4572:4572"
+      # DynamoDB
+      - "4569:4569"
+      # SNS
+      - "4575:4575"
+      # SQS
+      - "4576:4576"
+    environment:
+      # Services a serem emulados
+      SERVICES: dynamodb,sns,sqs,lambda,apigateway,events,ses,iam
+      # Modo debug (opcional, descomente para troubleshooting)
+      # DEBUG: 1
+      # DOCKER_HOST: unix:///var/run/docker.sock
+      # Usar a mesma região configurada nas aplicações
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      # LocalStack 3.x específico
+      LAMBDA_EXECUTOR: docker-reuse
+      LOCALSTACK_HOSTNAME: localhost
+    volumes:
+      # Persist LocalStack state (opcional)
+      - localstack-data:/tmp/localstack
+      # Script de inicialização para criar recursos
+      - ./infra/localstack-init.sh:/docker-entrypoint-initaws.d/init-aws.sh
+    networks:
+      - fase4-network
+    healthcheck:
+      test: ["CMD", "awslocal", "ec2", "describe-regions"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  localstack-data:
+    driver: local
+
+networks:
+  fase4-network:
+    driver: bridge
