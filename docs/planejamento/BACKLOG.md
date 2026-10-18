@@ -575,10 +575,41 @@ Criar entidades de domínio para relatório e use case `GenerateReportUseCase`.
 
 ---
 
-## 📊 RESUMO DO BACKLOG
+### TASK-028: Criar menu interativo (CLI) para facilitar desenvolvimento local
 
-**Total de Tasks:** 27
-**Estimativa Total:** ~84 pontos
+**Labels:** `priority: medium`, `épico: tooling`, `pontos: 3`, `type: infra`
+**Milestone:** Sprint 6 - Finalização
+
+## � Descrição
+Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao desenvolvedor executar operações comuns sem memorizar comandos: subir/parar LocalStack, compilar, rodar testes, verificar saúde dos serviços, ver logs, etc.
+
+## ✅ Critérios de Aceitação
+- [ ] Menu interativo com interface visual (cores, bordas ASCII)
+- [ ] Opção 1: Subir LocalStack + compilar (`docker-compose up -d` + compile modules)
+- [ ] Opção 2: Parar LocalStack (`docker-compose down`)
+- [ ] Opção 3: Rodar testes de todos os módulos (`mvn clean verify`)
+- [ ] Opção 4: Limpar volumes/dados (`docker-compose down -v`)
+- [ ] Opção 5: Ver logs do LocalStack (`docker-compose logs -f`)
+- [ ] Opção 6: Health check das 3 Lambdas (curl para endpoints health)
+- [ ] Opção 7: Listar recursos criados no LocalStack (DynamoDB tables, SNS topics, SQS queues)
+- [ ] Opção 8: Rodar collection Postman (Newman) — opcional, se houver
+- [ ] Modo interativo (sem argumentos): exibir menu
+- [ ] Modo direto (com argumentos): executar comando diretamente (`./run.sh docker`, `./run.sh stop`, etc.)
+- [ ] Validação de dependências (Docker, Maven, Java) com mensagens claras
+- [ ] Suporte a Colima (macOS) e Docker Desktop
+- [ ] Saída colorida com status (✅ sucesso, ❌ erro, ⚠️ aviso)
+- [ ] Documentação no README sobre como usar o menu
+
+## 🔧 Dependências Técnicas
+- [TASK-003] concluída (docker-compose.yml existente)
+- [TASK-018] concluída (testes criados)
+
+---
+
+## �📊 RESUMO DO BACKLOG
+
+**Total de Tasks:** 28
+**Estimativa Total:** ~87 pontos
 
 ### Por Prioridade:
 - **Alta:** 24 tasks
@@ -591,6 +622,7 @@ Criar entidades de domínio para relatório e use case `GenerateReportUseCase`.
 4. Lambda generate-report: 3 tasks (11 pontos)
 5. Integração e Testes E2E: 2 tasks (8 pontos)
 6. Documentação e Entregáveis: 8 tasks (19 pontos)
+7. Tooling: 1 task (3 pontos)
 
 ---
 
