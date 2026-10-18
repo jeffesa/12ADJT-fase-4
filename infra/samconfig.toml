@@ -1,0 +1,92 @@
+version = 0.1
+
+# Default environment configuration
+[default]
+[default.global.parameters]
+# Environment selector: dev or prod
+environment = "dev"
+# Admin email for notifications and reports
+admin_email = "admin@example.com"
+# AWS Region
+region = "us-east-1"
+
+[default.build.parameters]
+# Java container image for building Lambdas (Quarkus will use Maven)
+# Leave empty to use local Maven
+# container = true
+
+[default.deploy.parameters]
+# Stack name for CloudFormation
+# Customize per environment to avoid conflicts
+stack_name = "feedback-api-dev"
+# S3 bucket for SAM build artifacts (must exist and be in same region)
+# Create bucket manually or adjust name per deployment
+s3_bucket = "sam-artifacts-us-east-1"
+# IAM capabilities required for creating roles
+capabilities = "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+# Confirm parameter values before deployment
+confirm_changeset = true
+# Enable tracing for X-Ray
+# disable_rollback = false
+
+#========================================
+# DEV ENVIRONMENT PROFILE
+#========================================
+[dev]
+[dev.deploy.parameters]
+stack_name = "feedback-api-dev"
+s3_bucket = "sam-artifacts-us-east-1-dev"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
+[dev.deploy.parameters.Parameter]
+Environment = "dev"
+AdminEmail = "dev-admin@example.com"
+Region = "us-east-1"
+
+#========================================
+# PROD ENVIRONMENT PROFILE
+#========================================
+[prod]
+[prod.deploy.parameters]
+stack_name = "feedback-api-prod"
+s3_bucket = "sam-artifacts-us-east-1-prod"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+
+[prod.deploy.parameters.Parameter]
+# Pull from environment variables in CI/CD pipeline
+Environment = "prod"
+# Read from AWS_ADMIN_EMAIL environment variable if set, otherwise use default
+AdminEmail = "admin@production.example.com"
+Region = "us-east-1"
+
+#========================================
+# NOTES FOR DEPLOYMENT
+#========================================
+# 1. Before first deploy, ensure S3 buckets exist:
+#    aws s3 mb s3://sam-artifacts-us-east-1-dev --region us-east-1
+#    aws s3 mb s3://sam-artifacts-us-east-1-prod --region us-east-1
+#
+# 2. For dev environment:
+#    sam build -t infra/template.yaml
+#    sam deploy --config-env dev
+#
+# 3. For prod environment (with env vars for sensitive values):
+#    export AWS_ADMIN_EMAIL="your-admin@email.com"
+#    sam build -t infra/template.yaml
+#    sam deploy --config-env prod --parameter-overrides \
+#        Environment=prod \
+#        AdminEmail=$AWS_ADMIN_EMAIL
+#
+# 4. Lambda CodeUri paths are relative to template.yaml location (infra/):
+#    ../receive-feedback/target/function.zip resolves to:
+#    /Users/jefferson/Documents/FIAP/fase-4/receive-feedback/target/function.zip
+#
+# 5. Build Quarkus modules before SAM deploy:
+#    mvn clean package -DskipTests
+#
+# 6. For LocalStack testing (non-prod):
+#    export AWS_ENDPOINT_URL_DYNAMODB=http://localhost:4566
+#    export AWS_ENDPOINT_URL_SNS=http://localhost:4566
+#    sam local invoke ReceiveFeedbackFunction
