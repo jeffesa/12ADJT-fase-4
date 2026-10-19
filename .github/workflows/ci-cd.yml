@@ -1,0 +1,68 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  # PRs: valida apenas os que têm base develop (feature/fix → develop)
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Test & SonarCloud
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Necessário para SonarCloud history
+
+      # Instala Java 21 (scanner SonarCloud) e Java 17 (build do projeto)
+      # O último listado vira JAVA_HOME padrão (Java 17 para o build)
+      - name: Set up JDKs (21 for Sonar, 17 for build)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: |
+            21
+            17
+          cache: maven
+
+      # Cache do SonarCloud scanner
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      # Build + testes + JaCoCo coverage (Java 17)
+      - name: Build and Test with Coverage
+        run: mvn -B clean verify
+
+      # Upload de relatórios de cobertura (opcional, para visualização)
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./*/target/site/jacoco/jacoco.xml
+          flags: unittests
+          name: codecov-umbrella
+          verbose: true
+        if: always()
+
+      # Análise SonarCloud (Java 21 necessário para o scanner v4.x+)
+      - name: SonarCloud Scan
+        if: ${{ env.SONAR_TOKEN != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JAVA_HOME: ${{ env.JAVA_HOME_21_X64 }}
+        run: mvn -B sonar:sonar -Dsonar.host.url=https://sonarcloud.io
+
+      # Log de conclusão
+      - name: Build Status
+        if: success()
+        run: echo "✅ Build, tests, and SonarCloud analysis completed successfully"
