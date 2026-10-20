@@ -481,34 +481,40 @@ Criar entidades de domínio para relatório e use case `GenerateReportUseCase`.
 
 ---
 
-### TASK-022: Criar documentação da API (docs/API.md)
+### TASK-022: Criar documentação da API GraphQL (docs/API.md)
 
 **Labels:** `priority: high`, `épico: documentação`, `pontos: 2`, `type: docs`
 **Milestone:** Sprint 6 - Finalização
 
 ## ✅ Critérios de Aceitação
-- [ ] Endpoint POST /avaliacao documentado (método, path, headers, body, respostas)
-- [ ] Exemplos de request com nota LOW, MEDIUM e HIGH
-- [ ] Exemplos de response (201, 400, 401, 500)
-- [ ] Como obter e usar a API Key
+- [ ] Endpoint GraphQL documentado (URL, port, GraphiQL)
+- [ ] Schema GraphQL completo: types, queries, mutations, enums
+- [ ] Mutation `criarAvaliacao(descricao: String!, nota: Int!): Feedback` documentada
+- [ ] Exemplos de GraphQL query/mutation com nota LOW, MEDIUM e HIGH
+- [ ] Exemplos de response (success, validation error, internal error)
+- [ ] Como obter e usar a API Key (header `x-api-key`)
 - [ ] Formato do e-mail de notificação documentado
 - [ ] Formato do relatório semanal documentado
 - [ ] Base URL local (LocalStack) e produção (AWS)
+- [ ] Como testar no GraphiQL
 
 ---
 
-### TASK-023: Criar collection Postman
+### TASK-023: Criar collection Postman/GraphQL
 
 **Labels:** `priority: high`, `épico: documentação`, `pontos: 2`, `type: docs`
 **Milestone:** Sprint 6 - Finalização
 
 ## ✅ Critérios de Aceitação
-- [ ] Collection com requests para POST /avaliacao
-- [ ] Cenários: nota HIGH (0-5), MEDIUM (6-7), LOW (8-10)
-- [ ] Cenários de erro: nota inválida, body inválido, sem API Key
+- [ ] Collection Postman com requests GraphQL para mutations
+- [ ] Mutation `criarAvaliacao` com cenários: nota HIGH (0-5), MEDIUM (6-7), LOW (8-10)
+- [ ] Cenários de erro: nota inválida, descricao vazia, sem API Key
+- [ ] Query `getFeedbacks` para listar todas as avaliações
+- [ ] Query `getFeedbacksByPeriod` para buscar por período (opcional)
 - [ ] Variáveis de ambiente: `localUrl`, `prodUrl`, `apiKey`
 - [ ] Arquivo JSON exportado em `docs/api-collection/`
 - [ ] `docs/api-collection/README.md` com instruções de importação
+- [ ] GraphQL endpoint: `POST /graphql`
 
 ---
 
@@ -559,23 +565,59 @@ Criar entidades de domínio para relatório e use case `GenerateReportUseCase`.
 
 ---
 
-### TASK-027: Gravar vídeo de demonstração
+---
+
+### TASK-027: Criar documentação de segurança (Security Guidelines)
+
+**Labels:** `priority: high`, `épico: documentação`, `pontos: 2`, `type: docs`
+**Milestone:** Sprint 6 - Finalização
+
+## 📋 Descrição
+Documentar todas as decisões de segurança, configuração de IAM, governança de acesso e como explicar no vídeo de demonstração.
+
+## ✅ Critérios de Aceitação
+- [ ] Documento `docs/SECURITY.md` com:
+  - [ ] Explicação do modelo de cloud escolhido (AWS Serverless)
+  - [ ] Componentes de segurança: API Key, IAM Roles, CloudWatch Logs
+  - [ ] Descritivo de cada IAM Role (ReceiveFeedback, SendNotification, GenerateReport)
+  - [ ] Explicação de least privilege (cada Lambda só tem permissões que precisa)
+  - [ ] API Gateway com API Key obrigatória no `/graphql` (endpoint GraphQL)
+  - [ ] Usage Plan com throttling (rate limit, burst limit, quota diária)
+  - [ ] CloudWatch Logs com retenção de 30 dias
+  - [ ] Separação de ambientes (dev/prod) via CloudFormation parameters
+  - [ ] Encriptação em trânsito (HTTPS obrigatório)
+  - [ ] SES em Sandbox (dev) vs Production (prod)
+  - [ ] Como o AdminEmail é configurável (sem hardcoding)
+- [ ] Roteiro para o vídeo explicando:
+  - [ ] Como mostrar template.yaml (IAM, API Key, permissions)
+  - [ ] Como mostrar CloudWatch (logs das 3 Lambdas)
+  - [ ] Como explicar modelo serverless vs tradicional
+  - [ ] Como testar GraphQL endpoint com API Key
+  - [ ] Quais são os benefícios de segurança (escalabilidade automática, less surface area)
+
+## 🔧 Dependências Técnicas
+- [TASK-004] concluída (SAM template com IAM)
+
+---
+
+### TASK-028: Gravar vídeo de demonstração
 
 **Labels:** `priority: high`, `épico: documentação`, `pontos: 2`, `type: docs`
 **Milestone:** Sprint 6 - Finalização
 
 ## ✅ Critérios de Aceitação
-- [ ] Demonstração do POST /avaliacao com nota crítica → e-mail de notificação recebido
-- [ ] Demonstração do POST /avaliacao com nota normal → sem notificação
+- [ ] Demonstração da Mutation GraphQL `criarAvaliacao` com nota crítica → e-mail de notificação recebido
+- [ ] Demonstração da Mutation GraphQL `criarAvaliacao` com nota normal → sem notificação
 - [ ] Execução manual do generate-report → e-mail de relatório recebido
 - [ ] Mostrar CloudWatch Logs das 3 Lambdas em execução
 - [ ] Mostrar configurações AWS (Lambda, DynamoDB, SNS, API Gateway)
 - [ ] Explicar modelo de cloud escolhido e configurações de segurança (IAM)
+- [ ] Demonstrar GraphQL endpoint com API Key
 - [ ] Duração ~5 minutos
 
 ---
 
-### TASK-028: Criar menu interativo (CLI) para facilitar desenvolvimento local
+### TASK-029: Criar menu interativo (CLI) para facilitar desenvolvimento local
 
 **Labels:** `priority: medium`, `épico: tooling`, `pontos: 3`, `type: infra`
 **Milestone:** Sprint 6 - Finalização
@@ -608,12 +650,12 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 
 ## �📊 RESUMO DO BACKLOG
 
-**Total de Tasks:** 28
-**Estimativa Total:** ~87 pontos
+**Total de Tasks:** 29
+**Estimativa Total:** ~89 pontos
 
 ### Por Prioridade:
-- **Alta:** 24 tasks
-- **Média:** 3 tasks
+- **Alta:** 25 tasks
+- **Média:** 4 tasks
 
 ### Por Épico:
 1. Configuração Inicial e Infra: 5 tasks (20 pontos)
@@ -621,7 +663,7 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 3. Lambda send-notification: 3 tasks (10 pontos)
 4. Lambda generate-report: 3 tasks (11 pontos)
 5. Integração e Testes E2E: 2 tasks (8 pontos)
-6. Documentação e Entregáveis: 8 tasks (19 pontos)
+6. Documentação e Entregáveis: 9 tasks (21 pontos) — **+1 TASK-027 segurança**
 7. Tooling: 1 task (3 pontos)
 
 ---
