@@ -1,10 +1,10 @@
 /**
- * Camada de Infraestrutura — Configuração
+ * Infrastructure Layer — Configuration
  *
- * Contém classes de configuração, DTOs e tratamento de exceções.
+ * Contains configuration classes, DTOs, and exception handling.
  *
- * Classes esperadas:
- * - FeedbackRequest / FeedbackResponse: DTOs de entrada e saída
- * - GlobalExceptionMapper: tratamento de erros no padrão ProblemDetail (RFC 7807)
+ * Expected classes:
+ * - FeedbackRequest / FeedbackResponse: input and output DTOs
+ * - GlobalExceptionHandler: error handling in ProblemDetail format (RFC 7807)
  */
 package com.fiap.feedback.infra.config;

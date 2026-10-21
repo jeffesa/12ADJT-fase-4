@@ -1,11 +1,11 @@
 /**
- * Camada de Aplicação — Use Cases
+ * Application Layer — Use Cases
  *
- * Contém os casos de uso que orquestram o fluxo de negócio.
- * Depende apenas das interfaces do domínio (domain/gateway).
- * Não possui dependência de framework externo.
+ * Contains use cases that orchestrate business logic flows.
+ * Depends only on domain interfaces (domain/gateway).
+ * Has no external framework dependencies.
  *
- * Classes esperadas:
- * - ReceiveFeedbackUseCase: valida, persiste e dispara notificação se urgente
+ * Expected classes:
+ * - ReceiveFeedbackUseCase: validates, persists, and publishes urgency notification if required
  */
 package com.fiap.feedback.application.usecase;
