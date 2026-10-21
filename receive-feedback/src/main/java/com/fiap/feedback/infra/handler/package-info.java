@@ -1,10 +1,10 @@
 /**
- * Camada de Infraestrutura — Handler (Adapter de Entrada)
+ * Infrastructure Layer — Handler (Input Adapter)
  *
- * Contém o handler AWS Lambda que recebe eventos do API Gateway,
- * converte para DTOs, chama o use case e retorna a resposta HTTP.
+ * Contains the AWS Lambda handler that receives API Gateway events,
+ * converts them to DTOs, calls the use case, and returns HTTP responses.
  *
- * Classes esperadas:
- * - ReceiveFeedbackHandler: implementa RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent>
+ * Expected classes:
+ * - ReceiveFeedbackHandler: implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent>
  */
 package com.fiap.feedback.infra.handler;

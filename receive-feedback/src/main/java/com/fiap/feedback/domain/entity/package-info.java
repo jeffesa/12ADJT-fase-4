@@ -1,11 +1,11 @@
 /**
- * Camada de Domínio — Entidades
+ * Domain Layer — Entities
  *
- * Contém as entidades puras do domínio (POJOs sem anotações de framework).
- * Não possui dependência de nenhum framework externo.
+ * Contains pure domain entities (POJOs without framework annotations).
+ * Has no external framework dependencies.
  *
- * Classes esperadas:
- * - Feedback: entidade principal com id, descricao, nota, urgencia, dataCriacao
- * - Urgencia: enum com os níveis HIGH (0-5), MEDIUM (6-7), LOW (8-10)
+ * Expected classes:
+ * - Feedback: main entity with id, descricao, nota, urgencia, dataCriacao
+ * - Urgency: enum with levels HIGH (0-5), MEDIUM (6-7), LOW (8-10)
  */
 package com.fiap.feedback.domain.entity;

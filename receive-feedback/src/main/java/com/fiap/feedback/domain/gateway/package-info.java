@@ -1,11 +1,11 @@
 /**
- * Camada de Domínio — Gateways (Ports)
+ * Domain Layer — Gateways (Ports)
  *
- * Contém as interfaces que definem os contratos de acesso a recursos externos.
- * Implementadas pela camada de infra. Não possui dependência de framework.
+ * Contains interfaces that define contracts for accessing external resources.
+ * Implemented by the infrastructure layer. Has no framework dependencies.
  *
- * Interfaces esperadas:
- * - FeedbackGateway: contrato de persistência (save, findAll, findByPeriod)
- * - UrgencyPublisher: contrato de publicação de eventos urgentes (publish)
+ * Expected interfaces:
+ * - FeedbackGateway: persistence contract (save, findAll, findByPeriod)
+ * - UrgencyPublisher: contract for publishing urgent events (publish)
  */
 package com.fiap.feedback.domain.gateway;
