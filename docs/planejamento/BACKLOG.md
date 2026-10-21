@@ -660,11 +660,11 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 
 ## �📊 RESUMO DO BACKLOG
 
-**Total de Tasks:** 29
-**Estimativa Total:** ~89 pontos
+**Total de Tasks:** 30
+**Estimativa Total:** ~91 pontos
 
 ### Por Prioridade:
-- **Alta:** 25 tasks
+- **Alta:** 26 tasks
 - **Média:** 4 tasks
 
 ### Por Épico:
@@ -673,8 +673,9 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 3. Lambda send-notification: 3 tasks (10 pontos)
 4. Lambda generate-report: 3 tasks (11 pontos)
 5. Integração e Testes E2E: 2 tasks (8 pontos)
-6. Documentação e Entregáveis: 9 tasks (21 pontos) — **+1 TASK-027 segurança**
+6. Documentação e Entregáveis: 9 tasks (21 pontos)
 7. Tooling: 1 task (3 pontos)
+8. Qualidade: 1 task (2 pontos) — TASK-030 Code Audit 100% English
 
 ---
 
@@ -709,7 +710,7 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 - Testes E2E com LocalStack
 - Deploy e testes na AWS real
 
-**Sprint 6 - Finalização (Tasks 020-027):**
+**Sprint 6 - Finalização (Tasks 020-030):**
 - JaCoCo + SonarCloud
 - README completo
 - Documentação da API
@@ -717,6 +718,51 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 - Guias de deploy e monitoramento
 - Entrega final
 - Vídeo de demonstração
+- **Code Audit — Verificar 100% Inglês** ✨
+
+---
+
+### TASK-030: Code Audit — Verificar 100% Inglês
+
+**Labels:** `priority: high`, `épico: qualidade`, `pontos: 2`, `type: quality`
+**Milestone:** Sprint 6 - Finalização (executar no final)
+
+## 📋 Descrição
+Audit final do projeto para garantir que **100% do código, comentários, nomes de variáveis, nomes de arquivos está em inglês**. Nenhum resquício de português no código-fonte. Task a ser executada no final do desenvolvimento (antes da entrega).
+
+## ✅ Critérios de Aceitação
+- [ ] **Código Java**: Revisar todos os `.java` files (variáveis, nomes de classe, método, constantes em inglês)
+- [ ] **Comentários**: Todos os comentários e Javadoc em inglês
+- [ ] **Package names**: Verificar pacotes sem português
+- [ ] **Nomes de arquivos**: Sem sufixos/prefixos em português (ex: `Urgencia.java` → `Urgency.java`)
+- [ ] **XML/YAML**: Comments em `pom.xml`, `application.yaml`, templates em inglês
+- [ ] **Properties files**: Sem chaves/valores em português
+- [ ] **String literals**: Mensagens de erro/log em inglês
+- [ ] **Test files**: Nomes de testes e comentários em inglês
+- [ ] **Documentação**: SECURITY.md, API.md em inglês (BACKLOG.md fica em português OK)
+- [ ] **Script shell**: Comments no `run.sh` em inglês (se houver)
+- [ ] Gerar relatório: `docs/qualidade/CODE_AUDIT.md` com:
+  - [ ] Resultado: PASS ou FAIL
+  - [ ] Total de arquivos escaneados
+  - [ ] Problemas encontrados (lista com arquivo + linha)
+  - [ ] Ações corretivas tomadas
+  - [ ] Timestamp do audit
+- [ ] Executar grep/script para buscar palavras-chave em português:
+  - [ ] descrição, descricao, descricão
+  - [ ] nota, notas
+  - [ ] urgência, urgencia, urgência
+  - [ ] avaliação, avaliacao, avaliação
+  - [ ] usuário, usuario
+  - [ ] validação, validacao, validação
+  - [ ] configuração, configuracao, configuração
+  - [ ] notificação, notificacao, notificação
+  - [ ] relatório, relatorio, relatório
+  - [ ] salvar, persistir, recuperar (em português)
+- [ ] Compilação final: `mvn clean compile` SUCCESS
+- [ ] Commit com resultado final: `fix(code-audit): Ensure 100% English codebase`
+
+## 🔧 Dependências Técnicas
+- Todas as tasks (001-029) concluídas
 
 ---
 
