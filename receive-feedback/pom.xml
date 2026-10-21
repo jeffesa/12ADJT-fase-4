@@ -43,6 +43,12 @@
             <artifactId>quarkus-jackson</artifactId>
         </dependency>
 
+        <!-- GraphQL -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-graphql</artifactId>
+        </dependency>
+
         <!-- Bean Validation -->
         <dependency>
             <groupId>io.quarkus</groupId>
