@@ -1,0 +1,120 @@
+# ==========================================
+# receive-feedback — Application Configuration (YAML)
+# ==========================================
+# This file complements application.properties with a more readable format
+# Profiles: dev (LocalStack), prod (AWS real)
+
+# Global Configuration
+quarkus:
+  application:
+    name: receive-feedback
+    version: 1.0.0
+  
+  profile: dev
+  
+  # Logging
+  log:
+    level: INFO
+    category:
+      com.fiap: DEBUG
+  
+  # CloudWatch Logs (automatic in AWS Lambda)
+  cloudwatch:
+    enabled: true
+  
+  # JSON logging for CloudWatch
+  log-file:
+    format: json
+
+# DynamoDB Configuration
+dynamodb:
+  # Table names (used by infrastructure layer)
+  table:
+    feedbacks: feedbacks
+  
+  # Query limits
+  scan:
+    limit: 100
+    timeout-ms: 30000
+
+# SNS Configuration
+sns:
+  # Topic ARN (injected by SAM template via environment variable)
+  topic:
+    arn: ${FEEDBACK_TOPIC_ARN:arn:aws:sns:us-east-1:000000000000:feedback-urgent-topic}
+  
+  # Message settings
+  message:
+    retry-count: 3
+    timeout-ms: 30000
+
+# Business Logic Configuration
+feedback:
+  # Urgency thresholds: rating ranges mapped to urgency levels (HIGH, MEDIUM, LOW)
+  # These thresholds are injected into UrgencyCalculator service
+  # Logic: rating <= high.max → HIGH, rating <= medium.max → MEDIUM, else → LOW
+  urgency:
+    high:
+      min: 0        # minimum rating for HIGH urgency (inclusive)
+      max: 5        # maximum rating for HIGH urgency (inclusive) — very negative feedback
+    medium:
+      min: 6        # minimum rating for MEDIUM urgency (inclusive)
+      max: 7        # maximum rating for MEDIUM urgency (inclusive) — moderate feedback
+    low:
+      min: 8        # minimum rating for LOW urgency (inclusive)
+      max: 10       # maximum rating for LOW urgency (inclusive) — positive feedback
+  
+  # Feedback validation constraints
+  # These rules are enforced in the domain (Feedback entity) and application layer
+  validation:
+    rating_min: 0             # minimum allowed feedback rating (inclusive)
+    rating_max: 10            # maximum allowed feedback rating (inclusive)
+    description_min_length: 5   # minimum number of characters for description
+    description_max_length: 1000 # maximum number of characters for description
+
+# AWS Region
+aws:
+  region: ${AWS_REGION:us-east-1}
+
+# Environment-specific profiles
+---
+# Development Profile (LocalStack)
+quarkus:
+  profile: dev
+
+quarkus.dynamodb:
+  endpoint-override: http://localhost:4566
+  aws:
+    region: us-east-1
+    credentials:
+      type: static
+      static-provider:
+        access-key-id: test
+        secret-access-key: test
+
+quarkus.sns:
+  endpoint-override: http://localhost:4566
+  aws:
+    region: us-east-1
+    credentials:
+      type: static
+      static-provider:
+        access-key-id: test
+        secret-access-key: test
+
+---
+# Production Profile (AWS)
+quarkus:
+  profile: prod
+
+quarkus.dynamodb:
+  aws:
+    region: ${AWS_REGION:us-east-1}
+    # IAM Role credentials are automatic in Lambda
+
+quarkus.sns:
+  aws:
+    region: ${AWS_REGION:us-east-1}
+    # IAM Role credentials are automatic in Lambda
+
+quarkus.log.level: INFO

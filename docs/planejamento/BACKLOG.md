@@ -57,83 +57,86 @@ Organizar pacotes seguindo Clean Architecture em cada módulo Lambda, reutilizan
 
 ---
 
-### TASK-003: Configurar docker-compose com LocalStack
+### ✅ TASK-003: Configurar docker-compose com LocalStack — **DONE**
 
 **Labels:** `priority: high`, `épico: setup`, `pontos: 4`, `type: infra`
 **Milestone:** Sprint 1 - Fundação
+**Status:** ✅ CONCLUÍDA
 
 ## 📋 Descrição
 Criar docker-compose.yml na raiz com LocalStack para simular os serviços AWS localmente: DynamoDB, SNS, SES, Lambda, API Gateway, EventBridge. Criar script `run.sh` para inicialização local.
 
 ## ✅ Critérios de Aceitação
-- [ ] `docker-compose.yml` com serviço LocalStack 3.x
-- [ ] Serviços habilitados: dynamodb, sns, ses, lambda, apigateway, events
-- [ ] Porta padrão: 4566
-- [ ] Variáveis de ambiente para dev: `AWS_ACCESS_KEY_ID=test`, `AWS_SECRET_ACCESS_KEY=test`, `AWS_DEFAULT_REGION=us-east-1`
-- [ ] `run.sh` com comandos para subir LocalStack e criar recursos (tabela DynamoDB, tópico SNS)
-- [ ] `.dockerignore` configurado
-- [ ] `application.properties` de cada módulo com URLs do LocalStack para profile dev
+- [x] `docker-compose.yml` com serviço LocalStack 3.x
+- [x] Serviços habilitados: dynamodb, sns, ses, lambda, apigateway, events
+- [x] Porta padrão: 4566
+- [x] Variáveis de ambiente para dev: `AWS_ACCESS_KEY_ID=test`, `AWS_SECRET_ACCESS_KEY=test`, `AWS_DEFAULT_REGION=us-east-1`
+- [x] `run.sh` com comandos para subir LocalStack e criar recursos (tabela DynamoDB, tópico SNS)
+- [x] `.dockerignore` configurado
+- [x] `application.properties` de cada módulo com URLs do LocalStack para profile dev
 
 ## 🔧 Dependências Técnicas
 - [TASK-001] concluída
 
 ---
 
-### TASK-004: Configurar AWS SAM (template.yaml e samconfig.toml)
+### ✅ TASK-004: Configurar AWS SAM (template.yaml e samconfig.toml) — **DONE**
 
 **Labels:** `priority: high`, `épico: setup`, `pontos: 5`, `type: infra`
 **Milestone:** Sprint 1 - Fundação
+**Status:** ✅ CONCLUÍDA
 
 ## 📋 Descrição
 Criar o template SAM completo (`infra/template.yaml`) definindo todos os recursos AWS: 3 Lambdas, API Gateway com API Key, DynamoDB, SNS topic, EventBridge rule e permissões IAM. Criar `infra/samconfig.toml` com parâmetros por ambiente.
 
 ## ✅ Critérios de Aceitação
-- [ ] `infra/template.yaml` com todos os recursos:
-  - [ ] Lambda `ReceiveFeedbackFunction` — trigger: API Gateway POST /avaliacao
-  - [ ] Lambda `SendNotificationFunction` — trigger: SNS topic (urgência HIGH)
-  - [ ] Lambda `GenerateReportFunction` — trigger: EventBridge cron (toda segunda 8h)
-  - [ ] DynamoDB table `feedbacks` com PK `id` (String)
-  - [ ] SNS topic `feedback-urgent-topic`
-  - [ ] API Gateway com API Key obrigatória
-  - [ ] IAM Roles mínimas para cada Lambda (least privilege)
-  - [ ] CloudWatch Log Groups para cada Lambda (retenção 30 dias)
-- [ ] `infra/samconfig.toml` com:
-  - [ ] Ambiente `default` (dev)
-  - [ ] Parâmetro `AdminEmail` (e-mail configurável)
-  - [ ] Parâmetro `Environment` (dev/prod)
-  - [ ] Region, stack name, capabilities
-- [ ] `sam validate` passa sem erros
+- [x] `infra/template.yaml` com todos os recursos:
+  - [x] Lambda `ReceiveFeedbackFunction` — trigger: API Gateway POST /graphql
+  - [x] Lambda `SendNotificationFunction` — trigger: SNS topic (urgência HIGH)
+  - [x] Lambda `GenerateReportFunction` — trigger: EventBridge cron (toda segunda 8h)
+  - [x] DynamoDB table `feedbacks` com PK `id` (String)
+  - [x] SNS topic `feedback-urgent-topic`
+  - [x] API Gateway com API Key obrigatória
+  - [x] IAM Roles mínimas para cada Lambda (least privilege)
+  - [x] CloudWatch Log Groups para cada Lambda (retenção 30 dias)
+- [x] `infra/samconfig.toml` com:
+  - [x] Ambiente `default` (dev)
+  - [x] Parâmetro `AdminEmail` (e-mail configurável)
+  - [x] Parâmetro `Environment` (dev/prod)
+  - [x] Region, stack name, capabilities
+- [x] `sam validate` passa sem erros
 
 ## 🔧 Dependências Técnicas
 - [TASK-001] concluída
 
 ---
 
-### TASK-005: Configurar CI/CD e SonarCloud (GitHub Actions)
+### ✅ TASK-005: Configurar CI/CD e SonarCloud (GitHub Actions) — **DONE**
 
 **Labels:** `priority: high`, `épico: setup`, `pontos: 4`, `type: infra`
 **Milestone:** Sprint 1 - Fundação
+**Status:** ✅ CONCLUÍDA
 
 ## 📋 Descrição
 Configurar GitHub Actions com pipeline de build, testes e análise SonarCloud desde o início do projeto. O SonarCloud entra na Sprint 1 porque análise de qualidade de código deve acontecer desde o primeiro PR — não só no final. O SAM deploy é adicionado ao pipeline na TASK-019 (quando o template SAM estiver pronto).
 
 ## ✅ Critérios de Aceitação
-- [ ] `.github/workflows/ci-cd.yml`:
-  - [ ] Trigger: push/PR para `develop` e `main`
-  - [ ] Build multi-module Maven (`mvn -B clean verify`)
-  - [ ] Cache Maven configurado
-  - [ ] Java 17 (temurin)
-  - [ ] SonarCloud analysis (`org.sonarsource.scanner.maven:sonar-maven-plugin:sonar`)
-  - [ ] Secrets necessários: `GITHUB_TOKEN`, `SONAR_TOKEN`
-  - [ ] Build falha se testes falharem
-- [ ] `.github/workflows/branch-naming.yml`:
-  - [ ] Prefixos permitidos: feature/, bugfix/, hotfix/, release/, chore/, docs/, test/, refactor/, perf/, ci/, style/
-- [ ] `.github/workflows/auto-pr-to-main.yml`:
-  - [ ] Auto PR develop → main
-- [ ] `sonar-project.properties` na raiz configurado para multi-module
-- [ ] SonarCloud projeto criado em sonarcloud.io (organização: jeffesa)
-- [ ] `SONAR_TOKEN` adicionado nos secrets do repositório GitHub
-- [ ] Pipeline verde no primeiro push
+- [x] `.github/workflows/ci-cd.yml`:
+  - [x] Trigger: push/PR para `develop` e `main`
+  - [x] Build multi-module Maven (`mvn -B clean verify`)
+  - [x] Cache Maven configurado
+  - [x] Java 17 (temurin)
+  - [x] SonarCloud analysis (`org.sonarsource.scanner.maven:sonar-maven-plugin:sonar`)
+  - [x] Secrets necessários: `GITHUB_TOKEN`, `SONAR_TOKEN`
+  - [x] Build falha se testes falharem
+- [x] `.github/workflows/branch-naming.yml`:
+  - [x] Prefixos permitidos: feature/, bugfix/, hotfix/, release/, chore/, docs/, test/, refactor/, perf/, ci/, style/
+- [x] `.github/workflows/auto-pr-to-main.yml`:
+  - [x] Auto PR develop → main
+- [x] `sonar-project.properties` na raiz configurado para multi-module
+- [x] SonarCloud projeto criado em sonarcloud.io (organização: jeffesa)
+- [x] `SONAR_TOKEN` adicionado nos secrets do repositório GitHub
+- [x] Pipeline verde no primeiro push
 
 ## 🔧 Dependências Técnicas
 - [TASK-001] concluída (projeto compila)
@@ -142,22 +145,29 @@ Configurar GitHub Actions com pipeline de build, testes e análise SonarCloud de
 
 ## 📋 ÉPICO 2: Lambda 1 — receive-feedback
 
-### TASK-006: Criar entidade de domínio Feedback e gateway
+### ✅ TASK-006: Criar entidade de domínio Feedback e gateway — **DONE**
 
 **Labels:** `priority: high`, `épico: receive-feedback`, `pontos: 3`, `type: feature`
 **Milestone:** Sprint 2 - Lambda receive-feedback
+**Status:** ✅ CONCLUÍDA
 
 ## 📋 Descrição
-Criar entidade `Feedback` no domain do módulo receive-feedback (POJO puro) e interface `FeedbackGateway`. Incluir enum `Urgencia` com lógica de cálculo pela nota.
+Criar entidade `Feedback` no domain do módulo receive-feedback (POJO puro) e interface `FeedbackGateway`. Incluir enum `Urgency` com lógica de cálculo pela nota. Extrair variáveis globais para `application.yaml`.
 
 ## ✅ Critérios de Aceitação
-- [ ] Classe `Feedback` com campos: id (String/UUID), descricao, nota (int 0-10), urgencia, dataCriacao, notificacaoEnviada (boolean)
-- [ ] Enum `Urgencia`: HIGH (nota 0-5), MEDIUM (nota 6-7), LOW (nota 8-10)
-- [ ] Método estático `Urgencia.fromNota(int nota)` que calcula a urgência
-- [ ] POJO puro sem anotações de framework
-- [ ] Interface `FeedbackGateway`: `save(Feedback)`, `findAll()`, `findByPeriod(LocalDate inicio, LocalDate fim)`
-- [ ] Interface `UrgencyPublisher`: `publish(Feedback)` — para publicar no SNS
-- [ ] Validações de domínio: nota entre 0 e 10, descrição não vazia
+- [x] Classe `Feedback` com campos: id (String/UUID), description, rating (int 0-10), urgency, createdAt, notificationSent (boolean)
+- [x] Enum `Urgency`: HIGH (rating 0-5), MEDIUM (rating 6-7), LOW (rating 8-10)
+- [x] Método estático `Urgency.fromRating(int rating)` que calcula a urgência
+- [x] POJO puro sem anotações de framework
+- [x] Interface `FeedbackGateway`: `save(Feedback)`, `findAll()`, `findByPeriod(LocalDate startDate, LocalDate endDate)`
+- [x] Interface `UrgencyPublisher`: `publish(Feedback)` — para publicar no SNS
+- [x] Validações de domínio: rating entre 0 e 10, descrição não vazia
+- [x] Classe `FeedbackConfiguration` — Quarkus ConfigMapping para injetar thresholds
+- [x] Classe `UrgencyCalculator` — serviço que calcula urgência via config
+- [x] `application.yaml` com todas as variáveis globais (urgency thresholds, validation rules)
+- [x] `package-info.java` com documentação Clean Architecture
+- [x] Compilação: `mvn clean compile` SUCCESS
+- [x] Todo código em inglês
 
 ## 🔧 Dependências Técnicas
 - [TASK-002] concluída
@@ -650,11 +660,11 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 
 ## �📊 RESUMO DO BACKLOG
 
-**Total de Tasks:** 29
-**Estimativa Total:** ~89 pontos
+**Total de Tasks:** 30
+**Estimativa Total:** ~91 pontos
 
 ### Por Prioridade:
-- **Alta:** 25 tasks
+- **Alta:** 26 tasks
 - **Média:** 4 tasks
 
 ### Por Épico:
@@ -663,8 +673,9 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 3. Lambda send-notification: 3 tasks (10 pontos)
 4. Lambda generate-report: 3 tasks (11 pontos)
 5. Integração e Testes E2E: 2 tasks (8 pontos)
-6. Documentação e Entregáveis: 9 tasks (21 pontos) — **+1 TASK-027 segurança**
+6. Documentação e Entregáveis: 9 tasks (21 pontos)
 7. Tooling: 1 task (3 pontos)
+8. Qualidade: 1 task (2 pontos) — TASK-030 Code Audit 100% English
 
 ---
 
@@ -699,7 +710,7 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 - Testes E2E com LocalStack
 - Deploy e testes na AWS real
 
-**Sprint 6 - Finalização (Tasks 020-027):**
+**Sprint 6 - Finalização (Tasks 020-030):**
 - JaCoCo + SonarCloud
 - README completo
 - Documentação da API
@@ -707,6 +718,51 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 - Guias de deploy e monitoramento
 - Entrega final
 - Vídeo de demonstração
+- **Code Audit — Verificar 100% Inglês** ✨
+
+---
+
+### TASK-030: Code Audit — Verificar 100% Inglês
+
+**Labels:** `priority: high`, `épico: qualidade`, `pontos: 2`, `type: quality`
+**Milestone:** Sprint 6 - Finalização (executar no final)
+
+## 📋 Descrição
+Audit final do projeto para garantir que **100% do código, comentários, nomes de variáveis, nomes de arquivos está em inglês**. Nenhum resquício de português no código-fonte. Task a ser executada no final do desenvolvimento (antes da entrega).
+
+## ✅ Critérios de Aceitação
+- [ ] **Código Java**: Revisar todos os `.java` files (variáveis, nomes de classe, método, constantes em inglês)
+- [ ] **Comentários**: Todos os comentários e Javadoc em inglês
+- [ ] **Package names**: Verificar pacotes sem português
+- [ ] **Nomes de arquivos**: Sem sufixos/prefixos em português (ex: `Urgencia.java` → `Urgency.java`)
+- [ ] **XML/YAML**: Comments em `pom.xml`, `application.yaml`, templates em inglês
+- [ ] **Properties files**: Sem chaves/valores em português
+- [ ] **String literals**: Mensagens de erro/log em inglês
+- [ ] **Test files**: Nomes de testes e comentários em inglês
+- [ ] **Documentação**: SECURITY.md, API.md em inglês (BACKLOG.md fica em português OK)
+- [ ] **Script shell**: Comments no `run.sh` em inglês (se houver)
+- [ ] Gerar relatório: `docs/qualidade/CODE_AUDIT.md` com:
+  - [ ] Resultado: PASS ou FAIL
+  - [ ] Total de arquivos escaneados
+  - [ ] Problemas encontrados (lista com arquivo + linha)
+  - [ ] Ações corretivas tomadas
+  - [ ] Timestamp do audit
+- [ ] Executar grep/script para buscar palavras-chave em português:
+  - [ ] descrição, descricao, descricão
+  - [ ] nota, notas
+  - [ ] urgência, urgencia, urgência
+  - [ ] avaliação, avaliacao, avaliação
+  - [ ] usuário, usuario
+  - [ ] validação, validacao, validação
+  - [ ] configuração, configuracao, configuração
+  - [ ] notificação, notificacao, notificação
+  - [ ] relatório, relatorio, relatório
+  - [ ] salvar, persistir, recuperar (em português)
+- [ ] Compilação final: `mvn clean compile` SUCCESS
+- [ ] Commit com resultado final: `fix(code-audit): Ensure 100% English codebase`
+
+## 🔧 Dependências Técnicas
+- Todas as tasks (001-029) concluídas
 
 ---
 
