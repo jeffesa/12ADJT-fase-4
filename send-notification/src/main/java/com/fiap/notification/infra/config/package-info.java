@@ -1,6 +1,9 @@
 /**
- * Camada de Infraestrutura — Configuração
+ * Infrastructure Layer — Configuration
  *
- * Contém classes de configuração e DTOs de deserialização de mensagens SNS.
+ * Contains configuration classes for notification delivery.
+ *
+ * Expected classes:
+ * - NotificationConfiguration: @ConfigMapping interface for reading notification.* properties
  */
 package com.fiap.notification.infra.config;
