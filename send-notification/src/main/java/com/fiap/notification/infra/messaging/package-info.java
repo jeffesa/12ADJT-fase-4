@@ -1,9 +1,9 @@
 /**
- * Camada de Infraestrutura — Mensageria (Adapter de Saída)
+ * Infrastructure Layer — Email Messaging
  *
- * Contém a implementação do envio de e-mail usando AWS SES.
+ * Contains the email delivery implementation using AWS SES.
  *
- * Classes esperadas:
- * - SesNotificationSender: implementa NotificationSender enviando e-mail via SES
+ * Expected classes:
+ * - SesNotificationSender: implements NotificationSender using AWS SES
  */
 package com.fiap.notification.infra.messaging;

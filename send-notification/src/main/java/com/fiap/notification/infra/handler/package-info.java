@@ -1,9 +1,9 @@
 /**
- * Camada de Infraestrutura — Handler (Adapter de Entrada)
+ * Infrastructure Layer — Lambda Handlers
  *
- * Contém o handler AWS Lambda que recebe eventos do SNS.
+ * Contains AWS Lambda event handlers for receiving SNS notifications.
  *
- * Classes esperadas:
- * - SendNotificationHandler: implementa RequestHandler<SNSEvent, Void>
+ * Expected classes:
+ * - SendNotificationHandler: implements RequestHandler<SNSEvent, Void>
  */
 package com.fiap.notification.infra.handler;
