@@ -1,10 +1,14 @@
 /**
- * Camada de Domínio — Entidades
+ * Domain layer: report entities.
  *
- * Contém as entidades puras do domínio (POJOs sem anotações de framework).
+ * Contains pure domain entities (POJOs without framework annotations).
+ * Entities are immutable value objects representing core business concepts.
  *
- * Classes esperadas:
- * - WeeklyReport: dados agregados do relatório (período, total, média, por dia, por urgência)
- * - Feedback: representação do feedback lido do DynamoDB
+ * Entities:
+ * - WeeklyReport: aggregated report data (period, total, average rating, by day, by urgency)
+ * - FeedbackStatistics: aggregated statistics from feedback collection
+ * - ReportPeriod: immutable time period for reports
+ * - Feedback: report-side feedback representation from persistence layer
+ * - Urgency: feedback urgency enum (HIGH, MEDIUM, LOW)
  */
 package com.fiap.report.domain.entity;

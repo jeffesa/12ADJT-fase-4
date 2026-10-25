@@ -1,10 +1,12 @@
 /**
- * Camada de Aplicação — Use Cases
+ * Application layer: use cases and business orchestration.
  *
- * Contém os casos de uso que orquestram o fluxo de negócio.
- * Depende apenas das interfaces do domínio.
+ * Contains use cases that orchestrate domain entities and gateways to implement
+ * high-level business logic. Use cases depend only on domain contracts (gateways
+ * and entities), maintaining separation from infrastructure concerns
+ * (Clean Architecture principle).
  *
- * Classes esperadas:
- * - GenerateReportUseCase: busca feedbacks da semana, agrega e envia relatório
+ * Use cases:
+ * - GenerateReportUseCase: orchestrates feedback retrieval, aggregation, and report delivery
  */
 package com.fiap.report.application.usecase;
