@@ -1,5 +1,7 @@
 package com.fiap.feedback.application.usecase;
 
+import java.util.List;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -51,6 +53,19 @@ public class ReceiveFeedbackUseCase {
         this.urgencyPublisher = urgencyPublisher;
         this.urgencyCalculator = urgencyCalculator;
         this.feedbackConfig = feedbackConfig;
+    }
+
+    /**
+     * Lists all feedbacks registered in the system.
+     * 
+     * This method retrieves all feedbacks from the gateway without
+     * any filtering or transformation, providing raw domain entities
+     * for the GraphQL query resolver to map to DTOs.
+     * 
+     * @return a list of all Feedback entities, or an empty list if none exist
+     */
+    public List<Feedback> listarTodos() {
+        return feedbackGateway.findAll();
     }
 
     /**
