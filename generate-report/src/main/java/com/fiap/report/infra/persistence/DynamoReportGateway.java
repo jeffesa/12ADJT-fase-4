@@ -67,7 +67,7 @@ public class DynamoReportGateway implements ReportGateway {
             LOGGER.log(Level.INFO,
                     "Retrieving feedbacks from DynamoDB for period: " + startDate + " to " + endDate);
 
-            String tableName = config.dynamodb().tableName();
+            String tableName = config.tableName();
 
             // Filter expression to find feedbacks within the date range
             // Dates are compared as ISO strings (YYYY-MM-DD format)

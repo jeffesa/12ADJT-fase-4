@@ -79,7 +79,7 @@ public class SesReportSender implements ReportSender {
 
             // Build SES request
             SendEmailRequest request = SendEmailRequest.builder()
-                    .source(config.ses().senderEmail())
+                    .source(config.senderEmail())
                     .destination(d -> d.toAddresses(adminEmail))
                     .message(Message.builder()
                             .subject(Content.builder().data(subject).build())

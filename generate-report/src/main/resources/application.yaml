@@ -1,0 +1,91 @@
+# ==========================================
+# generate-report — Application Configuration (YAML)
+# ==========================================
+# This file contains configuration for the generate-report Lambda service
+# Profiles: dev (LocalStack), prod (AWS real)
+
+# Global Configuration
+quarkus:
+  application:
+    name: generate-report
+    version: 1.0.0
+  
+  profile: dev
+  
+  # Logging
+  log:
+    level: INFO
+    category:
+      com.fiap: DEBUG
+
+# Report Configuration
+report:
+  admin-email: ${ADMIN_EMAIL:admin@feedback-platform.com}
+  sender-email: ${SENDER_EMAIL:noreply@feedback-platform.com}
+  dynamodb-endpoint: ${DYNAMODB_ENDPOINT:http://localhost:4566}
+  table-name: ${DYNAMODB_TABLE_NAME:feedbacks}
+  report-title: ${REPORT_TITLE:Weekly Feedback Report}
+
+# DynamoDB Configuration
+dynamodb:
+  # Table names (used by infrastructure layer)
+  table:
+    feedbacks: feedbacks
+  
+  # Query limits
+  scan:
+    limit: 100
+    timeout-ms: 30000
+
+# SES Configuration
+ses:
+  # Message settings
+  message:
+    timeout-ms: 30000
+
+# AWS Region
+aws:
+  region: ${AWS_REGION:us-east-1}
+
+# Environment-specific profiles
+---
+# Development Profile (LocalStack)
+quarkus:
+  profile: dev
+
+quarkus.dynamodb:
+  endpoint-override: http://localhost:4566
+  aws:
+    region: us-east-1
+    credentials:
+      type: static
+      static-provider:
+        access-key-id: test
+        secret-access-key: test
+
+quarkus.ses:
+  endpoint-override: http://localhost:4566
+  aws:
+    region: us-east-1
+    credentials:
+      type: static
+      static-provider:
+        access-key-id: test
+        secret-access-key: test
+
+---
+# Production Profile (AWS)
+quarkus:
+  profile: prod
+
+quarkus.dynamodb:
+  aws:
+    region: ${AWS_REGION:us-east-1}
+    # IAM Role credentials are automatic in Lambda
+
+quarkus.ses:
+  aws:
+    region: ${AWS_REGION:us-east-1}
+    # IAM Role credentials are automatic in Lambda
+
+quarkus.log.level: INFO
