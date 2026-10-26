@@ -1,9 +1,11 @@
 /**
- * Camada de Infraestrutura — Persistência (Adapter de Saída)
+ * Infrastructure layer — DynamoDB persistence (Output Adapter).
  *
- * Contém a implementação do gateway de consulta usando DynamoDB.
+ * Contains the implementation of the ReportGateway interface using DynamoDB
+ * for retrieving feedback records within a specified date range.
  *
- * Classes esperadas:
- * - DynamoReportGateway: implementa ReportGateway consultando o DynamoDB por período
+ * Key classes:
+ * - DynamoReportGateway: implements ReportGateway querying DynamoDB by period
+ * - ReportDynamoMapper: maps DynamoDB items to Feedback domain entities
  */
 package com.fiap.report.infra.persistence;
