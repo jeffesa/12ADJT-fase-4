@@ -206,14 +206,15 @@ Resources:
   #========================================
 
   # Lambda 1: ReceiveFeedbackFunction
-  # Triggered by: API Gateway POST /avaliacao
+  # Triggered by: GraphQL endpoint /graphql (POST)
   # Actions: Write to DynamoDB, Publish to SNS (if urgency=HIGH)
+  # Uses ReceiveFeedbackResolver.java with Quarkus CDI injection
   ReceiveFeedbackFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${Environment}-receive-feedback'
       CodeUri: ../receive-feedback/target/function.zip
-      Handler: com.fiap.feedback.infra.handler.ReceiveFeedbackHandler
+      Handler: com.fiap.feedback.infra.handler.GraphQLStreamHandler
       Role: !GetAtt ReceiveFeedbackRole.Arn
       # Environment variables specific to this Lambda
       Environment:
@@ -222,11 +223,11 @@ Resources:
           FEEDBACK_TOPIC_ARN: !Ref FeedbackUrgentTopic
           ADMIN_EMAIL: !Ref AdminEmail
       Events:
-        ApiEvent:
+        GraphQLEvent:
           Type: Api
           Properties:
             RestApiId: !Ref FeedbackApi
-            Path: /avaliacao
+            Path: /graphql
             Method: POST
       LoggingConfig:
         LogGroup: !Ref ReceiveFeedbackLogGroup
@@ -383,10 +384,10 @@ Resources:
 #========================================
 Outputs:
   ApiEndpoint:
-    Description: 'HTTP API endpoint URL for POST /avaliacao'
-    Value: !Sub 'https://${FeedbackApi}.execute-api.${Region}.amazonaws.com/${Environment}/avaliacao'
+    Description: 'GraphQL endpoint URL for feedback mutations'
+    Value: !Sub 'https://${FeedbackApi}.execute-api.${Region}.amazonaws.com/${Environment}/graphql'
     Export:
-      Name: !Sub '${Environment}-FeedbackApiEndpoint'
+      Name: !Sub '${Environment}-FeedbackGraphQLEndpoint'
 
   ApiKey:
     Description: 'API Key for accessing the Feedback API (keep secret)'
