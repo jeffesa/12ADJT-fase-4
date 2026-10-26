@@ -1,6 +1,7 @@
 /**
- * Camada de Infraestrutura — Configuração
- *
- * Contém classes de configuração e formatação do relatório (HTML/texto do e-mail).
+ * Infrastructure layer configuration.
+ * 
+ * Provides configuration management for report generation and AWS services integration,
+ * including DynamoDB endpoints, SES email settings, and application properties.
  */
 package com.fiap.report.infra.config;

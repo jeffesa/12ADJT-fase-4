@@ -1,9 +1,11 @@
 /**
- * Camada de Infraestrutura — Mensageria (Adapter de Saída)
+ * Infrastructure layer — Email messaging (Output Adapter).
  *
- * Contém a implementação do envio do relatório por e-mail usando AWS SES.
+ * Contains the implementation of the ReportSender interface for sending
+ * weekly feedback reports via AWS SES email service.
  *
- * Classes esperadas:
- * - SesReportSender: implementa ReportSender enviando o relatório via SES
+ * Key classes:
+ * - SesReportSender: implements ReportSender sending reports via SES
+ * - ReportEmailBuilder: constructs HTML email templates for reports
  */
 package com.fiap.report.infra.messaging;
