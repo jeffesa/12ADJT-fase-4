@@ -20,8 +20,8 @@ quarkus:
 
 # Report Configuration
 report:
-  admin-email: ${ADMIN_EMAIL:admin@feedback-platform.com}
-  sender-email: ${SENDER_EMAIL:noreply@feedback-platform.com}
+  admin-email: ${ADMIN_EMAIL:admin@feedback-fase-4.com}
+  sender-email: ${SENDER_EMAIL:noreply@feedback-fase-4.com}
   dynamodb-endpoint: ${DYNAMODB_ENDPOINT:http://localhost:4566}
   table-name: ${DYNAMODB_TABLE_NAME:feedbacks}
   report-title: ${REPORT_TITLE:Weekly Feedback Report}

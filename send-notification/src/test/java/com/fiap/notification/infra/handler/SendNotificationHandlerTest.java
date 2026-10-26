@@ -71,7 +71,7 @@ class SendNotificationHandlerTest {
     static class TestNotificationConfiguration implements NotificationConfiguration {
         @Override
         public String senderEmail() {
-            return "noreply@feedback-platform.com";
+            return "noreply@feedback-fase-4.com";
         }
 
         @Override
