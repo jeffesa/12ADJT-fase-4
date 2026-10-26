@@ -2,6 +2,8 @@
 
 This guide provides step-by-step instructions for testing all three critical flows of the feedback platform with LocalStack.
 
+**Performance Metrics**: The test scripts now capture and validate execution times. All Lambda endpoints (receiveFeedback, generateWeeklyReport) must complete in < 1000ms (1 second). Actual measurements are logged and included in the results CSV.
+
 ## Prerequisites
 
 Before starting, ensure:

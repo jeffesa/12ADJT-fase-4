@@ -1,5 +1,21 @@
 # End-to-End Test Results
 
+This document is a **template** for recording the execution results of the feedback platform E2E tests with LocalStack.
+
+## Instructions
+
+1. Run `./e2e-test.sh` to execute all three flows (see LOCAL_SETUP.md for setup details).
+2. Run `./e2e-verify.sh` to validate results and capture LocalStack evidence.
+3. Copy this template and fill in all [FILL:] placeholders with actual test data.
+4. Save the completed document as `E2E_TEST_RESULTS_YYYY-MM-DD.md` in the docs/ directory.
+5. Commit the result as evidence of successful testing.
+
+For reference, see `E2E_TEST_RESULTS_SAMPLE.md` for an example of a filled-in result.
+
+---
+
+## Template
+
 This document records the execution results of the feedback platform E2E tests with LocalStack.
 
 ## Test Execution Environment

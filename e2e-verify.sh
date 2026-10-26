@@ -36,6 +36,62 @@ log_verify() {
 log_verify "Verification started"
 
 # ─────────────────────────────────────────────────────────────────
+# Pre-flight checks
+# ─────────────────────────────────────────────────────────────────
+
+info "\n🔍 Checking dependencies and LocalStack..."
+
+if ! command -v jq &>/dev/null; then
+  err "❌ jq not found. Please install jq."
+  log_verify "PREFLIGHT FAILURE: jq not available"
+  exit 1
+fi
+
+# Try to detect compose command
+COMPOSE_CMD=""
+if docker compose version &>/dev/null 2>&1; then
+  COMPOSE_CMD="docker compose"
+elif command -v docker-compose &>/dev/null; then
+  COMPOSE_CMD="docker-compose"
+else
+  warn "⚠️  docker compose/docker-compose not found. Will attempt AWS CLI queries but LocalStack verification will be limited."
+  log_verify "WARNING: docker compose not available"
+fi
+
+# ─────────────────────────────────────────────────────────────────
+# Extract timing data from test log
+# ─────────────────────────────────────────────────────────────────
+
+info "\n⏱️  Extracting timing metrics from test log..."
+log_verify "Extracting timing metrics from test execution"
+
+# Find the most recent test log
+LATEST_TEST_LOG=$(ls -1t /tmp/e2e-logs/test-execution-*.log 2>/dev/null | head -1)
+
+if [ ! -z "$LATEST_TEST_LOG" ]; then
+  info "  Using test log: $LATEST_TEST_LOG"
+  log_verify "Found test log: $LATEST_TEST_LOG"
+  
+  # Extract performance metrics from log
+  FLOW1_TIMING=$(grep "Flow 1.*Performance check" "$LATEST_TEST_LOG" | head -1)
+  FLOW2_TIMING=$(grep "Flow 2.*Performance check" "$LATEST_TEST_LOG" | head -1)
+  FLOW3_TIMING=$(grep "Flow 3.*Performance check" "$LATEST_TEST_LOG" | head -1)
+  
+  if [ ! -z "$FLOW1_TIMING" ]; then
+    ok "  ✅ $FLOW1_TIMING"
+  fi
+  if [ ! -z "$FLOW2_TIMING" ]; then
+    ok "  ✅ $FLOW2_TIMING"
+  fi
+  if [ ! -z "$FLOW3_TIMING" ]; then
+    ok "  ✅ $FLOW3_TIMING"
+  fi
+else
+  warn "  ⚠️  No recent test log found. Run './run.sh e2e-test' first."
+  log_verify "WARNING: No test log found for timing extraction"
+fi
+
+# ─────────────────────────────────────────────────────────────────
 # Initialize results CSV
 # ─────────────────────────────────────────────────────────────────
 
@@ -70,7 +126,7 @@ log_verify "Checking DynamoDB feedbacks table"
 
 cd "$SCRIPT_DIR"
 
-DYNAMODB_SCAN=$(docker compose exec -T localstack awslocal dynamodb scan \
+DYNAMODB_SCAN=$(${COMPOSE_CMD:-docker compose} exec -T localstack awslocal dynamodb scan \
   --table-name feedbacks \
   --region us-east-1 2>&1)
 
@@ -114,7 +170,7 @@ fi
 info "\n✅ Verifying SNS feedback-urgent-topic..."
 log_verify "Checking SNS topic message count"
 
-TOPIC_ATTRS=$(docker compose exec -T localstack awslocal sns get-topic-attributes \
+TOPIC_ATTRS=$(${COMPOSE_CMD:-docker compose} exec -T localstack awslocal sns get-topic-attributes \
   --topic-arn arn:aws:sns:us-east-1:000000000000:feedback-urgent-topic \
   --region us-east-1 2>&1)
 
@@ -139,7 +195,7 @@ fi
 info "\n✅ Verifying SES email identities..."
 log_verify "Checking SES verified identities"
 
-IDENTITIES=$(docker compose exec -T localstack awslocal ses list-verified-email-addresses \
+IDENTITIES=$(${COMPOSE_CMD:-docker compose} exec -T localstack awslocal ses list-verified-email-addresses \
   --region us-east-1 2>&1)
 
 if [ $? -ne 0 ]; then
@@ -167,7 +223,7 @@ info "\n✅ Checking CloudWatch logs for Lambda execution..."
 log_verify "Attempting to query CloudWatch logs"
 
 # Note: LocalStack's CloudWatch support is limited; this is best-effort
-CLOUDWATCH_LOGS=$(docker compose exec -T localstack awslocal logs describe-log-groups \
+CLOUDWATCH_LOGS=$(${COMPOSE_CMD:-docker compose} exec -T localstack awslocal logs describe-log-groups \
   --region us-east-1 2>&1)
 
 if echo "$CLOUDWATCH_LOGS" | jq '.logGroups' &>/dev/null; then
@@ -195,7 +251,7 @@ log_verify "Verifying DynamoDB data persistence"
 # Sleep a moment
 sleep 1
 
-DYNAMODB_SCAN_2=$(docker compose exec -T localstack awslocal dynamodb scan \
+DYNAMODB_SCAN_2=$(${COMPOSE_CMD:-docker compose} exec -T localstack awslocal dynamodb scan \
   --table-name feedbacks \
   --region us-east-1 2>&1)
 
