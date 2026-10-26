@@ -36,8 +36,7 @@ Globals:
       - x86_64
     # Environment variables shared by all Lambdas (can be overridden per function)
     Environment:
-      Variables:
-        AWS_REGION: !Ref Region
+      Variables: {}
 
 #========================================
 # RESOURCES
@@ -216,7 +215,6 @@ Resources:
       CodeUri: ../receive-feedback/target/function.zip
       Handler: com.fiap.feedback.infra.handler.ReceiveFeedbackHandler
       Role: !GetAtt ReceiveFeedbackRole.Arn
-      ReservedConcurrentExecutions: 10
       # Environment variables specific to this Lambda
       Environment:
         Variables:
@@ -246,7 +244,6 @@ Resources:
       CodeUri: ../send-notification/target/function.zip
       Handler: com.fiap.notification.infra.handler.SendNotificationHandler
       Role: !GetAtt SendNotificationRole.Arn
-      ReservedConcurrentExecutions: 10
       # Environment variables specific to this Lambda
       Environment:
         Variables:
@@ -272,7 +269,6 @@ Resources:
       CodeUri: ../generate-report/target/function.zip
       Handler: com.fiap.report.infra.handler.GenerateReportHandler
       Role: !GetAtt GenerateReportRole.Arn
-      ReservedConcurrentExecutions: 1
       # Environment variables specific to this Lambda
       Environment:
         Variables:
@@ -299,14 +295,6 @@ Resources:
       Name: !Sub '${Environment}-feedback-api'
       StageName: !Ref Environment
       TracingEnabled: true
-      # Enable API Key requirement at stage level
-      MethodSettings:
-        - ResourcePath: '/avaliacao'
-          HttpMethod: POST
-          LoggingLevel: INFO
-          DataTraceEnabled: true
-          MetricsEnabled: true
-          RequireApiKeyOnThisMethod: true
       Tags:
         Environment: !Ref Environment
         Project: FIAP-Fase-4
@@ -336,13 +324,11 @@ Resources:
 
   ApiKey:
     Type: AWS::ApiGateway::ApiKey
+    DependsOn: ApiUsagePlan
     Properties:
       Name: !Sub '${Environment}-feedback-api-key'
       Description: 'API Key for Feedback API'
       Enabled: true
-      StageKeys:
-        - RestApiId: !Ref FeedbackApi
-          StageName: !Ref Environment
       Tags:
         - Key: Environment
           Value: !Ref Environment
@@ -353,24 +339,6 @@ Resources:
       KeyId: !Ref ApiKey
       KeyType: API_KEY
       UsagePlanId: !Ref ApiUsagePlan
-
-  #========================================
-  # API GATEWAY STAGE (if not created implicitly)
-  #========================================
-  FeedbackApiStage:
-    Type: AWS::ApiGateway::Stage
-    Properties:
-      ApiId: !Ref FeedbackApi
-      DeploymentId: !Ref FeedbackApiDeployment
-      StageName: !Ref Environment
-      TracingEnabled: true
-
-  FeedbackApiDeployment:
-    Type: AWS::ApiGateway::Deployment
-    DependsOn:
-      - ReceiveFeedbackFunction
-    Properties:
-      RestApiId: !Ref FeedbackApi
 
   # Grant Lambda permission to be invoked by API Gateway
   ReceiveFeedbackApiPermission:

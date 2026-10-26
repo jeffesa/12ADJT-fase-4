@@ -23,7 +23,7 @@ stack_name = "feedback-api-dev"
 # Create bucket manually or adjust name per deployment
 s3_bucket = "sam-artifacts-us-east-1"
 # IAM capabilities required for creating roles
-capabilities = "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+capabilities = "CAPABILITY_NAMED_IAM"
 # Confirm parameter values before deployment
 confirm_changeset = true
 # Enable tracing for X-Ray
@@ -37,7 +37,7 @@ confirm_changeset = true
 stack_name = "feedback-api-dev"
 s3_bucket = "sam-artifacts-us-east-1-dev"
 region = "us-east-1"
-capabilities = "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
+capabilities = "CAPABILITY_NAMED_IAM"
 
 [dev.deploy.parameters.Parameter]
 Environment = "dev"
@@ -49,17 +49,11 @@ Region = "us-east-1"
 #========================================
 [prod]
 [prod.deploy.parameters]
-stack_name = "feedback-api-prod"
-s3_bucket = "sam-artifacts-us-east-1-prod"
+stack_name = "prod-feedback-stack"
+s3_bucket = "sam-artifacts-phase-4-us-east-1-1793031500"
 region = "us-east-1"
-capabilities = "CAPABILITY_IAM,CAPABILITY_NAMED_IAM"
-
-[prod.deploy.parameters.Parameter]
-# Pull from environment variables in CI/CD pipeline
-Environment = "prod"
-# Read from AWS_ADMIN_EMAIL environment variable if set, otherwise use default
-AdminEmail = "admin@production.example.com"
-Region = "us-east-1"
+capabilities = "CAPABILITY_NAMED_IAM"
+parameter_overrides = "AdminEmail=admin@feedback-fase-4.com"
 
 #========================================
 # NOTES FOR DEPLOYMENT

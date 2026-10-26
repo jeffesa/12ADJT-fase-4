@@ -1,0 +1,470 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'FIAP Fase-4: Serverless Feedback Platform with AWS SAM'
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+    - dev
+    - prod
+    Description: Environment selector (dev or prod). Controls resource naming and
+      configuration.
+  AdminEmail:
+    Type: String
+    Description: Email address for sending notifications and reports. Must be verified
+      in SES (prod).
+    AllowedPattern: ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$
+  Region:
+    Type: String
+    Default: us-east-1
+    Description: AWS Region where resources will be deployed.
+Globals:
+  Function:
+    Runtime: java17
+    Timeout: 30
+    MemorySize: 1024
+    Architectures:
+    - x86_64
+    Environment:
+      Variables: {}
+Resources:
+  FeedbacksTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:
+        Fn::Sub: ${Environment}-feedback-table
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+      Tags:
+      - Key: Environment
+        Value:
+          Ref: Environment
+      - Key: Project
+        Value: FIAP-Fase-4
+    Metadata:
+      SamResourceId: FeedbacksTable
+  FeedbackUrgentTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Feedback Urgent Notifications
+      TopicName:
+        Fn::Sub: ${Environment}-feedback-urgent-topic
+      Tags:
+      - Key: Environment
+        Value:
+          Ref: Environment
+      - Key: Project
+        Value: FIAP-Fase-4
+    Metadata:
+      SamResourceId: FeedbackUrgentTopic
+  ReceiveFeedbackRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyName: DynamoDBWritePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - dynamodb:PutItem
+            Resource:
+              Fn::GetAtt:
+              - FeedbacksTable
+              - Arn
+      - PolicyName: SNSPublishPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - sns:Publish
+            Resource:
+              Ref: FeedbackUrgentTopic
+      Tags:
+      - Key: Environment
+        Value:
+          Ref: Environment
+    Metadata:
+      SamResourceId: ReceiveFeedbackRole
+  SendNotificationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyName: SESEmailPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+            Resource: '*'
+      Tags:
+      - Key: Environment
+        Value:
+          Ref: Environment
+    Metadata:
+      SamResourceId: SendNotificationRole
+  GenerateReportRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyName: DynamoDBScanPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - dynamodb:Scan
+            - dynamodb:Query
+            Resource:
+              Fn::GetAtt:
+              - FeedbacksTable
+              - Arn
+      - PolicyName: SESEmailPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+            Resource: '*'
+      Tags:
+      - Key: Environment
+        Value:
+          Ref: Environment
+    Metadata:
+      SamResourceId: GenerateReportRole
+  ReceiveFeedbackLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Sub: /aws/lambda/${Environment}-receive-feedback
+      RetentionInDays: 30
+    Metadata:
+      SamResourceId: ReceiveFeedbackLogGroup
+  SendNotificationLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Sub: /aws/lambda/${Environment}-send-notification
+      RetentionInDays: 30
+    Metadata:
+      SamResourceId: SendNotificationLogGroup
+  GenerateReportLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName:
+        Fn::Sub: /aws/lambda/${Environment}-generate-report
+      RetentionInDays: 30
+    Metadata:
+      SamResourceId: GenerateReportLogGroup
+  ReceiveFeedbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${Environment}-receive-feedback
+      CodeUri: s3://fase-4-sam-artifacts-422648464291-us-east-1/877dcb5ad90767cc2410807d41ff3b26
+      Handler: com.fiap.feedback.infra.handler.ReceiveFeedbackHandler
+      Role:
+        Fn::GetAtt:
+        - ReceiveFeedbackRole
+        - Arn
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: FeedbacksTable
+          FEEDBACK_TOPIC_ARN:
+            Ref: FeedbackUrgentTopic
+          ADMIN_EMAIL:
+            Ref: AdminEmail
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: FeedbackApi
+            Path: /avaliacao
+            Method: POST
+      LoggingConfig:
+        LogGroup:
+          Ref: ReceiveFeedbackLogGroup
+      Tags:
+        Environment:
+          Ref: Environment
+        Project: FIAP-Fase-4
+    Metadata:
+      SamResourceId: ReceiveFeedbackFunction
+  SendNotificationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${Environment}-send-notification
+      CodeUri: s3://fase-4-sam-artifacts-422648464291-us-east-1/a1f8d50dbb27683890a85d6c65a33cd4
+      Handler: com.fiap.notification.infra.handler.SendNotificationHandler
+      Role:
+        Fn::GetAtt:
+        - SendNotificationRole
+        - Arn
+      Environment:
+        Variables:
+          ADMIN_EMAIL:
+            Ref: AdminEmail
+      Events:
+        SnsEvent:
+          Type: SNS
+          Properties:
+            Topic:
+              Ref: FeedbackUrgentTopic
+      LoggingConfig:
+        LogGroup:
+          Ref: SendNotificationLogGroup
+      Tags:
+        Environment:
+          Ref: Environment
+        Project: FIAP-Fase-4
+    Metadata:
+      SamResourceId: SendNotificationFunction
+  GenerateReportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${Environment}-generate-report
+      CodeUri: s3://fase-4-sam-artifacts-422648464291-us-east-1/f93466308e4804127d0337ca3a9f0ce8
+      Handler: com.fiap.report.infra.handler.GenerateReportHandler
+      Role:
+        Fn::GetAtt:
+        - GenerateReportRole
+        - Arn
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: FeedbacksTable
+          ADMIN_EMAIL:
+            Ref: AdminEmail
+      Events:
+        ScheduledEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 8 ? * MON *)
+            Description: Trigger generate-report every Monday 8 AM UTC
+      LoggingConfig:
+        LogGroup:
+          Ref: GenerateReportLogGroup
+      Tags:
+        Environment:
+          Ref: Environment
+        Project: FIAP-Fase-4
+    Metadata:
+      SamResourceId: GenerateReportFunction
+  FeedbackApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name:
+        Fn::Sub: ${Environment}-feedback-api
+      StageName:
+        Ref: Environment
+      TracingEnabled: true
+      Tags:
+        Environment:
+          Ref: Environment
+        Project: FIAP-Fase-4
+    Metadata:
+      SamResourceId: FeedbackApi
+  ApiUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn:
+    - FeedbackApiStage
+    Properties:
+      UsagePlanName:
+        Fn::Sub: ${Environment}-feedback-usage-plan
+      Description: Usage plan for Feedback API
+      ApiStages:
+      - ApiId:
+          Ref: FeedbackApi
+        Stage:
+          Ref: Environment
+      Throttle:
+        BurstLimit: 100
+        RateLimit: 1000
+      Quota:
+        Limit: 10000
+        Period: DAY
+      Tags:
+      - Key: Environment
+        Value:
+          Ref: Environment
+    Metadata:
+      SamResourceId: ApiUsagePlan
+  ApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    DependsOn: ApiUsagePlan
+    Properties:
+      Name:
+        Fn::Sub: ${Environment}-feedback-api-key
+      Description: API Key for Feedback API
+      Enabled: true
+      Tags:
+      - Key: Environment
+        Value:
+          Ref: Environment
+    Metadata:
+      SamResourceId: ApiKey
+  UsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId:
+        Ref: ApiKey
+      KeyType: API_KEY
+      UsagePlanId:
+        Ref: ApiUsagePlan
+    Metadata:
+      SamResourceId: UsagePlanKey
+  ReceiveFeedbackApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Ref: ReceiveFeedbackFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:execute-api:${Region}:${AWS::AccountId}:${FeedbackApi}/*
+    Metadata:
+      SamResourceId: ReceiveFeedbackApiPermission
+  SendNotificationSnsPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Ref: SendNotificationFunction
+      Action: lambda:InvokeFunction
+      Principal: sns.amazonaws.com
+      SourceArn:
+        Ref: FeedbackUrgentTopic
+    Metadata:
+      SamResourceId: SendNotificationSnsPermission
+  GenerateReportEventBridgePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName:
+        Ref: GenerateReportFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:events:${Region}:${AWS::AccountId}:rule/${GenerateReportRule}
+    Metadata:
+      SamResourceId: GenerateReportEventBridgePermission
+  GenerateReportRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name:
+        Fn::Sub: ${Environment}-generate-report-schedule
+      ScheduleExpression: cron(0 8 ? * MON *)
+      State: ENABLED
+      Targets:
+      - Arn:
+          Fn::GetAtt:
+          - GenerateReportFunction
+          - Arn
+        Id: GenerateReportTarget
+    Metadata:
+      SamResourceId: GenerateReportRule
+Outputs:
+  ApiEndpoint:
+    Description: HTTP API endpoint URL for POST /avaliacao
+    Value:
+      Fn::Sub: https://${FeedbackApi}.execute-api.${Region}.amazonaws.com/${Environment}/avaliacao
+    Export:
+      Name:
+        Fn::Sub: ${Environment}-FeedbackApiEndpoint
+  ApiKey:
+    Description: API Key for accessing the Feedback API (keep secret)
+    Value:
+      Ref: ApiKey
+    Export:
+      Name:
+        Fn::Sub: ${Environment}-FeedbackApiKey
+  DynamoDBTableName:
+    Description: Name of the DynamoDB table for feedbacks
+    Value:
+      Ref: FeedbacksTable
+    Export:
+      Name:
+        Fn::Sub: ${Environment}-FeedbackTableName
+  SNSTopicArn:
+    Description: ARN of the SNS topic for urgent feedback notifications
+    Value:
+      Ref: FeedbackUrgentTopic
+    Export:
+      Name:
+        Fn::Sub: ${Environment}-FeedbackTopicArn
+  ReceiveFeedbackFunctionArn:
+    Description: ARN of ReceiveFeedbackFunction Lambda
+    Value:
+      Fn::GetAtt:
+      - ReceiveFeedbackFunction
+      - Arn
+    Export:
+      Name:
+        Fn::Sub: ${Environment}-ReceiveFeedbackFunctionArn
+  SendNotificationFunctionArn:
+    Description: ARN of SendNotificationFunction Lambda
+    Value:
+      Fn::GetAtt:
+      - SendNotificationFunction
+      - Arn
+    Export:
+      Name:
+        Fn::Sub: ${Environment}-SendNotificationFunctionArn
+  GenerateReportFunctionArn:
+    Description: ARN of GenerateReportFunction Lambda
+    Value:
+      Fn::GetAtt:
+      - GenerateReportFunction
+      - Arn
+    Export:
+      Name:
+        Fn::Sub: ${Environment}-GenerateReportFunctionArn
+  StackName:
+    Description: CloudFormation Stack Name
+    Value:
+      Fn::Sub: ${AWS::StackName}
+    Export:
+      Name:
+        Fn::Sub: ${Environment}-StackName

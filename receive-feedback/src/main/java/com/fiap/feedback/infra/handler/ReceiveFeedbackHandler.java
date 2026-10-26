@@ -5,13 +5,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import jakarta.validation.Validation;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -37,27 +36,62 @@ import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
  * - 400 Bad Request: validation failed or use case validation failed
  * - 500 Internal Server Error: unexpected server error
  */
-@ApplicationScoped
 public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final Logger LOGGER = Logger.getLogger(ReceiveFeedbackHandler.class.getName());
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final ReceiveFeedbackUseCase receiveFeedbackUseCase;
-    private final Validator validator;
+    // Static instance cache (singleton pattern, created lazily)
+    private static volatile ReceiveFeedbackUseCase cachedUseCase;
 
     /**
-     * Constructor for dependency injection.
-     * 
-     * @param receiveFeedbackUseCase the use case for processing feedback
-     * @param validator the Jakarta Bean Validator
+     * Default constructor for AWS Lambda runtime instantiation.
      */
-    @Inject
-    public ReceiveFeedbackHandler(
-            ReceiveFeedbackUseCase receiveFeedbackUseCase,
-            Validator validator) {
-        this.receiveFeedbackUseCase = receiveFeedbackUseCase;
-        this.validator = validator;
+    public ReceiveFeedbackHandler() {
+        // No-arg constructor required by Lambda runtime
+    }
+
+    /**
+     * Gets or initializes the use case service.
+     * Uses Quarkus Arc to access the CDI container with proper request scope.
+     */
+    private ReceiveFeedbackUseCase getUseCase() {
+        if (cachedUseCase != null) {
+            return cachedUseCase;
+        }
+        
+        try {
+            // Try to get from CDI container (works if Quarkus is properly initialized)
+            io.quarkus.arc.ArcContainer container = io.quarkus.arc.Arc.container();
+            if (container != null) {
+                cachedUseCase = container.instance(ReceiveFeedbackUseCase.class).get();
+                return cachedUseCase;
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.FINE, "CDI container not available: " + e.getMessage());
+        }
+        
+        // Fallback: should not happen if Quarkus is configured correctly
+        throw new RuntimeException("ReceiveFeedbackUseCase not available - CDI container not initialized");
+    }
+
+    /**
+     * Gets or initializes the validator (lazy initialization).
+     */
+    private Validator getValidator() {
+        try {
+            // Try to get from CDI container first
+            io.quarkus.arc.ArcContainer container = io.quarkus.arc.Arc.container();
+            if (container != null) {
+                return container.instance(Validator.class).get();
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.FINE, "Validator not available from CDI: " + e.getMessage());
+        }
+        
+        // Fallback: create directly
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        return factory.getValidator();
     }
 
     /**
@@ -95,13 +129,13 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             LOGGER.log(Level.FINE, "Request parsed successfully");
             
             // Validate input
-            var violations = validator.validate(input);
+            var violations = getValidator().validate(input);
             if (!violations.isEmpty()) {
                 return handleValidationViolations(violations);
             }
             
             // Call use case
-            Feedback feedback = receiveFeedbackUseCase.receiveFeedback(
+            Feedback feedback = getUseCase().receiveFeedback(
                 input.descricao(),
                 input.nota()
             );
