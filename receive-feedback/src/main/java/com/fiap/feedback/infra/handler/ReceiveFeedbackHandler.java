@@ -27,9 +27,7 @@ import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
 /**
  * AWS Lambda handler for receiving feedback via HTTP/API Gateway.
  * 
- * This handler accepts HTTP POST requests with a JSON body containing
- * feedback data, validates the input, processes it through the use case,
- * and returns an HTTP response in RFC 7807 format.
+ * NOTE: CDI initialization issue detected - see ServiceFactory for details.
  * 
  * Response codes:
  * - 201 Created: feedback successfully persisted
@@ -41,38 +39,11 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     private static final Logger LOGGER = Logger.getLogger(ReceiveFeedbackHandler.class.getName());
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    // Static instance cache (singleton pattern, created lazily)
-    private static volatile ReceiveFeedbackUseCase cachedUseCase;
-
     /**
      * Default constructor for AWS Lambda runtime instantiation.
      */
     public ReceiveFeedbackHandler() {
         // No-arg constructor required by Lambda runtime
-    }
-
-    /**
-     * Gets or initializes the use case service.
-     * Uses Quarkus Arc to access the CDI container with proper request scope.
-     */
-    private ReceiveFeedbackUseCase getUseCase() {
-        if (cachedUseCase != null) {
-            return cachedUseCase;
-        }
-        
-        try {
-            // Try to get from CDI container (works if Quarkus is properly initialized)
-            io.quarkus.arc.ArcContainer container = io.quarkus.arc.Arc.container();
-            if (container != null) {
-                cachedUseCase = container.instance(ReceiveFeedbackUseCase.class).get();
-                return cachedUseCase;
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.FINE, "CDI container not available: " + e.getMessage());
-        }
-        
-        // Fallback: should not happen if Quarkus is configured correctly
-        throw new RuntimeException("ReceiveFeedbackUseCase not available - CDI container not initialized");
     }
 
     /**
@@ -135,7 +106,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             }
             
             // Call use case
-            Feedback feedback = getUseCase().receiveFeedback(
+            Feedback feedback = ServiceFactory.getReceiveFeedbackUseCase().receiveFeedback(
                 input.descricao(),
                 input.nota()
             );
