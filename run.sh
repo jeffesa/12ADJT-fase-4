@@ -209,6 +209,107 @@ validate_sam() {
   ok "✅ Template SAM válido"
 }
 
+e2e_setup() {
+  info "\n🚀 E2E Setup: Starting LocalStack and verifying resources..."
+  
+  check_docker || return 1
+  check_docker_compose || return 1
+  
+  # Start LocalStack
+  run_docker || return 1
+  
+  # Wait for services to be ready
+  info "\n⏳ Waiting for DynamoDB, SNS, SES to be accessible..."
+  RETRY=0
+  until compose exec -T localstack awslocal dynamodb list-tables &>/dev/null 2>&1; do
+    RETRY=$((RETRY + 1))
+    if [ $RETRY -ge 60 ]; then
+      err "❌ AWS services not ready after 60s"
+      return 1
+    fi
+    echo -n "."
+    sleep 1
+  done
+  
+  ok "\n✅ AWS services are ready"
+  
+  # Verify SES domain (mock in LocalStack)
+  info "\n📧 Verifying SES email identities..."
+  for email in "noreply@feedback-fase-4.com" "admin@feedback-fase-4.com"; do
+    compose exec -T localstack awslocal ses verify-email-identity --email-address "$email" &>/dev/null 2>&1
+    ok "  ✅ Verified: $email"
+  done
+  
+  # Verify resources were created
+  info "\n📊 Verifying resources created by initialization..."
+  
+  # Check DynamoDB table
+  if compose exec -T localstack awslocal dynamodb describe-table --table-name feedbacks &>/dev/null 2>&1; then
+    ok "  ✅ DynamoDB table 'feedbacks' exists (hash: feedbackId, range: createdAt)"
+  else
+    err "  ❌ DynamoDB table 'feedbacks' not found"
+    return 1
+  fi
+  
+  # Check SNS topics
+  for topic in "feedback-urgent-topic" "feedback-report-topic"; do
+    if compose exec -T localstack awslocal sns list-topics 2>/dev/null | grep -q "$topic"; then
+      ok "  ✅ SNS topic '$topic' exists"
+    else
+      err "  ❌ SNS topic '$topic' not found"
+      return 1
+    fi
+  done
+  
+  # Check SQS queues
+  for queue in "notification-queue" "report-queue"; do
+    if compose exec -T localstack awslocal sqs list-queues 2>/dev/null | grep -q "$queue"; then
+      ok "  ✅ SQS queue '$queue' exists"
+    else
+      err "  ❌ SQS queue '$queue' not found"
+      return 1
+    fi
+  done
+  
+  ok "\n✅ E2E Setup completed successfully!"
+  info "\n📝 Next steps:"
+  info "   Terminal 1: cd receive-feedback && mvn quarkus:dev"
+  info "   Terminal 2: cd send-notification && mvn quarkus:dev"
+  info "   Terminal 3: cd generate-report && mvn quarkus:dev"
+  info "   Then run: ./run.sh e2e-test"
+}
+
+e2e_test() {
+  info "\n🧪 E2E Test: Running all three feedback flows..."
+  
+  if ! command -v curl &>/dev/null; then
+    err "❌ curl is required for E2E tests"
+    return 1
+  fi
+  
+  # Run the e2e test script
+  if [ -f "./e2e-test.sh" ]; then
+    bash ./e2e-test.sh
+    return $?
+  else
+    err "❌ e2e-test.sh not found"
+    return 1
+  fi
+}
+
+e2e_verify() {
+  info "\n✅ E2E Verify: Checking test results and collecting evidence..."
+  
+  # Run the e2e verification script
+  if [ -f "./e2e-verify.sh" ]; then
+    bash ./e2e-verify.sh
+    return $?
+  else
+    err "❌ e2e-verify.sh not found"
+    return 1
+  fi
+}
+
 # ─── Menu interativo ───────────────────────────────────────────
 
 show_menu() {
@@ -228,6 +329,10 @@ show_menu() {
   echo "  8) Listar recursos (DynamoDB, SNS, SQS)"
   echo "  9) Validar SAM template (sam validate)"
   echo ""
+  echo "  11) E2E Setup: Start LocalStack and verify resources"
+  echo "  12) E2E Test: Run all three feedback flows"
+  echo "  13) E2E Verify: Check results and collect evidence"
+  echo ""
   echo "  0) Sair"
   echo ""
   read -r -p "Escolha uma opção: " option
@@ -241,6 +346,9 @@ show_menu() {
     7) health_check && show_menu ;;
     8) list_resources && show_menu ;;
     9) validate_sam && show_menu ;;
+    11) e2e_setup && show_menu ;;
+    12) e2e_test && show_menu ;;
+    13) e2e_verify && show_menu ;;
     0) echo "👋 Até mais!" && exit 0 ;;
     *) err "❌ Opção inválida." && show_menu ;;
   esac
@@ -259,7 +367,10 @@ if [ -n "$1" ]; then
     health)         health_check ;;
     resources)      list_resources ;;
     sam-validate)   validate_sam ;;
-    *)              echo "Uso: ./run.sh [docker|stop|tests|compile|clean|logs|health|resources|sam-validate]" ;;
+    e2e-setup)      e2e_setup ;;
+    e2e-test)       e2e_test ;;
+    e2e-verify)     e2e_verify ;;
+    *)              echo "Uso: ./run.sh [docker|stop|tests|compile|clean|logs|health|resources|sam-validate|e2e-setup|e2e-test|e2e-verify]" ;;
   esac
 else
   show_menu

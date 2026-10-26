@@ -45,4 +45,13 @@ awslocal sqs create-queue \
   --queue-name report-queue \
   --region us-east-1 || echo "Queue report-queue may already exist"
 
+echo "=== Verificando SES Email Identities ==="
+awslocal ses verify-email-identity \
+  --email-address noreply@feedback-fase-4.com \
+  --region us-east-1 || echo "Email noreply@feedback-fase-4.com may already be verified"
+
+awslocal ses verify-email-identity \
+  --email-address admin@feedback-fase-4.com \
+  --region us-east-1 || echo "Email admin@feedback-fase-4.com may already be verified"
+
 echo "=== LocalStack Init: Recursos criados com sucesso ==="
