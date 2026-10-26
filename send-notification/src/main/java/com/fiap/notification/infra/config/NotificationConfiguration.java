@@ -33,13 +33,13 @@ public interface NotificationConfiguration {
      * Sender email address (From field in SES).
      *
      * This is the email address that appears as the sender in notifications.
-     * Default: noreply@feedback-platform.com
+     * Default: noreply@feedback-fase-4.com
      * Override via: SENDER_EMAIL environment variable
      *
      * @return the sender email address
      */
     @WithName("sender-email")
-    @WithDefault("noreply@feedback-platform.com")
+    @WithDefault("noreply@feedback-fase-4.com")
     String senderEmail();
 
     /**
@@ -47,13 +47,13 @@ public interface NotificationConfiguration {
      *
      * This is the default recipient email address for notifications when
      * the notification does not specify a custom admin email.
-     * Default: admin@feedback-platform.com
+     * Default: admin@feedback-fase-4.com
      * Override via: ADMIN_EMAIL environment variable
      *
      * @return the admin email address
      */
     @WithName("admin-email")
-    @WithDefault("admin@feedback-platform.com")
+    @WithDefault("admin@feedback-fase-4.com")
     String adminEmail();
 
     /**

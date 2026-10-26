@@ -30,13 +30,13 @@ public interface ReportConfiguration {
      * Administrator email address (To field in SES).
      *
      * This is the email address where weekly feedback reports are sent.
-     * Default: admin@feedback-platform.com
+     * Default: admin@feedback-fase-4.com
      * Override via: ADMIN_EMAIL environment variable
      *
      * @return the administrator email address
      */
     @WithName("admin-email")
-    @WithDefault("admin@feedback-platform.com")
+    @WithDefault("admin@feedback-fase-4.com")
     String adminEmail();
 
     /**
@@ -44,13 +44,13 @@ public interface ReportConfiguration {
      *
      * This is the email address that appears as the sender in report emails.
      * Must be a verified sender identity in AWS SES.
-     * Default: noreply@feedback-platform.com
+     * Default: noreply@feedback-fase-4.com
      * Override via: SENDER_EMAIL environment variable
      *
      * @return the sender email address
      */
     @WithName("sender-email")
-    @WithDefault("noreply@feedback-platform.com")
+    @WithDefault("noreply@feedback-fase-4.com")
     String senderEmail();
 
     /**

@@ -71,12 +71,12 @@ class SesNotificationSenderTest {
     static class TestNotificationConfiguration implements NotificationConfiguration {
         @Override
         public String senderEmail() {
-            return "noreply@feedback-platform.com";
+            return "noreply@feedback-fase-4.com";
         }
 
         @Override
         public String adminEmail() {
-            return "admin@feedback-platform.com";
+            return "admin@feedback-fase-4.com";
         }
 
         @Override
@@ -160,7 +160,7 @@ class SesNotificationSenderTest {
 
         // Assert: Source is set to sender email from config
         SendEmailRequest request = mockSesClient.lastRequest.get();
-        assertEquals("noreply@feedback-platform.com", request.source());
+        assertEquals("noreply@feedback-fase-4.com", request.source());
     }
 
     @Test

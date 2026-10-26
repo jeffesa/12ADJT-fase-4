@@ -18,26 +18,26 @@ class NotificationConfigurationTest {
     void testSenderEmailDefaultValue() {
         // Arrange
         NotificationConfiguration config = mock(NotificationConfiguration.class);
-        when(config.senderEmail()).thenReturn("noreply@feedback-platform.com");
+        when(config.senderEmail()).thenReturn("noreply@feedback-fase-4.com");
 
         // Act
         String senderEmail = config.senderEmail();
 
         // Assert
-        assertEquals("noreply@feedback-platform.com", senderEmail);
+        assertEquals("noreply@feedback-fase-4.com", senderEmail);
     }
 
     @Test
     void testAdminEmailDefaultValue() {
         // Arrange
         NotificationConfiguration config = mock(NotificationConfiguration.class);
-        when(config.adminEmail()).thenReturn("admin@feedback-platform.com");
+        when(config.adminEmail()).thenReturn("admin@feedback-fase-4.com");
 
         // Act
         String adminEmail = config.adminEmail();
 
         // Assert
-        assertEquals("admin@feedback-platform.com", adminEmail);
+        assertEquals("admin@feedback-fase-4.com", adminEmail);
     }
 
     @Test
@@ -156,7 +156,7 @@ class NotificationConfigurationTest {
     void testSenderEmailIsNotEmpty() {
         // Arrange
         NotificationConfiguration config = mock(NotificationConfiguration.class);
-        when(config.senderEmail()).thenReturn("noreply@feedback-platform.com");
+        when(config.senderEmail()).thenReturn("noreply@feedback-fase-4.com");
 
         // Act
         String senderEmail = config.senderEmail();
@@ -171,7 +171,7 @@ class NotificationConfigurationTest {
     void testAdminEmailIsNotEmpty() {
         // Arrange
         NotificationConfiguration config = mock(NotificationConfiguration.class);
-        when(config.adminEmail()).thenReturn("admin@feedback-platform.com");
+        when(config.adminEmail()).thenReturn("admin@feedback-fase-4.com");
 
         // Act
         String adminEmail = config.adminEmail();
