@@ -48,3 +48,4 @@ logs/
 
 # Kiro agent internal files
 .agents/
+.worktrees/
