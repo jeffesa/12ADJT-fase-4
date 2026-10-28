@@ -55,12 +55,14 @@ jobs:
         if: always()
 
       # Análise SonarCloud (Java 21 necessário para o scanner v4.x+)
+      # Note: Desabilitado -Dsonar.qualitygate.wait=true temporariamente para diagnóstico
+      # O SonarCloud agora com Automatic Analysis desabilitado deve processar a análise corretamente
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JAVA_HOME: ${{ env.JAVA_HOME_21_X64 }}
-        run: mvn -B sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.qualitygate.wait=true
+        run: mvn -B sonar:sonar -Dsonar.host.url=https://sonarcloud.io
 
       # Log de conclusão
       - name: Build Status
