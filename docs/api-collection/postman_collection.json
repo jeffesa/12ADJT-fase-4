@@ -1,0 +1,309 @@
+{
+  "info": {
+    "name": "Receive Feedback GraphQL API",
+    "description": "Collection for testing the Receive Feedback GraphQL API with mutations and queries for feedback management.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Mutations",
+      "description": "GraphQL mutations for creating feedback",
+      "item": [
+        {
+          "name": "Create HIGH Urgency Feedback (Rating 4)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  receiveFeedback(input: {\n    descricao: \"Bad experience with the service\"\n    nota: 4\n  }) {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}",
+                "variables": {}
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "protocol": "http",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Creates a feedback with HIGH urgency (rating 0-5 range). Rating 4 will be classified as HIGH urgency."
+          }
+        },
+        {
+          "name": "Create MEDIUM Urgency Feedback (Rating 6)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  receiveFeedback(input: {\n    descricao: \"Okay service overall\"\n    nota: 6\n  }) {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}",
+                "variables": {}
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "protocol": "http",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Creates a feedback with MEDIUM urgency (rating 6-7 range). Rating 6 will be classified as MEDIUM urgency."
+          }
+        },
+        {
+          "name": "Create LOW Urgency Feedback (Rating 9)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  receiveFeedback(input: {\n    descricao: \"Excellent service quality\"\n    nota: 9\n  }) {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}",
+                "variables": {}
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "protocol": "http",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Creates a feedback with LOW urgency (rating 8-10 range). Rating 9 will be classified as LOW urgency."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Queries",
+      "description": "GraphQL queries for retrieving feedback",
+      "item": [
+        {
+          "name": "List All Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}",
+                "variables": {}
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "protocol": "http",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Retrieves all feedback entries from the system. Returns a list of feedback objects with their complete details."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "description": "Error scenario requests for validation testing",
+      "item": [
+        {
+          "name": "Missing API Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}",
+                "variables": {}
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "protocol": "http",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Test error handling when the x-api-key header is missing. Should return 401 Unauthorized."
+          }
+        },
+        {
+          "name": "Invalid Input - Empty Description",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  receiveFeedback(input: {\n    descricao: \"\"\n    nota: 5\n  }) {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}",
+                "variables": {}
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "protocol": "http",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Test validation error when description is empty. Should return validation error as per ConstraintViolation."
+          }
+        },
+        {
+          "name": "Invalid Input - Rating Below Minimum",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  receiveFeedback(input: {\n    descricao: \"Invalid feedback\"\n    nota: -1\n  }) {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}",
+                "variables": {}
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "protocol": "http",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Test validation error when rating is below the minimum value (0). Should return validation error."
+          }
+        },
+        {
+          "name": "Invalid Input - Rating Above Maximum",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  receiveFeedback(input: {\n    descricao: \"Invalid feedback\"\n    nota: 11\n  }) {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}",
+                "variables": {}
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "protocol": "http",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Test validation error when rating exceeds the maximum value (10). Should return validation error."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "localhost:8080",
+      "type": "string",
+      "description": "Base URL of the Receive Feedback GraphQL API service"
+    },
+    {
+      "key": "apiKey",
+      "value": "",
+      "type": "string",
+      "description": "API key for x-api-key header authentication. Must be set before running requests."
+    }
+  ]
+}
