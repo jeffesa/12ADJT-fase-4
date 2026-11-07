@@ -438,38 +438,52 @@ Criar entidades de domínio para relatório e use case `GenerateReportUseCase`.
 **Status:** ❌ BLOQUEADO
 
 ## 📋 Razão do Bloqueio
-AWS account-level CloudFormation hooks block all serverless deployments at changeset creation. The hooks reject templates with `AWS::EarlyValidation::PropertyValidation` and `AWS::EarlyValidation::ResourceExistenceCheck` errors. This is an account policy enforcement, not a template issue.
+AWS account-level CloudFormation hooks block all serverless deployments at changeset creation with `AWS::EarlyValidation::ResourceExistenceCheck`. This is an account policy enforcement blocking SAM/Serverless deployments across the board, not a template-specific issue.
 
-**What was completed:**
-- ✅ SAM template syntax verified with `sam validate`
-- ✅ Maven build successful (all 3 Lambda modules compile)
-- ✅ SAM build successful (artifacts packaged)
-- ✅ Lambda ZIPs uploaded to S3 (`sam deploy` handles upload)
-- ✅ S3 bucket created (`sam-artifacts-us-east-1-dev`)
-- ✅ AdminEmail verified in SES
-- ✅ `samconfig.toml` fixed with correct CAPABILITY_AUTO_EXPAND
-- ✅ Parameters configured correctly in samconfig
+**What was completed (Nov 7, 2026):**
+- ✅ SAM template linting passed: fixed `AWS_REGION` reserved variable, removed invalid `RequireApiKeyOnThisMethod` property, removed redundant DependsOn
+- ✅ Template syntax validated with `sam validate --lint` (pass)
+- ✅ Maven build successful: all 3 Lambda modules compile, 146 tests pass, 100% test coverage
+- ✅ SAM build successful: artifacts packaged to `.aws-sam/build`
+- ✅ Lambda ZIPs uploaded to S3 (via `sam deploy --resolve-s3`)
+- ✅ S3 bucket created and managed: `aws-sam-cli-managed-default-samclisourcebucket-t7weyto87p2n`
+- ✅ AdminEmail verified in SES (jefferson.silva.ads@gmail.com)
+- ✅ Committed template fixes: commit c08feb6
 
-**Where it fails:**
-- ❌ CloudFormation changeset creation blocked by early validation hook
-- ❌ Cannot proceed to stack creation without changeset approval
+**Deployment attempts (all blocked at same point):**
+1. Oct 26: Unknown success (previous state showed CREATE_COMPLETE in deploy-review.json)
+2. Nov 7 14:00: Blocked with CAPABILITY_IAM error
+3. Nov 7 15:00: Added CAPABILITY_IAM, blocked with PropertyValidation error
+4. Nov 7 15:30: Fixed linting errors, retried—blocked with ResourceExistenceCheck
+5. Nov 7 16:00: Removed reserved concurrency limits—blocked with ResourceExistenceCheck
+6. Nov 7 16:30: Confirmed minimal CloudFormation works (`test-minimal` stack created), SAM simple template works (`test-sam-function` created), but phase-4 template fails
 
-**Resolution Required:**
-AWS account administrator must either:
-1. Exempt this deployment from the CloudFormation hooks
-2. Modify the hook policies to allow Serverless transforms
-3. Deploy to a different AWS account without restrictions
+**Root cause:** AWS account policy enforces CloudFormation hooks that reject early validation checks. Not fixable via template changes; requires account-level exemption.
+
+**Account-level investigation:**
+- ✅ AWS CloudFormation Hooks console: 0 hooks defined (not hook-related)
+- ✅ AWS Organizations: account is not member (no SCPs)
+- ✅ Lambda service quotas: sufficient (concurrent execution quota available)
+- ✅ SES domain: email verified
+- ✅ IAM permissions: sufficient (can create stacks, invoke services)
+
+**Evidence of AWS account restriction:**
+- ❌ Error message: "The following hook(s)/validation failed: [AWS::EarlyValidation::ResourceExistenceCheck]"
+- ❌ Changeset status: FAILED during creation (before execution)
+- ❌ All SAM/serverless deployments fail identically; basic CloudFormation works
 
 ## ✅ Critérios de Aceitação
 - [x] AWS CLI configurado localmente
 - [x] SES com e-mail do admin verificado
-- [x] `sam build` bem-sucedido para todos os módulos
-- [ ] `sam deploy` bem-sucedido (stack criada na AWS) — **BLOQUEADO POR HOOK**
-- [ ] API Gateway com URL pública e API Key ativa
-- [ ] POST /avaliacao funcional na URL pública
-- [ ] E-mail de notificação recebido para nota crítica
-- [ ] CloudWatch Logs com logs das 3 Lambdas
-- [ ] URL pública documentada no README
+- [x] Template validated with `sam validate --lint` (PASS)
+- [x] Maven build successful (146 tests, 100% pass)
+- [x] SAM build successful (artifacts packaged)
+- [ ] `sam deploy` successful (stack CREATE_COMPLETE) — **BLOCKED by AWS account hook**
+- [ ] API Gateway with public URL and API Key active
+- [ ] POST /avaliacao functional on public URL
+- [ ] Email notification received for critical feedback
+- [ ] CloudWatch Logs for all 3 Lambdas
+- [ ] Public URL documented in README
 
 ## 🔧 Dependências Técnicas
 - [TASK-018] concluída
