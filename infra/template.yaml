@@ -317,7 +317,7 @@ Resources:
   ApiUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
     DependsOn:
-      - FeedbackApiStage
+      - FeedbackApi
     Properties:
       UsagePlanName: !Sub '${Environment}-feedback-usage-plan'
       Description: 'Usage plan for Feedback API'
@@ -353,24 +353,6 @@ Resources:
       KeyId: !Ref ApiKey
       KeyType: API_KEY
       UsagePlanId: !Ref ApiUsagePlan
-
-  #========================================
-  # API GATEWAY STAGE (if not created implicitly)
-  #========================================
-  FeedbackApiStage:
-    Type: AWS::ApiGateway::Stage
-    Properties:
-      ApiId: !Ref FeedbackApi
-      DeploymentId: !Ref FeedbackApiDeployment
-      StageName: !Ref Environment
-      TracingEnabled: true
-
-  FeedbackApiDeployment:
-    Type: AWS::ApiGateway::Deployment
-    DependsOn:
-      - ReceiveFeedbackFunction
-    Properties:
-      RestApiId: !Ref FeedbackApi
 
   # Grant Lambda permission to be invoked by API Gateway
   ReceiveFeedbackApiPermission:
