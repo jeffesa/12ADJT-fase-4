@@ -13,6 +13,7 @@
 
 **Labels:** `priority: high`, `épico: setup`, `pontos: 5`, `type: infra`
 **Milestone:** Sprint 1 - Fundação
+**Status:** ✅ CONCLUÍDA
 
 ## 📋 Descrição
 Configurar o projeto Maven multi-module com parent POM e 3 módulos filhos (receive-feedback, send-notification, generate-report). Cada módulo é uma função Lambda independente com Quarkus 3.8.x e Java 17.
@@ -57,7 +58,7 @@ Organizar pacotes seguindo Clean Architecture em cada módulo Lambda, reutilizan
 
 ---
 
-### ✅ TASK-003: Configurar docker-compose com LocalStack — **DONE**
+### ✅ TASK-003: Configurar docker-compose com LocalStack — **CONCLUÍDA**
 
 **Labels:** `priority: high`, `épico: setup`, `pontos: 4`, `type: infra`
 **Milestone:** Sprint 1 - Fundação
@@ -80,7 +81,7 @@ Criar docker-compose.yml na raiz com LocalStack para simular os serviços AWS lo
 
 ---
 
-### ✅ TASK-004: Configurar AWS SAM (template.yaml e samconfig.toml) — **DONE**
+### ✅ TASK-004: Configurar AWS SAM (template.yaml e samconfig.toml) — **CONCLUÍDA**
 
 **Labels:** `priority: high`, `épico: setup`, `pontos: 5`, `type: infra`
 **Milestone:** Sprint 1 - Fundação
@@ -474,6 +475,7 @@ Criar entidades de domínio para relatório e use case `GenerateReportUseCase`.
 
 **Labels:** `priority: high`, `épico: documentação`, `pontos: 3`, `type: docs`
 **Milestone:** Sprint 6 - Finalização
+**Status:** ✅ CONCLUÍDA
 
 ## ✅ Critérios de Aceitação
 - [ ] Descrição do projeto e objetivo
@@ -631,6 +633,8 @@ Documentar todas as decisões de segurança, configuração de IAM, governança 
 
 **Labels:** `priority: medium`, `épico: tooling`, `pontos: 3`, `type: infra`
 **Milestone:** Sprint 6 - Finalização
+**Status:** ✅ CONCLUÍDA
+
 
 ## � Descrição
 Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao desenvolvedor executar operações comuns sem memorizar comandos: subir/parar LocalStack, compilar, rodar testes, verificar saúde dos serviços, ver logs, etc.
