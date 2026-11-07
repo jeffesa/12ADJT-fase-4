@@ -216,7 +216,6 @@ Resources:
       CodeUri: ../receive-feedback/target/function.zip
       Handler: com.fiap.feedback.infra.handler.ReceiveFeedbackHandler
       Role: !GetAtt ReceiveFeedbackRole.Arn
-      ReservedConcurrentExecutions: 10
       # Environment variables specific to this Lambda
       Environment:
         Variables:
@@ -246,7 +245,6 @@ Resources:
       CodeUri: ../send-notification/target/function.zip
       Handler: com.fiap.notification.infra.handler.SendNotificationHandler
       Role: !GetAtt SendNotificationRole.Arn
-      ReservedConcurrentExecutions: 10
       # Environment variables specific to this Lambda
       Environment:
         Variables:
@@ -272,7 +270,6 @@ Resources:
       CodeUri: ../generate-report/target/function.zip
       Handler: com.fiap.report.infra.handler.GenerateReportHandler
       Role: !GetAtt GenerateReportRole.Arn
-      ReservedConcurrentExecutions: 1
       # Environment variables specific to this Lambda
       Environment:
         Variables:
