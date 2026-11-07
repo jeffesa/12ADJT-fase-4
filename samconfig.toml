@@ -1,0 +1,9 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "fase-4-feedback-prod"
+s3_prefix = "fase-4-artifacts"
+region = "us-east-1"
+confirm_changeset = false
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND"
+parameter_overrides = "Environment=prod AdminEmail=jeffesa@gmail.com Region=us-east-1"

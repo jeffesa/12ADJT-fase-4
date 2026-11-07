@@ -311,6 +311,7 @@ Resources:
   #========================================
   ApiUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
+    DependsOn: FeedbackApi
     Properties:
       UsagePlanName: !Sub '${Environment}-feedback-usage-plan'
       Description: 'Usage plan for Feedback API'
@@ -329,6 +330,7 @@ Resources:
 
   ApiKey:
     Type: AWS::ApiGateway::ApiKey
+    DependsOn: ApiUsagePlan
     Properties:
       Name: !Sub '${Environment}-feedback-api-key'
       Description: 'API Key for Feedback API'
