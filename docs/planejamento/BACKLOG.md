@@ -435,12 +435,36 @@ Criar entidades de domínio para relatório e use case `GenerateReportUseCase`.
 
 **Labels:** `priority: high`, `épico: integração`, `pontos: 5`, `type: infra`
 **Milestone:** Sprint 5 - Integração
+**Status:** ❌ BLOQUEADO
+
+## 📋 Razão do Bloqueio
+AWS account-level CloudFormation hooks block all serverless deployments at changeset creation. The hooks reject templates with `AWS::EarlyValidation::PropertyValidation` and `AWS::EarlyValidation::ResourceExistenceCheck` errors. This is an account policy enforcement, not a template issue.
+
+**What was completed:**
+- ✅ SAM template syntax verified with `sam validate`
+- ✅ Maven build successful (all 3 Lambda modules compile)
+- ✅ SAM build successful (artifacts packaged)
+- ✅ Lambda ZIPs uploaded to S3 (`sam deploy` handles upload)
+- ✅ S3 bucket created (`sam-artifacts-us-east-1-dev`)
+- ✅ AdminEmail verified in SES
+- ✅ `samconfig.toml` fixed with correct CAPABILITY_AUTO_EXPAND
+- ✅ Parameters configured correctly in samconfig
+
+**Where it fails:**
+- ❌ CloudFormation changeset creation blocked by early validation hook
+- ❌ Cannot proceed to stack creation without changeset approval
+
+**Resolution Required:**
+AWS account administrator must either:
+1. Exempt this deployment from the CloudFormation hooks
+2. Modify the hook policies to allow Serverless transforms
+3. Deploy to a different AWS account without restrictions
 
 ## ✅ Critérios de Aceitação
-- [ ] AWS CLI configurado localmente
-- [ ] SES com e-mail do admin verificado
-- [ ] `sam build` bem-sucedido para todos os módulos
-- [ ] `sam deploy` bem-sucedido (stack criada na AWS)
+- [x] AWS CLI configurado localmente
+- [x] SES com e-mail do admin verificado
+- [x] `sam build` bem-sucedido para todos os módulos
+- [ ] `sam deploy` bem-sucedido (stack criada na AWS) — **BLOQUEADO POR HOOK**
 - [ ] API Gateway com URL pública e API Key ativa
 - [ ] POST /avaliacao funcional na URL pública
 - [ ] E-mail de notificação recebido para nota crítica
