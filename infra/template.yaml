@@ -37,7 +37,7 @@ Globals:
     # Environment variables shared by all Lambdas (can be overridden per function)
     Environment:
       Variables:
-        AWS_REGION: !Ref Region
+        APP_REGION: !Ref Region
 
 #========================================
 # RESOURCES
@@ -299,14 +299,12 @@ Resources:
       Name: !Sub '${Environment}-feedback-api'
       StageName: !Ref Environment
       TracingEnabled: true
-      # Enable API Key requirement at stage level
       MethodSettings:
         - ResourcePath: '/avaliacao'
           HttpMethod: POST
           LoggingLevel: INFO
           DataTraceEnabled: true
           MetricsEnabled: true
-          RequireApiKeyOnThisMethod: true
       Tags:
         Environment: !Ref Environment
         Project: FIAP-Fase-4
@@ -316,8 +314,6 @@ Resources:
   #========================================
   ApiUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
-    DependsOn:
-      - FeedbackApi
     Properties:
       UsagePlanName: !Sub '${Environment}-feedback-usage-plan'
       Description: 'Usage plan for Feedback API'
