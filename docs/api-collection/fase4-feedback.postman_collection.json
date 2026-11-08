@@ -1053,7 +1053,7 @@
     },
     {
       "key": "baseUrl",
-      "value": "",
+      "value": "http://localhost:4566",
       "type": "string"
     },
     {
