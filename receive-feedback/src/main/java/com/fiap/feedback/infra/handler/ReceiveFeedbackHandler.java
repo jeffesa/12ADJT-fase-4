@@ -5,17 +5,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
-import jakarta.validation.Validation;
-
-import io.quarkus.arc.Arc;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -32,55 +27,28 @@ import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
 /**
  * AWS Lambda handler for receiving feedback via HTTP/API Gateway.
  * 
- * This handler accepts HTTP POST requests with a JSON body containing
- * feedback data, validates the input, processes it through the use case,
- * and returns an HTTP response in RFC 7807 format.
+ * This is a Quarkus CDI bean (named "receiveFeedback") that Lambda invokes through
+ * QuarkusStreamHandler. The Quarkus entry point (QuarkusStreamHandler::handleRequest)
+ * ensures Arc CDI is fully initialized before delegating to this handler.
+ * 
+ * All @Inject fields are guaranteed to be available at invocation time.
  * 
  * Response codes:
  * - 201 Created: feedback successfully persisted
  * - 400 Bad Request: validation failed or use case validation failed
  * - 500 Internal Server Error: unexpected server error
- * 
- * Note: NOT marked as @ApplicationScoped so Lambda can call it directly.
- * This class accesses CDI beans via Arc when needed.
  */
+@Named("receiveFeedback")
 public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final Logger LOGGER = Logger.getLogger(ReceiveFeedbackHandler.class.getName());
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+    @Inject
     private ReceiveFeedbackUseCase receiveFeedbackUseCase;
+
+    @Inject
     private Validator validator;
-
-    // Static field set during Quarkus startup
-    private static ReceiveFeedbackUseCase STATIC_USE_CASE_INSTANCE = null;
-    
-    /**
-     * Set by LambdaStartupHandler when Quarkus application starts.
-     */
-    static void setStaticUseCase(ReceiveFeedbackUseCase useCase) {
-        STATIC_USE_CASE_INSTANCE = useCase;
-    }
-
-    /**
-     * Constructor for direct instantiation (not CDI-managed).
-     * 
-     * @param receiveFeedbackUseCase the use case for processing feedback
-     */
-    public ReceiveFeedbackHandler(ReceiveFeedbackUseCase receiveFeedbackUseCase) {
-        this.receiveFeedbackUseCase = receiveFeedbackUseCase;
-        // Create validator manually
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-        this.validator = factory.getValidator();
-    }
-
-    /**
-     * No-arg constructor required for Lambda reflection-based instantiation.
-     */
-    public ReceiveFeedbackHandler() {
-        this.receiveFeedbackUseCase = null;
-        this.validator = null;
-    }
 
     @Override
     public APIGatewayProxyResponseEvent handleRequest(
@@ -91,14 +59,11 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         LOGGER.log(Level.FINE, "Request method: " + event.getHttpMethod() + ", path: " + event.getPath());
         
         try {
-            // Initialize dependencies if not already set (happens when no-arg constructor is called)
-            initializeDependencies();
-            
             if (receiveFeedbackUseCase == null) {
-                throw new IllegalStateException("ReceiveFeedbackUseCase could not be initialized");
+                throw new IllegalStateException("ReceiveFeedbackUseCase not injected - Arc CDI bootstrap failed");
             }
             if (validator == null) {
-                throw new IllegalStateException("Validator could not be initialized");
+                throw new IllegalStateException("Validator not injected - Arc CDI bootstrap failed");
             }
             
             // Parse request body
@@ -150,38 +115,6 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             LOGGER.log(Level.SEVERE, "Unexpected error in handler", e);
             e.printStackTrace();
             return internalServerError();
-        }
-    }
-
-    /**
-     * Initializes dependencies from static Quarkus startup state or Arc container.
-     */
-    private void initializeDependencies() {
-        // Initialize validator if needed
-        if (validator == null) {
-            ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-            validator = factory.getValidator();
-        }
-        
-        // Try to use the static instance first (set by LambdaStartupHandler)
-        if (receiveFeedbackUseCase == null && STATIC_USE_CASE_INSTANCE != null) {
-            receiveFeedbackUseCase = STATIC_USE_CASE_INSTANCE;
-            LOGGER.log(Level.FINE, "ReceiveFeedbackUseCase retrieved from static startup instance");
-            return;
-        }
-        
-        // Fallback: try Arc CDI container
-        if (receiveFeedbackUseCase == null) {
-            try {
-                if (Arc.container() != null && Arc.container().isRunning()) {
-                    receiveFeedbackUseCase = Arc.container().instance(ReceiveFeedbackUseCase.class).get();
-                    if (receiveFeedbackUseCase != null) {
-                        LOGGER.log(Level.FINE, "ReceiveFeedbackUseCase retrieved from Arc container");
-                    }
-                }
-            } catch (Exception e) {
-                LOGGER.log(Level.FINE, "Could not retrieve from Arc: " + e.getMessage());
-            }
         }
     }
 

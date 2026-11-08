@@ -25,9 +25,9 @@ public class LambdaStartupHandler {
     ReceiveFeedbackUseCase receiveFeedbackUseCase;
     
     void onStart(@Observes StartupEvent ev, ReceiveFeedbackUseCase useCase) {
-        // Store in ReceiveFeedbackHandler's static field so no-arg constructor can use it
-        LOGGER.log(Level.INFO, "Quarkus application started - initializing Lambda handler");
-        ReceiveFeedbackHandler.setStaticUseCase(useCase);
-        LOGGER.log(Level.INFO, "Lambda handler initialized with ReceiveFeedbackUseCase");
+        // Cache in HandlerFactory so no-arg constructor can use it
+        LOGGER.log(Level.INFO, "Quarkus application started - caching ReceiveFeedbackUseCase in HandlerFactory");
+        HandlerFactory.setReceiveFeedbackUseCase(useCase);
+        LOGGER.log(Level.INFO, "Lambda handler ReceiveFeedbackUseCase cached");
     }
 }

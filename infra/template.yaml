@@ -214,11 +214,13 @@ Resources:
     Properties:
       FunctionName: !Sub '${Environment}-receive-feedback'
       CodeUri: ../receive-feedback/target/function.zip
-      Handler: com.fiap.feedback.infra.handler.ReceiveFeedbackHandler
+      Handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
       Role: !GetAtt ReceiveFeedbackRole.Arn
       # Environment variables specific to this Lambda
       Environment:
         Variables:
+          QUARKUS_PROFILE: prod
+          QUARKUS_LAMBDA_HANDLER: receiveFeedback
           TABLE_NAME: !Ref FeedbacksTable
           FEEDBACK_TOPIC_ARN: !Ref FeedbackUrgentTopic
           ADMIN_EMAIL: !Ref AdminEmail
@@ -243,11 +245,13 @@ Resources:
     Properties:
       FunctionName: !Sub '${Environment}-send-notification'
       CodeUri: ../send-notification/target/function.zip
-      Handler: com.fiap.notification.infra.handler.SendNotificationHandler
+      Handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
       Role: !GetAtt SendNotificationRole.Arn
       # Environment variables specific to this Lambda
       Environment:
         Variables:
+          QUARKUS_PROFILE: prod
+          QUARKUS_LAMBDA_HANDLER: sendNotification
           ADMIN_EMAIL: !Ref AdminEmail
       Events:
         SnsEvent:
@@ -268,11 +272,13 @@ Resources:
     Properties:
       FunctionName: !Sub '${Environment}-generate-report'
       CodeUri: ../generate-report/target/function.zip
-      Handler: com.fiap.report.infra.handler.GenerateReportHandler
+      Handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
       Role: !GetAtt GenerateReportRole.Arn
       # Environment variables specific to this Lambda
       Environment:
         Variables:
+          QUARKUS_PROFILE: prod
+          QUARKUS_LAMBDA_HANDLER: generateReport
           TABLE_NAME: !Ref FeedbacksTable
           ADMIN_EMAIL: !Ref AdminEmail
       Events:

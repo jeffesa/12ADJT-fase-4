@@ -81,40 +81,36 @@ aws:
 # Development Profile (LocalStack)
 quarkus:
   profile: dev
-
-quarkus.dynamodb:
-  endpoint-override: http://localhost:4566
-  aws:
-    region: us-east-1
-    credentials:
-      type: static
-      static-provider:
-        access-key-id: test
-        secret-access-key: test
-
-quarkus.sns:
-  endpoint-override: http://localhost:4566
-  aws:
-    region: us-east-1
-    credentials:
-      type: static
-      static-provider:
-        access-key-id: test
-        secret-access-key: test
+  dynamodb:
+    endpoint-override: http://localhost:4566
+    aws:
+      region: us-east-1
+      credentials:
+        type: static
+        static-provider:
+          access-key-id: test
+          secret-access-key: test
+  sns:
+    endpoint-override: http://localhost:4566
+    aws:
+      region: us-east-1
+      credentials:
+        type: static
+        static-provider:
+          access-key-id: test
+          secret-access-key: test
 
 ---
 # Production Profile (AWS)
 quarkus:
   profile: prod
-
-quarkus.dynamodb:
-  aws:
-    region: ${AWS_REGION:us-east-1}
-    # IAM Role credentials are automatic in Lambda
-
-quarkus.sns:
-  aws:
-    region: ${AWS_REGION:us-east-1}
-    # IAM Role credentials are automatic in Lambda
-
-quarkus.log.level: INFO
+  dynamodb:
+    aws:
+      region: ${AWS_REGION:us-east-1}
+      # IAM Role credentials are automatic in Lambda
+  sns:
+    aws:
+      region: ${AWS_REGION:us-east-1}
+      # IAM Role credentials are automatic in Lambda
+  log:
+    level: INFO
