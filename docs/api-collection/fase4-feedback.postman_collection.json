@@ -542,25 +542,35 @@
                 "exec": [
                   "pm.collectionVariables.set('baseUrl', pm.collectionVariables.get('prodUrl'));",
                   "pm.collectionVariables.set('feedbackId', '');",
-                  "pm.test('ambiente prod selecionado', () => pm.expect(pm.response.code).to.equal(200));"
+                  "pm.test(\"ambiente prod selecionado\", () => pm.expect([200, 201]).to.include(pm.response.code));"
                 ]
               }
             }
           ],
           "request": {
-            "method": "GET",
-            "header": [],
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
-              "raw": "{{prodUrl}}/health",
+              "raw": "{{prodUrl}}/avaliacao",
               "host": [
                 "{{prodUrl}}"
               ],
               "path": [
-                "health"
+                "avaliacao"
               ]
             },
-            "description": "Rode este request primeiro para apontar as variáveis para o ambiente prod."
-          }
+            "description": "Rode este request primeiro para apontar as variáveis para o ambiente prod.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"descricao\": \"Teste para seleção de ambiente prod\", \"nota\": 5}"
+            }
+          },
+          "description": "Faça um POST teste para selecionar ambiente prod e validar conexão."
         },
         {
           "name": "Criar Avaliação",
