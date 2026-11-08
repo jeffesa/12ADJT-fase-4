@@ -1,13 +1,18 @@
 package com.fiap.notification.infra.handler;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.InjectMock;
+import jakarta.inject.Inject;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.events.SNSEvent;
@@ -15,7 +20,6 @@ import com.amazonaws.services.lambda.runtime.events.SNSEvent;
 import com.fiap.notification.application.usecase.SendNotificationUseCase;
 import com.fiap.notification.domain.entity.Notification;
 import com.fiap.notification.domain.gateway.NotificationException;
-import com.fiap.notification.domain.gateway.NotificationSender;
 import com.fiap.notification.infra.config.NotificationConfiguration;
 
 /**
@@ -24,71 +28,19 @@ import com.fiap.notification.infra.config.NotificationConfiguration;
  * Verifies SNS event processing, message deserialization, resilience to errors,
  * and correct invocation of the SendNotificationUseCase.
  */
+@QuarkusTest
 class SendNotificationHandlerTest {
 
-    private SendNotificationHandler handler;
-    private FakeSendNotificationUseCase useCase;
-    private NotificationConfiguration config;
+    @Inject
+    SendNotificationHandler handler;
+
+    @InjectMock
+    SendNotificationUseCase useCase;
+
+    @Inject
+    NotificationConfiguration config;
+
     private Context context;
-
-    static class FakeSendNotificationUseCase extends SendNotificationUseCase {
-        int executeCallCount = 0;
-        NotificationException exceptionToThrow = null;
-        Notification lastNotification = null;
-
-        FakeSendNotificationUseCase() {
-            super(new FakeNotificationSender());
-        }
-
-        @Override
-        public void execute(Notification notification) throws NotificationException {
-            executeCallCount++;
-            lastNotification = notification;
-            if (exceptionToThrow != null) {
-                throw exceptionToThrow;
-            }
-        }
-    }
-
-    static class FakeNotificationSender implements NotificationSender {
-        @Override
-        public void send(Notification notification) throws NotificationException {
-            // Fake implementation does nothing
-        }
-    }
-
-    @BeforeEach
-    void setUp() {
-        useCase = new FakeSendNotificationUseCase();
-        config = new TestNotificationConfiguration();
-        context = null;
-
-        handler = new SendNotificationHandler();
-        handler.useCase = useCase;
-        handler.config = config;
-    }
-
-    static class TestNotificationConfiguration implements NotificationConfiguration {
-        @Override
-        public String senderEmail() {
-            return "noreply@feedback-fase-4.com";
-        }
-
-        @Override
-        public String adminEmail() {
-            return "admin@company.com";
-        }
-
-        @Override
-        public String subjectTemplate() {
-            return "⚠️ Feedback ${urgency}: ${description}";
-        }
-
-        @Override
-        public String sesRegion() {
-            return "us-east-1";
-        }
-    }
 
     private SNSEvent createSnsEventWithMessage(String messageJson) {
         SNSEvent event = new SNSEvent();
@@ -96,7 +48,7 @@ class SendNotificationHandlerTest {
         SNSEvent.SNSRecord record = new SNSEvent.SNSRecord();
         SNSEvent.SNS sns = new SNSEvent.SNS();
         sns.setMessage(messageJson);
-        
+
         setSnsByReflection(record, sns);
 
         event.setRecords(List.of(record));
@@ -118,7 +70,7 @@ class SendNotificationHandlerTest {
         // Arrange
         UUID feedbackId = UUID.randomUUID();
         String messageJson = String.format(
-            "{\"feedbackId\":\"%s\",\"description\":\"Test feedback\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
+            "{\"id\":\"%s\",\"description\":\"Test feedback\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
             feedbackId.toString()
         );
 
@@ -129,7 +81,7 @@ class SendNotificationHandlerTest {
 
         // Assert
         assertNull(result, "Handler should return null");
-        assertEquals(1, useCase.executeCallCount, "useCase.execute() should be called exactly once");
+        verify(useCase, times(1)).execute(any(Notification.class));
     }
 
     @Test
@@ -144,7 +96,7 @@ class SendNotificationHandlerTest {
         SNSEvent.SNSRecord record1 = new SNSEvent.SNSRecord();
         SNSEvent.SNS sns1 = new SNSEvent.SNS();
         sns1.setMessage(String.format(
-            "{\"feedbackId\":\"%s\",\"description\":\"Feedback 1\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
+            "{\"id\":\"%s\",\"description\":\"Feedback 1\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
             feedbackId1.toString()
         ));
         setSnsByReflection(record1, sns1);
@@ -153,7 +105,7 @@ class SendNotificationHandlerTest {
         SNSEvent.SNSRecord record2 = new SNSEvent.SNSRecord();
         SNSEvent.SNS sns2 = new SNSEvent.SNS();
         sns2.setMessage(String.format(
-            "{\"feedbackId\":\"%s\",\"description\":\"Feedback 2\",\"urgency\":\"MEDIUM\",\"createdAt\":\"2024-10-22T11:00:00\"}",
+            "{\"id\":\"%s\",\"description\":\"Feedback 2\",\"urgency\":\"MEDIUM\",\"createdAt\":\"2024-10-22T11:00:00\"}",
             feedbackId2.toString()
         ));
         setSnsByReflection(record2, sns2);
@@ -166,12 +118,14 @@ class SendNotificationHandlerTest {
 
         // Assert
         assertNull(result);
-        assertEquals(2, useCase.executeCallCount, "useCase.execute() should be called exactly twice");
+        verify(useCase, times(2)).execute(any(Notification.class));
     }
 
     @Test
     void testHandleRequest_ResilienceToErrorInOneMessage() throws NotificationException {
         // Arrange: First message fails, second succeeds
+        doThrow(new NotificationException("SES error")).when(useCase).execute(any());
+
         UUID feedbackId1 = UUID.randomUUID();
         UUID feedbackId2 = UUID.randomUUID();
 
@@ -181,7 +135,7 @@ class SendNotificationHandlerTest {
         SNSEvent.SNSRecord record1 = new SNSEvent.SNSRecord();
         SNSEvent.SNS sns1 = new SNSEvent.SNS();
         sns1.setMessage(String.format(
-            "{\"feedbackId\":\"%s\",\"description\":\"Feedback 1\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
+            "{\"id\":\"%s\",\"description\":\"Feedback 1\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
             feedbackId1.toString()
         ));
         setSnsByReflection(record1, sns1);
@@ -190,7 +144,7 @@ class SendNotificationHandlerTest {
         SNSEvent.SNSRecord record2 = new SNSEvent.SNSRecord();
         SNSEvent.SNS sns2 = new SNSEvent.SNS();
         sns2.setMessage(String.format(
-            "{\"feedbackId\":\"%s\",\"description\":\"Feedback 2\",\"urgency\":\"MEDIUM\",\"createdAt\":\"2024-10-22T11:00:00\"}",
+            "{\"id\":\"%s\",\"description\":\"Feedback 2\",\"urgency\":\"MEDIUM\",\"createdAt\":\"2024-10-22T11:00:00\"}",
             feedbackId2.toString()
         ));
         setSnsByReflection(record2, sns2);
@@ -198,15 +152,12 @@ class SendNotificationHandlerTest {
 
         event.setRecords(records);
 
-        // Configure first call to throw
-        useCase.exceptionToThrow = new NotificationException("SES error");
-
         // Act
         Void result = handler.handleRequest(event, context);
 
-        // Assert: Handler returns null and processes both messages despite error
+        // Assert: Handler returns null and attempts to process both messages despite error
         assertNull(result);
-        assertEquals(2, useCase.executeCallCount, "Should process all messages despite error");
+        verify(useCase, times(2)).execute(any(Notification.class));
     }
 
     @Test
@@ -214,7 +165,7 @@ class SendNotificationHandlerTest {
         // Arrange
         UUID feedbackId = UUID.randomUUID();
         String messageJson = String.format(
-            "{\"feedbackId\":\"%s\",\"description\":\"Test\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
+            "{\"id\":\"%s\",\"description\":\"Test\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
             feedbackId.toString()
         );
 
@@ -234,7 +185,7 @@ class SendNotificationHandlerTest {
 
         // Assert: Returns null without crashing
         assertNull(result);
-        assertEquals(0, useCase.executeCallCount);
+        verify(useCase, never()).execute(any(Notification.class));
     }
 
     @Test
@@ -248,13 +199,13 @@ class SendNotificationHandlerTest {
 
         // Assert: Returns null without crashing
         assertNull(result);
-        assertEquals(0, useCase.executeCallCount);
+        verify(useCase, never()).execute(any(Notification.class));
     }
 
     @Test
     void testHandleRequest_HandlesMessageWithMissingFields() throws NotificationException {
         // Arrange: Message missing "description" field
-        String messageJson = "{\"feedbackId\":\"12345678-1234-5678-1234-567812345678\",\"urgency\":\"HIGH\"}";
+        String messageJson = "{\"id\":\"12345678-1234-5678-1234-567812345678\",\"urgency\":\"HIGH\"}";
 
         SNSEvent event = createSnsEventWithMessage(messageJson);
 
@@ -273,7 +224,7 @@ class SendNotificationHandlerTest {
         String urgency = "HIGH";
 
         String messageJson = String.format(
-            "{\"feedbackId\":\"%s\",\"description\":\"%s\",\"urgency\":\"%s\",\"createdAt\":\"2024-10-22T14:30:00\"}",
+            "{\"id\":\"%s\",\"description\":\"%s\",\"urgency\":\"%s\",\"createdAt\":\"2024-10-22T14:30:00\"}",
             feedbackId.toString(), description, urgency
         );
 
@@ -283,7 +234,9 @@ class SendNotificationHandlerTest {
         handler.handleRequest(event, context);
 
         // Assert: Verify deserialized notification values
-        Notification capturedNotification = useCase.lastNotification;
+        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        verify(useCase).execute(captor.capture());
+        Notification capturedNotification = captor.getValue();
 
         assertEquals(feedbackId, capturedNotification.getFeedbackId());
         assertEquals(description, capturedNotification.getDescription());
@@ -296,7 +249,7 @@ class SendNotificationHandlerTest {
         UUID feedbackId = UUID.randomUUID();
 
         String messageJson = String.format(
-            "{\"feedbackId\":\"%s\",\"description\":\"Test\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
+            "{\"id\":\"%s\",\"description\":\"Test\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
             feedbackId.toString()
         );
 
@@ -305,10 +258,12 @@ class SendNotificationHandlerTest {
         // Act
         handler.handleRequest(event, context);
 
-        // Assert: Admin email from config was used
-        Notification capturedNotification = useCase.lastNotification;
+        // Assert: Admin email from config was used (uses default from @WithDefault annotation)
+        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        verify(useCase).execute(captor.capture());
+        Notification capturedNotification = captor.getValue();
 
-        assertEquals("admin@company.com", capturedNotification.getAdminEmail());
+        assertEquals("admin@feedback-fase-4.com", capturedNotification.getAdminEmail());
     }
 
     @Test
@@ -338,7 +293,7 @@ class SendNotificationHandlerTest {
         SNSEvent.SNSRecord validRecord = new SNSEvent.SNSRecord();
         SNSEvent.SNS validSns = new SNSEvent.SNS();
         validSns.setMessage(String.format(
-            "{\"feedbackId\":\"%s\",\"description\":\"Valid feedback\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
+            "{\"id\":\"%s\",\"description\":\"Valid feedback\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
             feedbackId2.toString()
         ));
         setSnsByReflection(validRecord, validSns);
@@ -351,15 +306,14 @@ class SendNotificationHandlerTest {
 
         // Assert: Valid message was still processed
         assertNull(result);
-        assertEquals(1, useCase.executeCallCount);
+        verify(useCase, times(1)).execute(any(Notification.class));
     }
 
     @Test
     void testHandleRequest_HandlesUrgencyCorrectly() throws NotificationException {
         // Arrange: Test all urgency levels
         for (String urgency : new String[]{"HIGH", "MEDIUM", "LOW"}) {
-            useCase.executeCallCount = 0;
-            useCase.lastNotification = null;
+            reset(useCase);
 
             UUID feedbackId = UUID.randomUUID();
             SNSEvent event = new SNSEvent();
@@ -368,7 +322,7 @@ class SendNotificationHandlerTest {
             SNSEvent.SNSRecord record = new SNSEvent.SNSRecord();
             SNSEvent.SNS sns = new SNSEvent.SNS();
             sns.setMessage(String.format(
-                "{\"feedbackId\":\"%s\",\"description\":\"Test\",\"urgency\":\"%s\",\"createdAt\":\"2024-10-22T10:00:00\"}",
+                "{\"id\":\"%s\",\"description\":\"Test\",\"urgency\":\"%s\",\"createdAt\":\"2024-10-22T10:00:00\"}",
                 feedbackId.toString(), urgency
             ));
             setSnsByReflection(record, sns);
@@ -379,7 +333,9 @@ class SendNotificationHandlerTest {
             handler.handleRequest(event, context);
 
             // Assert
-            Notification capturedNotification = useCase.lastNotification;
+            ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+            verify(useCase).execute(captor.capture());
+            Notification capturedNotification = captor.getValue();
 
             assertEquals(urgency, capturedNotification.getUrgency());
         }
@@ -396,7 +352,7 @@ class SendNotificationHandlerTest {
 
         // Assert
         assertNull(result);
-        assertEquals(0, useCase.executeCallCount);
+        verify(useCase, never()).execute(any(Notification.class));
     }
 
     @Test
@@ -410,7 +366,7 @@ class SendNotificationHandlerTest {
             SNSEvent.SNSRecord record = new SNSEvent.SNSRecord();
             SNSEvent.SNS sns = new SNSEvent.SNS();
             sns.setMessage(String.format(
-                "{\"feedbackId\":\"%s\",\"description\":\"Feedback %d\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
+                "{\"id\":\"%s\",\"description\":\"Feedback %d\",\"urgency\":\"HIGH\",\"createdAt\":\"2024-10-22T10:00:00\"}",
                 feedbackId.toString(), i
             ));
             setSnsByReflection(record, sns);
@@ -423,6 +379,6 @@ class SendNotificationHandlerTest {
         handler.handleRequest(event, context);
 
         // Assert: useCase.execute() called exactly 3 times
-        assertEquals(3, useCase.executeCallCount);
+        verify(useCase, times(3)).execute(any(Notification.class));
     }
 }
