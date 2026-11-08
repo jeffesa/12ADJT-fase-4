@@ -203,7 +203,7 @@ Resources:
     Properties:
       FunctionName:
         Fn::Sub: ${Environment}-receive-feedback
-      CodeUri: s3://fase-4-artifacts-1794085613/0d4ad0a7299871f48a0876fe819388af
+      CodeUri: s3://fase-4-artifacts-1794085613/b4b1bcb5ce371296a60471c5c68ce1bd
       Handler: com.fiap.feedback.infra.handler.ReceiveFeedbackHandler
       Role:
         Fn::GetAtt:
@@ -239,7 +239,7 @@ Resources:
     Properties:
       FunctionName:
         Fn::Sub: ${Environment}-send-notification
-      CodeUri: s3://fase-4-artifacts-1794085613/79e75a49d335d60e14af648e83b741c7
+      CodeUri: s3://fase-4-artifacts-1794085613/20f8c246d87db71438371ac1e498e22e
       Handler: com.fiap.notification.infra.handler.SendNotificationHandler
       Role:
         Fn::GetAtt:
@@ -269,7 +269,7 @@ Resources:
     Properties:
       FunctionName:
         Fn::Sub: ${Environment}-generate-report
-      CodeUri: s3://fase-4-artifacts-1794085613/019bd0e807d3aef842bc02111e58b82d
+      CodeUri: s3://fase-4-artifacts-1794085613/cb805b20f68d8223046403a1d4b14594
       Handler: com.fiap.report.infra.handler.GenerateReportHandler
       Role:
         Fn::GetAtt:
@@ -316,6 +316,57 @@ Resources:
         Project: FIAP-Fase-4
     Metadata:
       SamResourceId: FeedbackApi
+  ApiUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      UsagePlanName:
+        Fn::Sub: ${Environment}-feedback-usage-plan
+      Description: Usage plan for Feedback API
+      ApiStages:
+      - ApiId:
+          Ref: FeedbackApi
+        Stage:
+          Ref: Environment
+      Throttle:
+        BurstLimit: 100
+        RateLimit: 1000
+      Quota:
+        Limit: 10000
+        Period: DAY
+      Tags:
+      - Key: Environment
+        Value:
+          Ref: Environment
+    Metadata:
+      SamResourceId: ApiUsagePlan
+  ApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Name:
+        Fn::Sub: ${Environment}-feedback-api-key
+      Description: API Key for Feedback API
+      Enabled: true
+      StageKeys:
+      - RestApiId:
+          Ref: FeedbackApi
+        StageName:
+          Ref: Environment
+      Tags:
+      - Key: Environment
+        Value:
+          Ref: Environment
+    Metadata:
+      SamResourceId: ApiKey
+  UsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId:
+        Ref: ApiKey
+      KeyType: API_KEY
+      UsagePlanId:
+        Ref: ApiUsagePlan
+    Metadata:
+      SamResourceId: UsagePlanKey
   ReceiveFeedbackApiPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -372,6 +423,13 @@ Outputs:
     Export:
       Name:
         Fn::Sub: ${Environment}-FeedbackApiEndpoint
+  ApiKey:
+    Description: API Key for accessing the Feedback API (keep secret)
+    Value:
+      Ref: ApiKey
+    Export:
+      Name:
+        Fn::Sub: ${Environment}-FeedbackApiKey
   DynamoDBTableName:
     Description: Name of the DynamoDB table for feedbacks
     Value:

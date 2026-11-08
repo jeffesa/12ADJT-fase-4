@@ -52,6 +52,16 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     private ReceiveFeedbackUseCase receiveFeedbackUseCase;
     private Validator validator;
 
+    // Static field set during Quarkus startup
+    private static ReceiveFeedbackUseCase STATIC_USE_CASE_INSTANCE = null;
+    
+    /**
+     * Set by LambdaStartupHandler when Quarkus application starts.
+     */
+    static void setStaticUseCase(ReceiveFeedbackUseCase useCase) {
+        STATIC_USE_CASE_INSTANCE = useCase;
+    }
+
     /**
      * Constructor for direct instantiation (not CDI-managed).
      * 
@@ -144,7 +154,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     }
 
     /**
-     * Initializes dependencies from Arc CDI container.
+     * Initializes dependencies from static Quarkus startup state or Arc container.
      */
     private void initializeDependencies() {
         // Initialize validator if needed
@@ -153,15 +163,24 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             validator = factory.getValidator();
         }
         
-        // Initialize use case from Arc CDI container
+        // Try to use the static instance first (set by LambdaStartupHandler)
+        if (receiveFeedbackUseCase == null && STATIC_USE_CASE_INSTANCE != null) {
+            receiveFeedbackUseCase = STATIC_USE_CASE_INSTANCE;
+            LOGGER.log(Level.FINE, "ReceiveFeedbackUseCase retrieved from static startup instance");
+            return;
+        }
+        
+        // Fallback: try Arc CDI container
         if (receiveFeedbackUseCase == null) {
             try {
                 if (Arc.container() != null && Arc.container().isRunning()) {
                     receiveFeedbackUseCase = Arc.container().instance(ReceiveFeedbackUseCase.class).get();
-                    LOGGER.log(Level.FINE, "ReceiveFeedbackUseCase retrieved from Arc container");
+                    if (receiveFeedbackUseCase != null) {
+                        LOGGER.log(Level.FINE, "ReceiveFeedbackUseCase retrieved from Arc container");
+                    }
                 }
             } catch (Exception e) {
-                LOGGER.log(Level.WARNING, "Could not retrieve ReceiveFeedbackUseCase from Arc: " + e.getMessage());
+                LOGGER.log(Level.FINE, "Could not retrieve from Arc: " + e.getMessage());
             }
         }
     }
