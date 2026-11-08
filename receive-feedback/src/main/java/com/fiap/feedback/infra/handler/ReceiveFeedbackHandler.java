@@ -12,6 +12,8 @@ import jakarta.json.JsonObject;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
+import jakarta.validation.Validation;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -50,14 +52,13 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
      * Constructor for dependency injection.
      * 
      * @param receiveFeedbackUseCase the use case for processing feedback
-     * @param validator the Jakarta Bean Validator
      */
     @Inject
-    public ReceiveFeedbackHandler(
-            ReceiveFeedbackUseCase receiveFeedbackUseCase,
-            Validator validator) {
+    public ReceiveFeedbackHandler(ReceiveFeedbackUseCase receiveFeedbackUseCase) {
         this.receiveFeedbackUseCase = receiveFeedbackUseCase;
-        this.validator = validator;
+        // Create validator manually since CDI injection in Lambda may not work reliably
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        this.validator = factory.getValidator();
     }
 
     /**
