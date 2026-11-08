@@ -115,10 +115,16 @@ public class SendNotificationHandler implements RequestHandler<SNSEvent, Void> {
             // Deserialize JSON to extract feedback fields
             JsonNode messageNode = OBJECT_MAPPER.readTree(messageJson);
 
-            String feedbackIdStr = messageNode.get("feedbackId").asText();
+            // Extract feedback ID from the message (field name is "id", not "feedbackId")
+            String feedbackIdStr = messageNode.get("id").asText();
             String description = messageNode.get("description").asText();
             String urgency = messageNode.get("urgency").asText();
-            String createdAtStr = messageNode.get("createdAt").asText();
+            // createdAt is optional in notifications
+            
+            if (feedbackIdStr == null || feedbackIdStr.isEmpty()) {
+                LOGGER.log(Level.WARNING, "SNS message does not contain 'id' field");
+                return;
+            }
 
             UUID feedbackId = UUID.fromString(feedbackIdStr);
 
@@ -140,7 +146,7 @@ public class SendNotificationHandler implements RequestHandler<SNSEvent, Void> {
             // Continue to next message
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,
-                "Error processing SNS record: " + e.getMessage()
+                "Error processing SNS record: " + e.getMessage(), e
             );
             // Continue to next message
         }

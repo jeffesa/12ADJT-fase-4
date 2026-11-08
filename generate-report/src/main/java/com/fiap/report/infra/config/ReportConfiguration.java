@@ -58,13 +58,13 @@ public interface ReportConfiguration {
      *
      * Used in development profile to connect to LocalStack on localhost:4566.
      * In production, AWS default endpoint is used (no override needed).
-     * Default: empty (uses AWS default endpoint)
+     * Default: "default" (AWS default endpoint)
      * Override via: DYNAMODB_ENDPOINT environment variable
      *
-     * @return the DynamoDB endpoint (empty for AWS default)
+     * @return the DynamoDB endpoint
      */
     @WithName("dynamodb-endpoint")
-    @WithDefault("")
+    @WithDefault("default")
     String dynamodbEndpoint();
 
     /**
