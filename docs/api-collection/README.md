@@ -41,7 +41,6 @@ All variables are embedded in the collection (no separate environment file neede
 |----------|---------------|---------|
 | `localUrl` | `http://localhost:4566` | LocalStack API Gateway base URL |
 | `prodUrl` | `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod` | AWS API Gateway base URL |
-| `baseUrl` | *(empty)* | Active environment — set by selector request |
 | `feedbackId` | *(empty)* | Captured from successful create response |
 | `timestamp` | *(auto-generated per request)* | Ensures unique feedback descriptions |
 
@@ -49,15 +48,19 @@ All variables are embedded in the collection (no separate environment file neede
 
 ## Execution Workflow
 
-### Step 1: Select Environment
-Run **one** of these requests first to set `baseUrl` and clear state:
-- **"Selecionar ambiente local"** — Tests against LocalStack (http://localhost:4566/avaliacao)
-- **"Selecionar ambiente prod"** — Tests against AWS (https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao)
+The collection has two folders: **local** and **prod**. Each contains the same test cases but pointing to different endpoints.
 
-### Step 2: Run Test Cases
-All requests under **"Criar Avaliação"** test the POST `/avaliacao` endpoint:
+### To test LOCAL (LocalStack):
+1. Expand folder **"local"**
+2. Run any request under **"Criar Avaliação"**
+3. All requests will hit `{{localUrl}}/avaliacao` = `http://localhost:4566/avaliacao`
 
-#### Success Cases (HTTP 201)
+### To test PRODUCTION (AWS):
+1. Expand folder **"prod"**
+2. Run any request under **"Criar Avaliação"**
+3. All requests will hit `{{prodUrl}}/avaliacao` = `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao`
+
+### Test Cases in "Criar Avaliação"
 | Request | Rating | Urgency | Note |
 |---------|--------|---------|------|
 | nota 1 | 1 | HIGH | Captures feedback ID for future list queries |
@@ -210,11 +213,9 @@ Content-Type: application/json
 
 ## Troubleshooting
 
-### "baseUrl is empty" Error
-- **Cause:** Environment selector request was not run
-- **Fix:** Run "Selecionar ambiente local" or "Selecionar ambiente prod" first
+### Troubleshooting
 
-### 404 Not Found on {{baseUrl}}/avaliacao
+#### 404 Not Found on {{localUrl}}/avaliacao
 - **Cause:** LocalStack/Lambda not running or deployed
 - **Fix:** Verify `docker-compose up -d` and Lambda function deployed
 

@@ -22,36 +22,6 @@
       "description": "Ambiente local (LocalStack). Seta baseUrl/notificationUrl/historyUrl para localhost.",
       "item": [
         {
-          "name": "Selecionar ambiente local",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.collectionVariables.set('baseUrl', pm.collectionVariables.get('localUrl'));",
-                  "pm.collectionVariables.set('feedbackId', '');",
-                  "pm.test('ambiente local selecionado', () => pm.expect(pm.response.code).to.equal(200));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{localUrl}}/health",
-              "host": [
-                "{{localUrl}}"
-              ],
-              "path": [
-                "health"
-              ]
-            },
-            "description": "Rode este request primeiro para apontar as variáveis para o ambiente local."
-          }
-        },
-        {
           "name": "Criar Avaliação",
           "item": [
             {
@@ -88,9 +58,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback crítico - teste {{timestamp}}\",\n  \"nota\": 1\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{localUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -129,9 +99,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback moderado - teste {{timestamp}}\",\n  \"nota\": 6\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{localUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -170,9 +140,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback positivo - teste {{timestamp}}\",\n  \"nota\": 9\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{localUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -210,9 +180,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": -1\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{localUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -249,9 +219,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": 11\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{localUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -288,9 +258,9 @@
                   "raw": "{\n  \"descricao\": \"\",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{localUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -324,9 +294,9 @@
                   "raw": "{\n  \"descricao\": \"   \",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{localUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -360,9 +330,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{localUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -396,9 +366,9 @@
                   "raw": "{\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{localUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -432,9 +402,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback\",\n  \"nota\": \"cinco\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{localUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -473,9 +443,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback no mínimo {{timestamp}}\",\n  \"nota\": 0\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{localUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -514,9 +484,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback no máximo {{timestamp}}\",\n  \"nota\": 10\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{localUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -533,46 +503,6 @@
       "description": "Ambiente produção (AWS API Gateway). Seta baseUrl para a URL do AWS.",
       "item": [
         {
-          "name": "Selecionar ambiente prod",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.collectionVariables.set('baseUrl', pm.collectionVariables.get('prodUrl'));",
-                  "pm.collectionVariables.set('feedbackId', '');",
-                  "pm.test(\"ambiente prod selecionado\", () => pm.expect([200, 201]).to.include(pm.response.code));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{prodUrl}}/avaliacao",
-              "host": [
-                "{{prodUrl}}"
-              ],
-              "path": [
-                "avaliacao"
-              ]
-            },
-            "description": "Rode este request primeiro para apontar as variáveis para o ambiente prod.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\"descricao\": \"Teste para seleção de ambiente prod\", \"nota\": 5}"
-            }
-          },
-          "description": "Faça um POST teste para selecionar ambiente prod e validar conexão."
-        },
-        {
           "name": "Criar Avaliação",
           "item": [
             {
@@ -609,9 +539,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback crítico - teste {{timestamp}}\",\n  \"nota\": 1\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -650,9 +580,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback moderado - teste {{timestamp}}\",\n  \"nota\": 6\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -691,9 +621,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback positivo - teste {{timestamp}}\",\n  \"nota\": 9\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -731,9 +661,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": -1\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -770,9 +700,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": 11\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -809,9 +739,9 @@
                   "raw": "{\n  \"descricao\": \"\",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -845,9 +775,9 @@
                   "raw": "{\n  \"descricao\": \"   \",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -881,9 +811,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -917,9 +847,9 @@
                   "raw": "{\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -953,9 +883,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback\",\n  \"nota\": \"cinco\"\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -994,9 +924,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback no mínimo {{timestamp}}\",\n  \"nota\": 0\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -1035,9 +965,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback no máximo {{timestamp}}\",\n  \"nota\": 10\n}"
                 },
                 "url": {
-                  "raw": "{{baseUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "{{baseUrl}}"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
@@ -1059,11 +989,6 @@
     {
       "key": "prodUrl",
       "value": "https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod",
-      "type": "string"
-    },
-    {
-      "key": "baseUrl",
-      "value": "",
       "type": "string"
     },
     {
