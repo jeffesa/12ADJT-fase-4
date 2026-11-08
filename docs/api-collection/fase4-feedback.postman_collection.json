@@ -495,6 +495,64 @@
               }
             }
           ]
+        },
+        {
+          "name": "Listar Avaliações",
+          "item": [
+            {
+              "name": "listarAvaliacoes - Query all feedbacks",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Has data field\", () => pm.expect(response).to.have.property(\"data\"));",
+                      "pm.test(\"data has listarAvaliacoes field\", () => pm.expect(response.data).to.have.property(\"listarAvaliacoes\"));",
+                      "const avaliacoes = response.data.listarAvaliacoes;",
+                      "pm.test(\"listarAvaliacoes is an array\", () => pm.expect(avaliacoes).to.be.an(\"array\"));",
+                      "if (avaliacoes.length > 0) {",
+                      "  pm.test(\"each item has id field\", () => pm.expect(avaliacoes[0]).to.have.property(\"id\"));",
+                      "  pm.test(\"each item has descricao field\", () => pm.expect(avaliacoes[0]).to.have.property(\"descricao\"));",
+                      "  pm.test(\"each item has nota field\", () => pm.expect(avaliacoes[0]).to.have.property(\"nota\"));",
+                      "  pm.test(\"each item has urgencia field\", () => pm.expect(avaliacoes[0]).to.have.property(\"urgencia\"));",
+                      "  pm.test(\"each item has dataCriacao field\", () => pm.expect(avaliacoes[0]).to.have.property(\"dataCriacao\"));",
+                      "  pm.test(\"id is valid UUID\", () => pm.expect(avaliacoes[0].id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "  pm.test(\"urgencia is HIGH, MEDIUM, or LOW\", () => pm.expect([\"HIGH\", \"MEDIUM\", \"LOW\"]).to.include(avaliacoes[0].urgencia));",
+                      "  pm.test(\"dataCriacao is ISO 8601\", () => pm.expect(avaliacoes[0].dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query {\\n  listarAvaliacoes {\\n    id\\n    descricao\\n    nota\\n    urgencia\\n    dataCriacao\\n  }\\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{localUrl}}/avaliacao",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "avaliacao"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -963,6 +1021,64 @@
                 "body": {
                   "mode": "raw",
                   "raw": "{\n  \"descricao\": \"Feedback no máximo {{timestamp}}\",\n  \"nota\": 10\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "avaliacao"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar Avaliações",
+          "item": [
+            {
+              "name": "listarAvaliacoes - Query all feedbacks",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Has data field\", () => pm.expect(response).to.have.property(\"data\"));",
+                      "pm.test(\"data has listarAvaliacoes field\", () => pm.expect(response.data).to.have.property(\"listarAvaliacoes\"));",
+                      "const avaliacoes = response.data.listarAvaliacoes;",
+                      "pm.test(\"listarAvaliacoes is an array\", () => pm.expect(avaliacoes).to.be.an(\"array\"));",
+                      "if (avaliacoes.length > 0) {",
+                      "  pm.test(\"each item has id field\", () => pm.expect(avaliacoes[0]).to.have.property(\"id\"));",
+                      "  pm.test(\"each item has descricao field\", () => pm.expect(avaliacoes[0]).to.have.property(\"descricao\"));",
+                      "  pm.test(\"each item has nota field\", () => pm.expect(avaliacoes[0]).to.have.property(\"nota\"));",
+                      "  pm.test(\"each item has urgencia field\", () => pm.expect(avaliacoes[0]).to.have.property(\"urgencia\"));",
+                      "  pm.test(\"each item has dataCriacao field\", () => pm.expect(avaliacoes[0]).to.have.property(\"dataCriacao\"));",
+                      "  pm.test(\"id is valid UUID\", () => pm.expect(avaliacoes[0].id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "  pm.test(\"urgencia is HIGH, MEDIUM, or LOW\", () => pm.expect([\"HIGH\", \"MEDIUM\", \"LOW\"]).to.include(avaliacoes[0].urgencia));",
+                      "  pm.test(\"dataCriacao is ISO 8601\", () => pm.expect(avaliacoes[0].dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query {\\n  listarAvaliacoes {\\n    id\\n    descricao\\n    nota\\n    urgencia\\n    dataCriacao\\n  }\\n}"
+                  }
                 },
                 "url": {
                   "raw": "{{prodUrl}}/avaliacao",
