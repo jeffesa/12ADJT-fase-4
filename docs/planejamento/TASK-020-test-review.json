@@ -1,0 +1,11 @@
+{
+  "verdict": "CHANGES_REQUESTED",
+  "findings": [
+    {
+      "issue": "Context field never initialized",
+      "description": "The context field (type Context) is declared but never assigned a value. Every test passes null to handler.handleRequest(event, context). Production handler doesn't use context, but future code accessing context properties (request ID, remaining time, invoked function ARN) will receive null, masking bugs.",
+      "action": "Initialize context in a @BeforeEach method or use a mock: context = mock(Context.class)"
+    }
+  ],
+  "reviewDoc": "/Users/jefferson/Documents/FIAP/fase-4/docs/planejamento/TASK-020-test-review.md"
+}

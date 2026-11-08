@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -41,6 +42,11 @@ class SendNotificationHandlerTest {
     NotificationConfiguration config;
 
     private Context context;
+
+    @BeforeEach
+    void setUp() {
+        context = mock(Context.class);
+    }
 
     private SNSEvent createSnsEventWithMessage(String messageJson) {
         SNSEvent event = new SNSEvent();
