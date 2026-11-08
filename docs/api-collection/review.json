@@ -1,0 +1,7 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    "Prod endpoint URL must be verified live — The collection hardcodes prodUrl as `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod`. Before declaring this collection ready for prod testing, confirm this endpoint is the current live deployment. If the Lambda function or API Gateway was redeployed with a different endpoint, all prod requests will fail with 404."
+  ],
+  "reviewDoc": "/Users/jefferson/Documents/FIAP/fase-4/docs/api-collection/review.md"
+}
