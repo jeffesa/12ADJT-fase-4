@@ -15,6 +15,8 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import jakarta.validation.Validation;
 
+import io.quarkus.arc.Arc;
+
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
@@ -38,45 +40,38 @@ import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
  * - 201 Created: feedback successfully persisted
  * - 400 Bad Request: validation failed or use case validation failed
  * - 500 Internal Server Error: unexpected server error
+ * 
+ * Note: NOT marked as @ApplicationScoped so Lambda can call it directly.
+ * This class accesses CDI beans via Arc when needed.
  */
-@ApplicationScoped
 public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final Logger LOGGER = Logger.getLogger(ReceiveFeedbackHandler.class.getName());
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final ReceiveFeedbackUseCase receiveFeedbackUseCase;
-    private final Validator validator;
+    private ReceiveFeedbackUseCase receiveFeedbackUseCase;
+    private Validator validator;
 
     /**
-     * Constructor for dependency injection.
+     * Constructor for direct instantiation (not CDI-managed).
      * 
      * @param receiveFeedbackUseCase the use case for processing feedback
      */
-    @Inject
     public ReceiveFeedbackHandler(ReceiveFeedbackUseCase receiveFeedbackUseCase) {
         this.receiveFeedbackUseCase = receiveFeedbackUseCase;
-        // Create validator manually since CDI injection in Lambda may not work reliably
+        // Create validator manually
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
         this.validator = factory.getValidator();
     }
 
     /**
-     * Handles an API Gateway event for receiving feedback.
-     * 
-     * Flow:
-     * 1. Parse the request body as JSON into ReceiveFeedbackInput
-     * 2. Validate the input using Bean Validation
-     * 3. Call the use case to process the feedback
-     * 4. Map the result to ReceiveFeedbackOutput
-     * 5. Return 201 with the response in { "receiveFeedback": {...} } format
-     * 
-     * On error, returns RFC 7807 Problem Detail with appropriate status code.
-     * 
-     * @param event the API Gateway proxy request event
-     * @param context the Lambda context
-     * @return the HTTP response with status code and body
+     * No-arg constructor required for Lambda reflection-based instantiation.
      */
+    public ReceiveFeedbackHandler() {
+        this.receiveFeedbackUseCase = null;
+        this.validator = null;
+    }
+
     @Override
     public APIGatewayProxyResponseEvent handleRequest(
             APIGatewayProxyRequestEvent event,
@@ -86,6 +81,16 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         LOGGER.log(Level.FINE, "Request method: " + event.getHttpMethod() + ", path: " + event.getPath());
         
         try {
+            // Initialize dependencies if not already set (happens when no-arg constructor is called)
+            initializeDependencies();
+            
+            if (receiveFeedbackUseCase == null) {
+                throw new IllegalStateException("ReceiveFeedbackUseCase could not be initialized");
+            }
+            if (validator == null) {
+                throw new IllegalStateException("Validator could not be initialized");
+            }
+            
             // Parse request body
             String body = event.getBody();
             if (body == null || body.isEmpty()) {
@@ -133,7 +138,31 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             return badRequest(e.getMessage());
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Unexpected error in handler", e);
+            e.printStackTrace();
             return internalServerError();
+        }
+    }
+
+    /**
+     * Initializes dependencies from Arc CDI container.
+     */
+    private void initializeDependencies() {
+        // Initialize validator if needed
+        if (validator == null) {
+            ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+            validator = factory.getValidator();
+        }
+        
+        // Initialize use case from Arc CDI container
+        if (receiveFeedbackUseCase == null) {
+            try {
+                if (Arc.container() != null && Arc.container().isRunning()) {
+                    receiveFeedbackUseCase = Arc.container().instance(ReceiveFeedbackUseCase.class).get();
+                    LOGGER.log(Level.FINE, "ReceiveFeedbackUseCase retrieved from Arc container");
+                }
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "Could not retrieve ReceiveFeedbackUseCase from Arc: " + e.getMessage());
+            }
         }
     }
 
