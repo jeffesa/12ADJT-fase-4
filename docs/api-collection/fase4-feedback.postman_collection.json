@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FIAP Fase 4 - Feedback API",
-    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\n⚠️ SECURITY-FOCUSED ARCHITECTURE:\n\n1. PUBLIC REST API (no authentication - create only):\n   POST /avaliacao → Create feedback\n   Endpoint: https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao\n   Request: {\"descricao\": \"...\", \"nota\": 1-10}\n   Response: 201 Created\n   \n   ⚠️ NO LIST ENDPOINT ON PUBLIC API - Security by design\n\n2. INTERNAL GRAPHQL API (X-API-Key auth - list/query only):\n   POST /graphql → Query feedbacks (backend only)\n   Endpoint: https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/graphql\n   Header: X-API-Key: dev-graphql-key-422648464291\n   Request: {\"query\": \"query { listarAvaliacoes { ... } }\"}\n   Response: 200 OK\n   \n   ✓ Requires authentication\n   ✓ Internal use only\n   ✓ Backend services only",
+    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\n⚠️ SECURITY-FOCUSED ARCHITECTURE:\n\n1. PUBLIC REST API (no authentication - create only):\n   POST /feedback → Create feedback\n   Endpoint: https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback\n   Request: {\"descricao\": \"...\", \"nota\": 1-10}\n   Response: 201 Created\n   \n   ⚠️ NO LIST ENDPOINT ON PUBLIC API - Security by design\n\n2. INTERNAL GRAPHQL API (X-API-Key auth - list/query only):\n   POST /graphql → Query feedbacks (backend only)\n   Endpoint: https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/graphql\n   Header: X-API-Key: dev-graphql-key-422648464291\n   Request: {\"query\": \"query { listarAvaliacoes { ... } }\"}\n   Response: 200 OK\n   \n   ✓ Requires authentication\n   ✓ Internal use only\n   ✓ Backend services only",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -58,7 +58,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback crítico - teste teste\",\n  \"nota\": 1\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -99,7 +99,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback moderado - teste teste\",\n  \"nota\": 6\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -140,7 +140,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback positivo - teste teste\",\n  \"nota\": 9\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -180,7 +180,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": -1\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -219,7 +219,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": 11\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -258,7 +258,7 @@
                   "raw": "{\n  \"descricao\": \"\",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -294,7 +294,7 @@
                   "raw": "{\n  \"descricao\": \"   \",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -330,7 +330,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -366,7 +366,7 @@
                   "raw": "{\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -402,7 +402,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback\",\n  \"nota\": \"cinco\"\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -443,7 +443,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback no mínimo teste\",\n  \"nota\": 0\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -484,7 +484,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback no máximo teste\",\n  \"nota\": 10\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -607,7 +607,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback crítico - teste teste\",\n  \"nota\": 1\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "host": [
                     "b77f4fwsq6",
                     "execute-api",
@@ -653,7 +653,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback moderado - teste teste\",\n  \"nota\": 6\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "host": [
                     "b77f4fwsq6",
                     "execute-api",
@@ -699,7 +699,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback positivo - teste teste\",\n  \"nota\": 9\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "host": [
                     "b77f4fwsq6",
                     "execute-api",
@@ -744,7 +744,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": -1\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "host": [
                     "b77f4fwsq6",
                     "execute-api",
@@ -788,7 +788,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": 11\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "host": [
                     "b77f4fwsq6",
                     "execute-api",
@@ -832,7 +832,7 @@
                   "raw": "{\n  \"descricao\": \"\",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "host": [
                     "b77f4fwsq6",
                     "execute-api",
@@ -873,7 +873,7 @@
                   "raw": "{\n  \"descricao\": \"   \",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "host": [
                     "b77f4fwsq6",
                     "execute-api",
@@ -914,7 +914,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "host": [
                     "b77f4fwsq6",
                     "execute-api",
@@ -955,7 +955,7 @@
                   "raw": "{\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "host": [
                     "b77f4fwsq6",
                     "execute-api",
@@ -996,7 +996,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback\",\n  \"nota\": \"cinco\"\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "host": [
                     "b77f4fwsq6",
                     "execute-api",
@@ -1042,7 +1042,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback no mínimo teste\",\n  \"nota\": 0\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "host": [
                     "b77f4fwsq6",
                     "execute-api",
@@ -1088,7 +1088,7 @@
                   "raw": "{\n  \"descricao\": \"Feedback no máximo teste\",\n  \"nota\": 10\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "host": [
                     "b77f4fwsq6",
                     "execute-api",
@@ -1142,7 +1142,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
                   "protocol": "https",
                   "host": [
                     "b77f4fwsq6",

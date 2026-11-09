@@ -245,7 +245,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedbackApi
-            Path: /avaliacao
+            Path: /feedback
             Method: POST
       LoggingConfig:
         LogGroup: !Ref ReceiveFeedbackLogGroup
@@ -273,7 +273,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedbackApi
-            Path: /avaliacao
+            Path: /feedback
             Method: GET
       LoggingConfig:
         LogGroup: !Ref ReceiveFeedbackLogGroup
@@ -450,8 +450,8 @@ Resources:
 #========================================
 Outputs:
   ApiEndpoint:
-    Description: 'HTTP API endpoint URL for POST /avaliacao'
-    Value: !Sub 'https://${FeedbackApi}.execute-api.${Region}.amazonaws.com/${Environment}/avaliacao'
+    Description: 'HTTP API endpoint URL for POST /feedback'
+    Value: !Sub 'https://${FeedbackApi}.execute-api.${Region}.amazonaws.com/${Environment}/feedback'
     Export:
       Name: !Sub '${Environment}-FeedbackApiEndpoint'
 
