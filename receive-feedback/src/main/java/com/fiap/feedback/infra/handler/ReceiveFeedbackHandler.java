@@ -26,7 +26,7 @@ import com.fiap.feedback.infra.dto.ReceiveFeedbackInput;
 import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
 
 /**
- * AWS Lambda handler for receiving feedback via HTTP/API Gateway.
+ * AWS Lambda handler for REST API: POST /avaliacao (create feedback only).
  * 
  * This is a Quarkus CDI bean (named "receiveFeedback") that Lambda invokes through
  * QuarkusStreamHandler. The Quarkus entry point (QuarkusStreamHandler::handleRequest)
@@ -34,9 +34,10 @@ import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
  * 
  * All @Inject fields are guaranteed to be available at invocation time.
  * 
+ * Request: POST /avaliacao with {"descricao": "...", "nota": N}
  * Response codes:
  * - 201 Created: feedback successfully persisted
- * - 400 Bad Request: validation failed or use case validation failed
+ * - 400 Bad Request: validation failed
  * - 500 Internal Server Error: unexpected server error
  */
 @Named("receiveFeedback")
@@ -46,7 +47,6 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     
     static {
-        // Configure ObjectMapper to ignore unknown properties (e.g., 'query' from Bruno/Postman)
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
@@ -61,25 +61,24 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             APIGatewayProxyRequestEvent event,
             Context context) {
         
-        LOGGER.log(Level.INFO, "Lambda handler invoked for receiving feedback");
+        LOGGER.log(Level.INFO, "Lambda handler invoked - POST /avaliacao (create feedback)");
         LOGGER.log(Level.FINE, "Request method: " + event.getHttpMethod() + ", path: " + event.getPath());
         
         try {
             if (receiveFeedbackUseCase == null) {
-                throw new IllegalStateException("ReceiveFeedbackUseCase not injected - Arc CDI bootstrap failed");
+                throw new IllegalStateException("ReceiveFeedbackUseCase not injected");
             }
             if (validator == null) {
-                throw new IllegalStateException("Validator not injected - Arc CDI bootstrap failed");
+                throw new IllegalStateException("Validator not injected");
             }
             
-            // Parse request body
             String body = event.getBody();
             if (body == null || body.isEmpty()) {
                 return badRequest("Request body cannot be empty");
             }
             
             ReceiveFeedbackInput input = OBJECT_MAPPER.readValue(body, ReceiveFeedbackInput.class);
-            LOGGER.log(Level.FINE, "Request parsed successfully");
+            LOGGER.log(Level.FINE, "Request parsed");
             
             // Validate input
             var violations = validator.validate(input);
@@ -106,7 +105,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
                     .build())
                 .build();
             
-            LOGGER.log(Level.INFO, "Feedback received successfully: " + output.id());
+            LOGGER.log(Level.INFO, "Feedback created: " + output.id());
             
             APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
             response.setStatusCode(201);
@@ -114,11 +113,8 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             response.setHeaders(defaultHeaders());
             return response;
             
-        } catch (IllegalArgumentException e) {
-            LOGGER.log(Level.WARNING, "Validation error: " + e.getMessage());
-            return badRequest(e.getMessage());
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Unexpected error in handler", e);
+            LOGGER.log(Level.SEVERE, "Error: " + e.getMessage(), e);
             e.printStackTrace();
             return internalServerError();
         }
@@ -143,7 +139,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     }
 
     /**
-     * Creates a 400 Bad Request response with RFC 7807 format.
+     * Creates a 400 Bad Request response.
      */
     private APIGatewayProxyResponseEvent badRequest(String detail) {
         JsonObject problemDetail = Json.createObjectBuilder()
@@ -160,7 +156,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     }
 
     /**
-     * Creates a 500 Internal Server Error response with RFC 7807 format.
+     * Creates a 500 Internal Server Error response.
      */
     private APIGatewayProxyResponseEvent internalServerError() {
         JsonObject problemDetail = Json.createObjectBuilder()
@@ -177,7 +173,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     }
 
     /**
-     * Returns default HTTP headers for all responses.
+     * Returns default HTTP headers.
      */
     private Map<String, String> defaultHeaders() {
         Map<String, String> headers = new HashMap<>();

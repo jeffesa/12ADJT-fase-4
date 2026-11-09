@@ -190,6 +190,12 @@ Resources:
       LogGroupName: !Sub '/aws/lambda/${Environment}-receive-feedback'
       RetentionInDays: 30
 
+  GraphQLLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${Environment}-graphql'
+      RetentionInDays: 30
+
   SendNotificationLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -206,7 +212,7 @@ Resources:
   # LAMBDA FUNCTIONS
   #========================================
 
-  # Lambda 1: ReceiveFeedbackFunction
+  # Lambda 1: ReceiveFeedbackFunction (PUBLIC - REST)
   # Triggered by: API Gateway POST /avaliacao
   # Actions: Write to DynamoDB, Publish to SNS (if urgency=HIGH)
   ReceiveFeedbackFunction:
@@ -233,6 +239,35 @@ Resources:
             Method: POST
       LoggingConfig:
         LogGroup: !Ref ReceiveFeedbackLogGroup
+      Tags:
+        Environment: !Ref Environment
+        Project: FIAP-Fase-4
+
+  # GraphQL Handler (INTERNAL - requires authentication)
+  # Triggered by: API Gateway POST /graphql
+  # Actions: Query DynamoDB via listarAvaliacoes
+  GraphQLFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${Environment}-graphql'
+      CodeUri: ../receive-feedback/target/function.zip
+      Handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
+      Role: !GetAtt ReceiveFeedbackRole.Arn
+      Environment:
+        Variables:
+          QUARKUS_PROFILE: prod
+          QUARKUS_LAMBDA_HANDLER: graphqlHandler
+          TABLE_NAME: !Ref FeedbacksTable
+          GRAPHQL_API_KEY: !Sub '${Environment}-graphql-key-${AWS::AccountId}'
+      Events:
+        GraphQLApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedbackApi
+            Path: /graphql
+            Method: POST
+      LoggingConfig:
+        LogGroup: !Ref GraphQLLogGroup
       Tags:
         Environment: !Ref Environment
         Project: FIAP-Fase-4
@@ -325,6 +360,15 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${Region}:${AWS::AccountId}:${FeedbackApi}/*'
 
+  # Grant Lambda permission for GraphQL endpoint
+  GraphQLApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GraphQLFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${Region}:${AWS::AccountId}:${FeedbackApi}/*'
+
   # Grant SNS permission to invoke SendNotificationFunction
   SendNotificationSnsPermission:
     Type: AWS::Lambda::Permission
@@ -381,6 +425,18 @@ Outputs:
     Value: !GetAtt ReceiveFeedbackFunction.Arn
     Export:
       Name: !Sub '${Environment}-ReceiveFeedbackFunctionArn'
+
+  GraphQLFunctionArn:
+    Description: 'ARN of GraphQLFunction Lambda (internal, requires API key)'
+    Value: !GetAtt GraphQLFunction.Arn
+    Export:
+      Name: !Sub '${Environment}-GraphQLFunctionArn'
+
+  GraphQLEndpoint:
+    Description: 'GraphQL API endpoint (internal only, requires X-API-Key header)'
+    Value: !Sub 'https://${FeedbackApi}.execute-api.${Region}.amazonaws.com/${Environment}/graphql'
+    Export:
+      Name: !Sub '${Environment}-GraphQLEndpoint'
 
   SendNotificationFunctionArn:
     Description: 'ARN of SendNotificationFunction Lambda'
