@@ -69,6 +69,20 @@ The collection has two folders: **local** and **prod**. Each contains the same t
 | nota 0 | 0 | HIGH | Boundary: minimum valid rating |
 | nota 10 | 10 | LOW | Boundary: maximum valid rating |
 
+### Test Cases in "Listar Avaliações"
+| Request | Purpose | Response |
+|---------|---------|----------|
+| listarAvaliacoes | Query all feedbacks stored in DynamoDB | HTTP 200 with `data.listarAvaliacoes` array |
+
+**Test Assertions:**
+- ✅ Status code 200
+- ✅ Response has `data.listarAvaliacoes` field
+- ✅ Each feedback item has: `id`, `descricao`, `nota`, `urgencia`, `dataCriacao`
+- ✅ `id` is a valid UUID
+- ✅ `urgencia` is one of: HIGH, MEDIUM, LOW
+- ✅ `dataCriacao` is ISO 8601 format
+- ✅ Array is returned (may be empty)
+
 #### Error Cases (HTTP 400 — RFC 7807 Problem Detail)
 | Request | Issue | Error Field |
 |---------|-------|------------|
@@ -128,6 +142,49 @@ All tests verify this mapping by asserting the `urgencia` field matches the expe
   "title": "Validation Error",
   "status": 400,
   "detail": "Rating must be at least 0"
+}
+```
+
+---
+
+## GraphQL Query: listarAvaliacoes
+
+Retrieve all feedbacks stored in DynamoDB.
+
+### Request
+```graphql
+query {
+  listarAvaliacoes {
+    id
+    descricao
+    nota
+    urgencia
+    dataCriacao
+  }
+}
+```
+
+### Success Response (200 OK)
+```json
+{
+  "data": {
+    "listarAvaliacoes": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "descricao": "Feedback teste 1",
+        "nota": 1,
+        "urgencia": "HIGH",
+        "dataCriacao": "2024-11-08T18:50:45.123Z"
+      },
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440001",
+        "descricao": "Feedback teste 2",
+        "nota": 8,
+        "urgencia": "LOW",
+        "dataCriacao": "2024-11-08T19:22:30.456Z"
+      }
+    ]
+  }
 }
 ```
 
