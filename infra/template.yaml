@@ -31,7 +31,7 @@ Globals:
   Function:
     Runtime: java17
     Timeout: 30
-    MemorySize: 1024
+    MemorySize: 512
     Architectures:
       - x86_64
     # Environment variables shared by all Lambdas (can be overridden per function)

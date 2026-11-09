@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FIAP Fase 4 - Feedback API",
-    "description": "Collection for testing the Feedback API with REST endpoints for creating and managing feedback.\n\nTwo environments:\n- local: LocalStack on http://localhost:4566/avaliacao\n- prod: AWS API Gateway on https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao\n\nVariables (baseUrl, localUrl, prodUrl, timestamp, feedbackId) are embedded in the collection.\n\nFluxo: primeiro execute 'Selecionar ambiente local' (ou 'prod'), depois os testes de 'Criar Avaliação'.",
+    "description": "Collection for testing the Feedback API with REST endpoints for creating and managing feedback.\n\nTwo environments:\n- local: LocalStack on http://localhost:4566/avaliacao\n- prod: AWS API Gateway (sa-east-1, dev) on https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao\n\nVariables (localUrl, prodUrl, timestamp, feedbackId) are embedded in the collection.\n\nFluxo: primeiro execute 'Selecionar ambiente local' (ou 'prod'), depois os testes de 'Criar Avaliação'.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -1104,7 +1104,7 @@
     },
     {
       "key": "prodUrl",
-      "value": "https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod",
+      "value": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev",
       "type": "string"
     },
     {
