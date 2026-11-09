@@ -223,8 +223,8 @@ Resources:
   #========================================
 
   # Lambda 1: ReceiveFeedbackFunction (PUBLIC - REST)
-  # Triggered by: API Gateway POST /avaliacao
-  # Actions: Write to DynamoDB, Publish to SNS (if urgency=HIGH)
+  # Triggered by: API Gateway POST /avaliacao and GET /avaliacao
+  # Actions: Routes based on HTTP method
   ReceiveFeedbackFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -236,17 +236,45 @@ Resources:
       Environment:
         Variables:
           QUARKUS_PROFILE: prod
-          QUARKUS_LAMBDA_HANDLER: receiveFeedback
+          QUARKUS_LAMBDA_HANDLER: avaliacao
           TABLE_NAME: !Ref FeedbacksTable
           FEEDBACK_TOPIC_ARN: !Ref FeedbackUrgentTopic
           ADMIN_EMAIL: !Ref AdminEmail
       Events:
-        ApiEvent:
+        ApiEventPost:
           Type: Api
           Properties:
             RestApiId: !Ref FeedbackApi
             Path: /avaliacao
             Method: POST
+      LoggingConfig:
+        LogGroup: !Ref ReceiveFeedbackLogGroup
+      Tags:
+        Environment: !Ref Environment
+        Project: FIAP-Fase-4
+
+  # Lambda 1b: ListFeedbackFunction (PUBLIC - REST GET)
+  # Triggered by: API Gateway GET /avaliacao
+  # Actions: Returns all feedbacks (public endpoint)
+  ListFeedbackFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${Environment}-list-feedback'
+      CodeUri: ../receive-feedback/target/function.zip
+      Handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
+      Role: !GetAtt ReceiveFeedbackRole.Arn
+      Environment:
+        Variables:
+          QUARKUS_PROFILE: prod
+          QUARKUS_LAMBDA_HANDLER: avaliacao
+          TABLE_NAME: !Ref FeedbacksTable
+      Events:
+        ApiEventGet:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedbackApi
+            Path: /avaliacao
+            Method: GET
       LoggingConfig:
         LogGroup: !Ref ReceiveFeedbackLogGroup
       Tags:
@@ -370,6 +398,15 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${Region}:${AWS::AccountId}:${FeedbackApi}/*'
 
+  # Grant Lambda permission for ListFeedbackFunction
+  ListFeedbackApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ListFeedbackFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${Region}:${AWS::AccountId}:${FeedbackApi}/*'
+
   # Grant Lambda permission for GraphQL endpoint
   GraphQLApiPermission:
     Type: AWS::Lambda::Permission
@@ -435,6 +472,12 @@ Outputs:
     Value: !GetAtt ReceiveFeedbackFunction.Arn
     Export:
       Name: !Sub '${Environment}-ReceiveFeedbackFunctionArn'
+
+  ListFeedbackFunctionArn:
+    Description: 'ARN of ListFeedbackFunction Lambda (GET /avaliacao)'
+    Value: !GetAtt ListFeedbackFunction.Arn
+    Export:
+      Name: !Sub '${Environment}-ListFeedbackFunctionArn'
 
   GraphQLFunctionArn:
     Description: 'ARN of GraphQLFunction Lambda (internal, requires API key)'

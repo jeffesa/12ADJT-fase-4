@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FIAP Fase 4 - Feedback API",
-    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\n\u26a0\ufe0f SECURITY-FOCUSED ARCHITECTURE:\n\n1. PUBLIC REST API (no authentication - create only):\n   POST /avaliacao \u2192 Create feedback\n   Endpoint: https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao\n   Request: {\"descricao\": \"...\", \"nota\": 1-10}\n   Response: 201 Created\n   \n   \u26a0\ufe0f NO LIST ENDPOINT ON PUBLIC API - Security by design\n\n2. INTERNAL GRAPHQL API (X-API-Key auth - list/query only):\n   POST /graphql \u2192 Query feedbacks (backend only)\n   Endpoint: https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/graphql\n   Header: X-API-Key: dev-graphql-key-422648464291\n   Request: {\"query\": \"query { listarAvaliacoes { ... } }\"}\n   Response: 200 OK\n   \n   \u2713 Requires authentication\n   \u2713 Internal use only\n   \u2713 Backend services only",
+    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\n⚠️ SECURITY-FOCUSED ARCHITECTURE:\n\n1. PUBLIC REST API (no authentication - create only):\n   POST /avaliacao → Create feedback\n   Endpoint: https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao\n   Request: {\"descricao\": \"...\", \"nota\": 1-10}\n   Response: 201 Created\n   \n   ⚠️ NO LIST ENDPOINT ON PUBLIC API - Security by design\n\n2. INTERNAL GRAPHQL API (X-API-Key auth - list/query only):\n   POST /graphql → Query feedbacks (backend only)\n   Endpoint: https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/graphql\n   Header: X-API-Key: dev-graphql-key-422648464291\n   Request: {\"query\": \"query { listarAvaliacoes { ... } }\"}\n   Response: 200 OK\n   \n   ✓ Requires authentication\n   ✓ Internal use only\n   ✓ Backend services only",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -22,10 +22,10 @@
       "description": "Ambiente local (LocalStack). Seta baseUrl/notificationUrl/historyUrl para localhost.",
       "item": [
         {
-          "name": "Criar Avalia\u00e7\u00e3o",
+          "name": "Criar Avaliação",
           "item": [
             {
-              "name": "\u2705 201 \u2014 nota 1 (urg\u00eancia HIGH)",
+              "name": "✅ 201 — nota 1 (urgência HIGH)",
               "event": [
                 {
                   "listen": "test",
@@ -36,10 +36,10 @@
                       "const b = pm.response.json();",
                       "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
                       "const feedback = b.receiveFeedback;",
-                      "pm.test('id \u00e9 UUID', () => pm.expect(feedback.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
-                      "pm.test('nota \u00e9 1', () => pm.expect(feedback.nota).to.equal(1));",
-                      "pm.test('urgencia \u00e9 HIGH', () => pm.expect(feedback.urgencia).to.equal('HIGH'));",
-                      "pm.test('dataCriacao \u00e9 ISO 8601', () => pm.expect(feedback.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
+                      "pm.test('id é UUID', () => pm.expect(feedback.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "pm.test('nota é 1', () => pm.expect(feedback.nota).to.equal(1));",
+                      "pm.test('urgencia é HIGH', () => pm.expect(feedback.urgencia).to.equal('HIGH'));",
+                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(feedback.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
                       "pm.collectionVariables.set('feedbackId', feedback.id);"
                     ]
                   }
@@ -55,7 +55,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback cr\u00edtico - teste teste\",\n  \"nota\": 1\n}"
+                  "raw": "{\n  \"descricao\": \"Feedback crítico - teste teste\",\n  \"nota\": 1\n}"
                 },
                 "url": {
                   "raw": "{{localUrl}}/avaliacao",
@@ -69,7 +69,7 @@
               }
             },
             {
-              "name": "\u2705 201 \u2014 nota 6 (urg\u00eancia MEDIUM)",
+              "name": "✅ 201 — nota 6 (urgência MEDIUM)",
               "event": [
                 {
                   "listen": "test",
@@ -80,8 +80,8 @@
                       "const b = pm.response.json();",
                       "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
                       "const feedback = b.receiveFeedback;",
-                      "pm.test('nota \u00e9 6', () => pm.expect(feedback.nota).to.equal(6));",
-                      "pm.test('urgencia \u00e9 MEDIUM', () => pm.expect(feedback.urgencia).to.equal('MEDIUM'));"
+                      "pm.test('nota é 6', () => pm.expect(feedback.nota).to.equal(6));",
+                      "pm.test('urgencia é MEDIUM', () => pm.expect(feedback.urgencia).to.equal('MEDIUM'));"
                     ]
                   }
                 }
@@ -110,7 +110,7 @@
               }
             },
             {
-              "name": "\u2705 201 \u2014 nota 9 (urg\u00eancia LOW)",
+              "name": "✅ 201 — nota 9 (urgência LOW)",
               "event": [
                 {
                   "listen": "test",
@@ -121,8 +121,8 @@
                       "const b = pm.response.json();",
                       "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
                       "const feedback = b.receiveFeedback;",
-                      "pm.test('nota \u00e9 9', () => pm.expect(feedback.nota).to.equal(9));",
-                      "pm.test('urgencia \u00e9 LOW', () => pm.expect(feedback.urgencia).to.equal('LOW'));"
+                      "pm.test('nota é 9', () => pm.expect(feedback.nota).to.equal(9));",
+                      "pm.test('urgencia é LOW', () => pm.expect(feedback.urgencia).to.equal('LOW'));"
                     ]
                   }
                 }
@@ -151,7 +151,7 @@
               }
             },
             {
-              "name": "\u274c 400 \u2014 nota -1 (inv\u00e1lida)",
+              "name": "❌ 400 — nota -1 (inválida)",
               "event": [
                 {
                   "listen": "test",
@@ -161,7 +161,7 @@
                       "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
                       "const b = pm.response.json();",
                       "pm.test('tem title', () => pm.expect(b).to.have.property('title'));",
-                      "pm.test('status \u00e9 400', () => pm.expect(b.status).to.equal(400));",
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));",
                       "pm.test('tem detail', () => pm.expect(b).to.have.property('detail'));"
                     ]
                   }
@@ -177,7 +177,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback inv\u00e1lido\",\n  \"nota\": -1\n}"
+                  "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": -1\n}"
                 },
                 "url": {
                   "raw": "{{localUrl}}/avaliacao",
@@ -191,7 +191,7 @@
               }
             },
             {
-              "name": "\u274c 400 \u2014 nota 11 (inv\u00e1lida)",
+              "name": "❌ 400 — nota 11 (inválida)",
               "event": [
                 {
                   "listen": "test",
@@ -201,7 +201,7 @@
                       "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
                       "const b = pm.response.json();",
                       "pm.test('tem title', () => pm.expect(b).to.have.property('title'));",
-                      "pm.test('status \u00e9 400', () => pm.expect(b.status).to.equal(400));"
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));"
                     ]
                   }
                 }
@@ -216,7 +216,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback inv\u00e1lido\",\n  \"nota\": 11\n}"
+                  "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": 11\n}"
                 },
                 "url": {
                   "raw": "{{localUrl}}/avaliacao",
@@ -230,7 +230,7 @@
               }
             },
             {
-              "name": "\u274c 400 \u2014 descri\u00e7\u00e3o vazia",
+              "name": "❌ 400 — descrição vazia",
               "event": [
                 {
                   "listen": "test",
@@ -240,7 +240,7 @@
                       "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
                       "const b = pm.response.json();",
                       "pm.test('tem title', () => pm.expect(b).to.have.property('title'));",
-                      "pm.test('status \u00e9 400', () => pm.expect(b.status).to.equal(400));"
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));"
                     ]
                   }
                 }
@@ -269,7 +269,7 @@
               }
             },
             {
-              "name": "\u274c 400 \u2014 descri\u00e7\u00e3o com espa\u00e7os apenas",
+              "name": "❌ 400 — descrição com espaços apenas",
               "event": [
                 {
                   "listen": "test",
@@ -305,7 +305,7 @@
               }
             },
             {
-              "name": "\u274c 400 \u2014 nota ausente",
+              "name": "❌ 400 — nota ausente",
               "event": [
                 {
                   "listen": "test",
@@ -341,7 +341,7 @@
               }
             },
             {
-              "name": "\u274c 400 \u2014 descri\u00e7\u00e3o ausente",
+              "name": "❌ 400 — descrição ausente",
               "event": [
                 {
                   "listen": "test",
@@ -377,7 +377,7 @@
               }
             },
             {
-              "name": "\u274c 400 \u2014 nota como string",
+              "name": "❌ 400 — nota como string",
               "event": [
                 {
                   "listen": "test",
@@ -413,7 +413,7 @@
               }
             },
             {
-              "name": "\u2705 201 \u2014 nota 0 (boundary, urg\u00eancia HIGH)",
+              "name": "✅ 201 — nota 0 (boundary, urgência HIGH)",
               "event": [
                 {
                   "listen": "test",
@@ -424,8 +424,8 @@
                       "const b = pm.response.json();",
                       "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
                       "const feedback = b.receiveFeedback;",
-                      "pm.test('nota \u00e9 0', () => pm.expect(feedback.nota).to.equal(0));",
-                      "pm.test('urgencia \u00e9 HIGH', () => pm.expect(feedback.urgencia).to.equal('HIGH'));"
+                      "pm.test('nota é 0', () => pm.expect(feedback.nota).to.equal(0));",
+                      "pm.test('urgencia é HIGH', () => pm.expect(feedback.urgencia).to.equal('HIGH'));"
                     ]
                   }
                 }
@@ -440,7 +440,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback no m\u00ednimo teste\",\n  \"nota\": 0\n}"
+                  "raw": "{\n  \"descricao\": \"Feedback no mínimo teste\",\n  \"nota\": 0\n}"
                 },
                 "url": {
                   "raw": "{{localUrl}}/avaliacao",
@@ -454,7 +454,7 @@
               }
             },
             {
-              "name": "\u2705 201 \u2014 nota 10 (boundary, urg\u00eancia LOW)",
+              "name": "✅ 201 — nota 10 (boundary, urgência LOW)",
               "event": [
                 {
                   "listen": "test",
@@ -465,8 +465,8 @@
                       "const b = pm.response.json();",
                       "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
                       "const feedback = b.receiveFeedback;",
-                      "pm.test('nota \u00e9 10', () => pm.expect(feedback.nota).to.equal(10));",
-                      "pm.test('urgencia \u00e9 LOW', () => pm.expect(feedback.urgencia).to.equal('LOW'));"
+                      "pm.test('nota é 10', () => pm.expect(feedback.nota).to.equal(10));",
+                      "pm.test('urgencia é LOW', () => pm.expect(feedback.urgencia).to.equal('LOW'));"
                     ]
                   }
                 }
@@ -481,7 +481,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback no m\u00e1ximo teste\",\n  \"nota\": 10\n}"
+                  "raw": "{\n  \"descricao\": \"Feedback no máximo teste\",\n  \"nota\": 10\n}"
                 },
                 "url": {
                   "raw": "{{localUrl}}/avaliacao",
@@ -497,7 +497,7 @@
           ]
         },
         {
-          "name": "Listar Avalia\u00e7\u00f5es",
+          "name": "Listar Avaliações",
           "item": [
             {
               "name": "listarAvaliacoes - Query all feedbacks",
@@ -546,7 +546,7 @@
                   }
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/graphql",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/graphql",
                   "protocol": "https",
                   "host": [
                     "yu74m9aiul",
@@ -568,13 +568,13 @@
     },
     {
       "name": "prod",
-      "description": "Ambiente produ\u00e7\u00e3o (AWS API Gateway). Seta baseUrl para a URL do AWS.",
+      "description": "Ambiente produção (AWS API Gateway). Seta baseUrl para a URL do AWS.",
       "item": [
         {
-          "name": "Criar Avalia\u00e7\u00e3o",
+          "name": "Criar Avaliação",
           "item": [
             {
-              "name": "\u2705 201 \u2014 nota 1 (urg\u00eancia HIGH)",
+              "name": "✅ 201 — nota 1 (urgência HIGH)",
               "event": [
                 {
                   "listen": "test",
@@ -585,10 +585,10 @@
                       "const b = pm.response.json();",
                       "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
                       "const feedback = b.receiveFeedback;",
-                      "pm.test('id \u00e9 UUID', () => pm.expect(feedback.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
-                      "pm.test('nota \u00e9 1', () => pm.expect(feedback.nota).to.equal(1));",
-                      "pm.test('urgencia \u00e9 HIGH', () => pm.expect(feedback.urgencia).to.equal('HIGH'));",
-                      "pm.test('dataCriacao \u00e9 ISO 8601', () => pm.expect(feedback.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
+                      "pm.test('id é UUID', () => pm.expect(feedback.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "pm.test('nota é 1', () => pm.expect(feedback.nota).to.equal(1));",
+                      "pm.test('urgencia é HIGH', () => pm.expect(feedback.urgencia).to.equal('HIGH'));",
+                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(feedback.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
                       "pm.collectionVariables.set('feedbackId', feedback.id);"
                     ]
                   }
@@ -604,27 +604,26 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback cr\u00edtico - teste\",\n  \"nota\": 1\n}"
+                  "raw": "{\n  \"descricao\": \"Feedback crítico - teste teste\",\n  \"nota\": 1\n}"
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
-                  "protocol": "https",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
                   "host": [
-                    "yu74m9aiul",
+                    "b77f4fwsq6",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
                     "com"
                   ],
                   "path": [
-                    "dev",
                     "avaliacao"
-                  ]
+                  ],
+                  "protocol": "https"
                 }
               }
             },
             {
-              "name": "\u2705 201 \u2014 nota 6 (urg\u00eancia MEDIUM)",
+              "name": "✅ 201 — nota 6 (urgência MEDIUM)",
               "event": [
                 {
                   "listen": "test",
@@ -635,8 +634,8 @@
                       "const b = pm.response.json();",
                       "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
                       "const feedback = b.receiveFeedback;",
-                      "pm.test('nota \u00e9 6', () => pm.expect(feedback.nota).to.equal(6));",
-                      "pm.test('urgencia \u00e9 MEDIUM', () => pm.expect(feedback.urgencia).to.equal('MEDIUM'));"
+                      "pm.test('nota é 6', () => pm.expect(feedback.nota).to.equal(6));",
+                      "pm.test('urgencia é MEDIUM', () => pm.expect(feedback.urgencia).to.equal('MEDIUM'));"
                     ]
                   }
                 }
@@ -654,24 +653,23 @@
                   "raw": "{\n  \"descricao\": \"Feedback moderado - teste teste\",\n  \"nota\": 6\n}"
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
-                  "protocol": "https",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
                   "host": [
-                    "yu74m9aiul",
+                    "b77f4fwsq6",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
                     "com"
                   ],
                   "path": [
-                    "dev",
                     "avaliacao"
-                  ]
+                  ],
+                  "protocol": "https"
                 }
               }
             },
             {
-              "name": "\u2705 201 \u2014 nota 9 (urg\u00eancia LOW)",
+              "name": "✅ 201 — nota 9 (urgência LOW)",
               "event": [
                 {
                   "listen": "test",
@@ -682,8 +680,8 @@
                       "const b = pm.response.json();",
                       "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
                       "const feedback = b.receiveFeedback;",
-                      "pm.test('nota \u00e9 9', () => pm.expect(feedback.nota).to.equal(9));",
-                      "pm.test('urgencia \u00e9 LOW', () => pm.expect(feedback.urgencia).to.equal('LOW'));"
+                      "pm.test('nota é 9', () => pm.expect(feedback.nota).to.equal(9));",
+                      "pm.test('urgencia é LOW', () => pm.expect(feedback.urgencia).to.equal('LOW'));"
                     ]
                   }
                 }
@@ -701,24 +699,23 @@
                   "raw": "{\n  \"descricao\": \"Feedback positivo - teste teste\",\n  \"nota\": 9\n}"
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
-                  "protocol": "https",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
                   "host": [
-                    "yu74m9aiul",
+                    "b77f4fwsq6",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
                     "com"
                   ],
                   "path": [
-                    "dev",
                     "avaliacao"
-                  ]
+                  ],
+                  "protocol": "https"
                 }
               }
             },
             {
-              "name": "\u274c 400 \u2014 nota -1 (inv\u00e1lida)",
+              "name": "❌ 400 — nota -1 (inválida)",
               "event": [
                 {
                   "listen": "test",
@@ -728,7 +725,7 @@
                       "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
                       "const b = pm.response.json();",
                       "pm.test('tem title', () => pm.expect(b).to.have.property('title'));",
-                      "pm.test('status \u00e9 400', () => pm.expect(b.status).to.equal(400));",
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));",
                       "pm.test('tem detail', () => pm.expect(b).to.have.property('detail'));"
                     ]
                   }
@@ -744,27 +741,26 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback inv\u00e1lido\",\n  \"nota\": -1\n}"
+                  "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": -1\n}"
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
-                  "protocol": "https",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
                   "host": [
-                    "yu74m9aiul",
+                    "b77f4fwsq6",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
                     "com"
                   ],
                   "path": [
-                    "dev",
                     "avaliacao"
-                  ]
+                  ],
+                  "protocol": "https"
                 }
               }
             },
             {
-              "name": "\u274c 400 \u2014 nota 11 (inv\u00e1lida)",
+              "name": "❌ 400 — nota 11 (inválida)",
               "event": [
                 {
                   "listen": "test",
@@ -774,7 +770,7 @@
                       "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
                       "const b = pm.response.json();",
                       "pm.test('tem title', () => pm.expect(b).to.have.property('title'));",
-                      "pm.test('status \u00e9 400', () => pm.expect(b.status).to.equal(400));"
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));"
                     ]
                   }
                 }
@@ -789,27 +785,26 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback inv\u00e1lido\",\n  \"nota\": 11\n}"
+                  "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": 11\n}"
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
-                  "protocol": "https",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
                   "host": [
-                    "yu74m9aiul",
+                    "b77f4fwsq6",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
                     "com"
                   ],
                   "path": [
-                    "dev",
                     "avaliacao"
-                  ]
+                  ],
+                  "protocol": "https"
                 }
               }
             },
             {
-              "name": "\u274c 400 \u2014 descri\u00e7\u00e3o vazia",
+              "name": "❌ 400 — descrição vazia",
               "event": [
                 {
                   "listen": "test",
@@ -819,7 +814,7 @@
                       "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
                       "const b = pm.response.json();",
                       "pm.test('tem title', () => pm.expect(b).to.have.property('title'));",
-                      "pm.test('status \u00e9 400', () => pm.expect(b.status).to.equal(400));"
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));"
                     ]
                   }
                 }
@@ -837,24 +832,23 @@
                   "raw": "{\n  \"descricao\": \"\",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
-                  "protocol": "https",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
                   "host": [
-                    "yu74m9aiul",
+                    "b77f4fwsq6",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
                     "com"
                   ],
                   "path": [
-                    "dev",
                     "avaliacao"
-                  ]
+                  ],
+                  "protocol": "https"
                 }
               }
             },
             {
-              "name": "\u274c 400 \u2014 descri\u00e7\u00e3o com espa\u00e7os apenas",
+              "name": "❌ 400 — descrição com espaços apenas",
               "event": [
                 {
                   "listen": "test",
@@ -879,24 +873,23 @@
                   "raw": "{\n  \"descricao\": \"   \",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
-                  "protocol": "https",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
                   "host": [
-                    "yu74m9aiul",
+                    "b77f4fwsq6",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
                     "com"
                   ],
                   "path": [
-                    "dev",
                     "avaliacao"
-                  ]
+                  ],
+                  "protocol": "https"
                 }
               }
             },
             {
-              "name": "\u274c 400 \u2014 nota ausente",
+              "name": "❌ 400 — nota ausente",
               "event": [
                 {
                   "listen": "test",
@@ -921,24 +914,23 @@
                   "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
-                  "protocol": "https",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
                   "host": [
-                    "yu74m9aiul",
+                    "b77f4fwsq6",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
                     "com"
                   ],
                   "path": [
-                    "dev",
                     "avaliacao"
-                  ]
+                  ],
+                  "protocol": "https"
                 }
               }
             },
             {
-              "name": "\u274c 400 \u2014 descri\u00e7\u00e3o ausente",
+              "name": "❌ 400 — descrição ausente",
               "event": [
                 {
                   "listen": "test",
@@ -963,24 +955,23 @@
                   "raw": "{\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
-                  "protocol": "https",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
                   "host": [
-                    "yu74m9aiul",
+                    "b77f4fwsq6",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
                     "com"
                   ],
                   "path": [
-                    "dev",
                     "avaliacao"
-                  ]
+                  ],
+                  "protocol": "https"
                 }
               }
             },
             {
-              "name": "\u274c 400 \u2014 nota como string",
+              "name": "❌ 400 — nota como string",
               "event": [
                 {
                   "listen": "test",
@@ -1005,24 +996,23 @@
                   "raw": "{\n  \"descricao\": \"Feedback\",\n  \"nota\": \"cinco\"\n}"
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
-                  "protocol": "https",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
                   "host": [
-                    "yu74m9aiul",
+                    "b77f4fwsq6",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
                     "com"
                   ],
                   "path": [
-                    "dev",
                     "avaliacao"
-                  ]
+                  ],
+                  "protocol": "https"
                 }
               }
             },
             {
-              "name": "\u2705 201 \u2014 nota 0 (boundary, urg\u00eancia HIGH)",
+              "name": "✅ 201 — nota 0 (boundary, urgência HIGH)",
               "event": [
                 {
                   "listen": "test",
@@ -1033,8 +1023,8 @@
                       "const b = pm.response.json();",
                       "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
                       "const feedback = b.receiveFeedback;",
-                      "pm.test('nota \u00e9 0', () => pm.expect(feedback.nota).to.equal(0));",
-                      "pm.test('urgencia \u00e9 HIGH', () => pm.expect(feedback.urgencia).to.equal('HIGH'));"
+                      "pm.test('nota é 0', () => pm.expect(feedback.nota).to.equal(0));",
+                      "pm.test('urgencia é HIGH', () => pm.expect(feedback.urgencia).to.equal('HIGH'));"
                     ]
                   }
                 }
@@ -1049,27 +1039,26 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback no m\u00ednimo teste\",\n  \"nota\": 0\n}"
+                  "raw": "{\n  \"descricao\": \"Feedback no mínimo teste\",\n  \"nota\": 0\n}"
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
-                  "protocol": "https",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
                   "host": [
-                    "yu74m9aiul",
+                    "b77f4fwsq6",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
                     "com"
                   ],
                   "path": [
-                    "dev",
                     "avaliacao"
-                  ]
+                  ],
+                  "protocol": "https"
                 }
               }
             },
             {
-              "name": "\u2705 201 \u2014 nota 10 (boundary, urg\u00eancia LOW)",
+              "name": "✅ 201 — nota 10 (boundary, urgência LOW)",
               "event": [
                 {
                   "listen": "test",
@@ -1080,8 +1069,8 @@
                       "const b = pm.response.json();",
                       "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
                       "const feedback = b.receiveFeedback;",
-                      "pm.test('nota \u00e9 10', () => pm.expect(feedback.nota).to.equal(10));",
-                      "pm.test('urgencia \u00e9 LOW', () => pm.expect(feedback.urgencia).to.equal('LOW'));"
+                      "pm.test('nota é 10', () => pm.expect(feedback.nota).to.equal(10));",
+                      "pm.test('urgencia é LOW', () => pm.expect(feedback.urgencia).to.equal('LOW'));"
                     ]
                   }
                 }
@@ -1096,10 +1085,117 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback no m\u00e1ximo teste\",\n  \"nota\": 10\n}"
+                  "raw": "{\n  \"descricao\": \"Feedback no máximo teste\",\n  \"nota\": 10\n}"
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "host": [
+                    "b77f4fwsq6",
+                    "execute-api",
+                    "sa-east-1",
+                    "amazonaws",
+                    "com"
+                  ],
+                  "path": [
+                    "avaliacao"
+                  ],
+                  "protocol": "https"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar Avaliações",
+          "description": "🔐 INTERNAL ONLY - Requires X-API-Key authentication",
+          "item": [
+            {
+              "name": "✅ 200 — GET all feedbacks (PUBLIC)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                      "const response = pm.response.json();",
+                      "pm.test('Has avaliacoes field', () => pm.expect(response).to.have.property('avaliacoes'));",
+                      "pm.test('Has total field', () => pm.expect(response).to.have.property('total'));",
+                      "const avaliacoes = response.avaliacoes;",
+                      "pm.test('avaliacoes is an array', () => pm.expect(avaliacoes).to.be.an('array'));",
+                      "if (avaliacoes.length > 0) {",
+                      "  pm.test('each item has id', () => pm.expect(avaliacoes[0]).to.have.property('id'));",
+                      "  pm.test('each item has descricao', () => pm.expect(avaliacoes[0]).to.have.property('descricao'));",
+                      "  pm.test('each item has nota', () => pm.expect(avaliacoes[0]).to.have.property('nota'));",
+                      "  pm.test('each item has urgencia', () => pm.expect(avaliacoes[0]).to.have.property('urgencia'));",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "protocol": "https",
+                  "host": [
+                    "b77f4fwsq6",
+                    "execute-api",
+                    "sa-east-1",
+                    "amazonaws",
+                    "com"
+                  ],
+                  "path": [
+                    "dev",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "listarAvaliacoes - Query all feedbacks",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", () => pm.expect(pm.response.code).to.equal(200));",
+                      "const response = pm.response.json();",
+                      "pm.test(\"Has data field\", () => pm.expect(response).to.have.property(\"data\"));",
+                      "pm.test(\"data has listarAvaliacoes field\", () => pm.expect(response.data).to.have.property(\"listarAvaliacoes\"));",
+                      "const avaliacoes = response.data.listarAvaliacoes;",
+                      "pm.test(\"listarAvaliacoes is an array\", () => pm.expect(avaliacoes).to.be.an(\"array\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-API-Key",
+                    "value": "dev-graphql-key-422648464291"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}"
+                  }
+                },
+                "url": {
+                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/graphql",
                   "protocol": "https",
                   "host": [
                     "yu74m9aiul",
@@ -1110,7 +1206,7 @@
                   ],
                   "path": [
                     "dev",
-                    "avaliacao"
+                    "graphql"
                   ]
                 }
               }
@@ -1128,7 +1224,7 @@
     },
     {
       "key": "prodUrl",
-      "value": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev",
+      "value": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev",
       "type": "string"
     },
     {
@@ -1143,7 +1239,7 @@
     },
     {
       "key": "prodGraphqlUrl",
-      "value": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/graphql",
+      "value": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/graphql",
       "type": "string"
     },
     {
