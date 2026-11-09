@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FIAP Fase 4 - Feedback API",
-    "description": "Collection for testing FIAP Fase-4 Feedback Platform APIs.\n\nTWO SEPARATE APIs:\n\n1. PUBLIC REST API (no authentication):\n   POST /avaliacao \u2192 Create feedback\n   Endpoint: https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao\n   Request: {\"descricao\": \"...\", \"nota\": 1-10}\n   Response: 201 Created with feedback UUID\n\n2. INTERNAL GRAPHQL API (requires X-API-Key authentication):\n   POST /graphql \u2192 List all feedbacks (internal use only)\n   Endpoint: https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/graphql\n   Header: X-API-Key: dev-graphql-key-422648464291\n   Request: {\"query\": \"query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }\"}\n   Response: 200 OK with array of feedbacks\n\nVariables: prodUrl, prodGraphqlUrl, prodApiKey, timestamp, feedbackId\n",
+    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\n\u26a0\ufe0f SECURITY-FOCUSED ARCHITECTURE:\n\n1. PUBLIC REST API (no authentication - create only):\n   POST /avaliacao \u2192 Create feedback\n   Endpoint: https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao\n   Request: {\"descricao\": \"...\", \"nota\": 1-10}\n   Response: 201 Created\n   \n   \u26a0\ufe0f NO LIST ENDPOINT ON PUBLIC API - Security by design\n\n2. INTERNAL GRAPHQL API (X-API-Key auth - list/query only):\n   POST /graphql \u2192 Query feedbacks (backend only)\n   Endpoint: https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/graphql\n   Header: X-API-Key: dev-graphql-key-422648464291\n   Request: {\"query\": \"query { listarAvaliacoes { ... } }\"}\n   Response: 200 OK\n   \n   \u2713 Requires authentication\n   \u2713 Internal use only\n   \u2713 Backend services only",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -1113,116 +1113,6 @@
                     "avaliacao"
                   ]
                 }
-              }
-            }
-          ]
-        },
-        {
-          "name": "Listar Avalia\u00e7\u00f5es",
-          "item": [
-            {
-              "name": "listarAvaliacoes - Query all feedbacks",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test(\"Status code is 200\", () => pm.expect(pm.response.code).to.equal(200));",
-                      "const response = pm.response.json();",
-                      "pm.test(\"Has data field\", () => pm.expect(response).to.have.property(\"data\"));",
-                      "pm.test(\"data has listarAvaliacoes field\", () => pm.expect(response.data).to.have.property(\"listarAvaliacoes\"));",
-                      "const avaliacoes = response.data.listarAvaliacoes;",
-                      "pm.test(\"listarAvaliacoes is an array\", () => pm.expect(avaliacoes).to.be.an(\"array\"));",
-                      "if (avaliacoes.length > 0) {",
-                      "  pm.test(\"each item has id field\", () => pm.expect(avaliacoes[0]).to.have.property(\"id\"));",
-                      "  pm.test(\"each item has descricao field\", () => pm.expect(avaliacoes[0]).to.have.property(\"descricao\"));",
-                      "  pm.test(\"each item has nota field\", () => pm.expect(avaliacoes[0]).to.have.property(\"nota\"));",
-                      "  pm.test(\"each item has urgencia field\", () => pm.expect(avaliacoes[0]).to.have.property(\"urgencia\"));",
-                      "  pm.test(\"each item has dataCriacao field\", () => pm.expect(avaliacoes[0]).to.have.property(\"dataCriacao\"));",
-                      "  pm.test(\"id is valid UUID\", () => pm.expect(avaliacoes[0].id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
-                      "  pm.test(\"urgencia is HIGH, MEDIUM, or LOW\", () => pm.expect([\"HIGH\", \"MEDIUM\", \"LOW\"]).to.include(avaliacoes[0].urgencia));",
-                      "  pm.test(\"dataCriacao is ISO 8601\", () => pm.expect(avaliacoes[0].dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
-                      "}"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "X-API-Key",
-                    "value": "dev-graphql-key-422648464291"
-                  }
-                ],
-                "body": {
-                  "mode": "graphql",
-                  "graphql": {
-                    "query": "query {\\n  listarAvaliacoes {\\n    id\\n    descricao\\n    nota\\n    urgencia\\n    dataCriacao\\n  }\\n}"
-                  }
-                },
-                "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/graphql",
-                  "protocol": "https",
-                  "host": [
-                    "yu74m9aiul",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
-                  ],
-                  "path": [
-                    "dev",
-                    "graphql"
-                  ]
-                }
-              }
-            }
-          ]
-        },
-        {
-          "name": "GraphQL - listarAvaliacoes (internal)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-API-Key",
-                "value": "{{prodApiKey}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"query\":\"query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }\"}"
-            },
-            "url": {
-              "raw": "{{prodGraphqlUrl}}",
-              "host": [
-                "{{prodGraphqlUrl}}"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
-                  "const response = pm.response.json();",
-                  "pm.test('Has data field', () => pm.expect(response).to.have.property('data'));",
-                  "pm.test('Has listarAvaliacoes array', () => pm.expect(response.data).to.have.property('listarAvaliacoes'));",
-                  "const avaliacoes = response.data.listarAvaliacoes;",
-                  "pm.test('Array is not empty', () => pm.expect(avaliacoes.length).to.be.greaterThan(0));"
-                ]
               }
             }
           ]
