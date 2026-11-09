@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FIAP Fase 4 - Feedback API",
-    "description": "Collection for testing the Feedback API with REST endpoints for creating and managing feedback.\n\nTwo environments:\n- local: LocalStack on http://localhost:4566/avaliacao\n- prod: AWS API Gateway (sa-east-1, dev) on https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao\n\nVariables (localUrl, prodUrl, timestamp, feedbackId) are embedded in the collection.\n\nFluxo: primeiro execute 'Selecionar ambiente local' (ou 'prod'), depois os testes de 'Criar Avalia\u00e7\u00e3o'.",
+    "description": "Collection for testing FIAP Fase-4 Feedback Platform APIs.\n\nTWO SEPARATE APIs:\n\n1. PUBLIC REST API (no authentication):\n   POST /avaliacao \u2192 Create feedback\n   Endpoint: https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao\n   Request: {\"descricao\": \"...\", \"nota\": 1-10}\n   Response: 201 Created with feedback UUID\n\n2. INTERNAL GRAPHQL API (requires X-API-Key authentication):\n   POST /graphql \u2192 List all feedbacks (internal use only)\n   Endpoint: https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/graphql\n   Header: X-API-Key: dev-graphql-key-422648464291\n   Request: {\"query\": \"query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }\"}\n   Response: 200 OK with array of feedbacks\n\nVariables: prodUrl, prodGraphqlUrl, prodApiKey, timestamp, feedbackId\n",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -1170,6 +1170,48 @@
               }
             }
           ]
+        },
+        {
+          "name": "GraphQL - listarAvaliacoes (internal)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{prodApiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"query\":\"query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }\"}"
+            },
+            "url": {
+              "raw": "{{prodGraphqlUrl}}",
+              "host": [
+                "{{prodGraphqlUrl}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                  "const response = pm.response.json();",
+                  "pm.test('Has data field', () => pm.expect(response).to.have.property('data'));",
+                  "pm.test('Has listarAvaliacoes array', () => pm.expect(response.data).to.have.property('listarAvaliacoes'));",
+                  "const avaliacoes = response.data.listarAvaliacoes;",
+                  "pm.test('Array is not empty', () => pm.expect(avaliacoes.length).to.be.greaterThan(0));"
+                ]
+              }
+            }
+          ]
         }
       ]
     }
@@ -1193,6 +1235,16 @@
     {
       "key": "timestamp",
       "value": "",
+      "type": "string"
+    },
+    {
+      "key": "prodGraphqlUrl",
+      "value": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/graphql",
+      "type": "string"
+    },
+    {
+      "key": "prodApiKey",
+      "value": "dev-graphql-key-422648464291",
       "type": "string"
     }
   ]
