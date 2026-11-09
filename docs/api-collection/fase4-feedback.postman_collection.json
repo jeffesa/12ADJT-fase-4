@@ -533,6 +533,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "X-API-Key",
+                    "value": "dev-graphql-key-422648464291"
                   }
                 ],
                 "body": {
@@ -542,12 +546,18 @@
                   }
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/graphql",
+                  "protocol": "https",
                   "host": [
-                    "{{localUrl}}"
+                    "yu74m9aiul",
+                    "execute-api",
+                    "sa-east-1",
+                    "amazonaws",
+                    "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "dev",
+                    "graphql"
                   ]
                 }
               }
@@ -1144,6 +1154,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "X-API-Key",
+                    "value": "dev-graphql-key-422648464291"
                   }
                 ],
                 "body": {
@@ -1153,7 +1167,8 @@
                   }
                 },
                 "url": {
-                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/graphql",
+                  "protocol": "https",
                   "host": [
                     "yu74m9aiul",
                     "execute-api",
@@ -1163,9 +1178,8 @@
                   ],
                   "path": [
                     "dev",
-                    "avaliacao"
-                  ],
-                  "protocol": "https"
+                    "graphql"
+                  ]
                 }
               }
             }
