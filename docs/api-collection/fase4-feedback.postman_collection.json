@@ -645,6 +645,7 @@
                 },
                 "url": {
                   "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "protocol": "https",
                   "host": [
                     "yu74m9aiul",
                     "execute-api",
@@ -655,8 +656,7 @@
                   "path": [
                     "dev",
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -692,6 +692,7 @@
                 },
                 "url": {
                   "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "protocol": "https",
                   "host": [
                     "yu74m9aiul",
                     "execute-api",
@@ -702,8 +703,7 @@
                   "path": [
                     "dev",
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -738,6 +738,7 @@
                 },
                 "url": {
                   "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "protocol": "https",
                   "host": [
                     "yu74m9aiul",
                     "execute-api",
@@ -748,8 +749,7 @@
                   "path": [
                     "dev",
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -783,6 +783,7 @@
                 },
                 "url": {
                   "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "protocol": "https",
                   "host": [
                     "yu74m9aiul",
                     "execute-api",
@@ -793,8 +794,7 @@
                   "path": [
                     "dev",
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -828,6 +828,7 @@
                 },
                 "url": {
                   "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "protocol": "https",
                   "host": [
                     "yu74m9aiul",
                     "execute-api",
@@ -838,8 +839,7 @@
                   "path": [
                     "dev",
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -870,6 +870,7 @@
                 },
                 "url": {
                   "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "protocol": "https",
                   "host": [
                     "yu74m9aiul",
                     "execute-api",
@@ -880,8 +881,7 @@
                   "path": [
                     "dev",
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -912,6 +912,7 @@
                 },
                 "url": {
                   "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "protocol": "https",
                   "host": [
                     "yu74m9aiul",
                     "execute-api",
@@ -922,8 +923,7 @@
                   "path": [
                     "dev",
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -954,6 +954,7 @@
                 },
                 "url": {
                   "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "protocol": "https",
                   "host": [
                     "yu74m9aiul",
                     "execute-api",
@@ -964,8 +965,7 @@
                   "path": [
                     "dev",
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -996,6 +996,7 @@
                 },
                 "url": {
                   "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "protocol": "https",
                   "host": [
                     "yu74m9aiul",
                     "execute-api",
@@ -1006,8 +1007,7 @@
                   "path": [
                     "dev",
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -1043,6 +1043,7 @@
                 },
                 "url": {
                   "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "protocol": "https",
                   "host": [
                     "yu74m9aiul",
                     "execute-api",
@@ -1053,8 +1054,7 @@
                   "path": [
                     "dev",
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -1090,6 +1090,7 @@
                 },
                 "url": {
                   "raw": "https://yu74m9aiul.execute-api.sa-east-1.amazonaws.com/dev/avaliacao",
+                  "protocol": "https",
                   "host": [
                     "yu74m9aiul",
                     "execute-api",
@@ -1100,8 +1101,7 @@
                   "path": [
                     "dev",
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             }

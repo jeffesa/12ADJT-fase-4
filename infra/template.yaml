@@ -106,6 +106,16 @@ Resources:
                 Action:
                   - dynamodb:PutItem
                 Resource: !GetAtt FeedbacksTable.Arn
+        - PolicyName: DynamoDBReadPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:Scan
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                Resource: !GetAtt FeedbacksTable.Arn
         - PolicyName: SNSPublishPolicy
           PolicyDocument:
             Version: '2012-10-17'
