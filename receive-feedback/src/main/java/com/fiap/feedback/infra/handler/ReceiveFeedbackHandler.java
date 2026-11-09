@@ -17,6 +17,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 
 import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
@@ -43,6 +44,11 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
 
     private static final Logger LOGGER = Logger.getLogger(ReceiveFeedbackHandler.class.getName());
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    
+    static {
+        // Configure ObjectMapper to ignore unknown properties (e.g., 'query' from Bruno/Postman)
+        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
 
     @Inject
     private ReceiveFeedbackUseCase receiveFeedbackUseCase;
