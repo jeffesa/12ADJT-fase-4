@@ -223,7 +223,7 @@ Resources:
   #========================================
 
   # Lambda 1: ReceiveFeedbackFunction (PUBLIC - REST)
-  # Triggered by: API Gateway POST /avaliacao and GET /avaliacao
+  # Triggered by: API Gateway POST /feedback and GET /feedback
   # Actions: Routes based on HTTP method
   ReceiveFeedbackFunction:
     Type: AWS::Serverless::Function
@@ -236,7 +236,7 @@ Resources:
       Environment:
         Variables:
           QUARKUS_PROFILE: prod
-          QUARKUS_LAMBDA_HANDLER: avaliacao
+          QUARKUS_LAMBDA_HANDLER: receiveFeedback
           TABLE_NAME: !Ref FeedbacksTable
           FEEDBACK_TOPIC_ARN: !Ref FeedbackUrgentTopic
           ADMIN_EMAIL: !Ref AdminEmail
@@ -254,7 +254,7 @@ Resources:
         Project: FIAP-Fase-4
 
   # Lambda 1b: ListFeedbackFunction (PUBLIC - REST GET)
-  # Triggered by: API Gateway GET /avaliacao
+  # Triggered by: API Gateway GET /feedback
   # Actions: Returns all feedbacks (public endpoint)
   ListFeedbackFunction:
     Type: AWS::Serverless::Function
@@ -266,7 +266,7 @@ Resources:
       Environment:
         Variables:
           QUARKUS_PROFILE: prod
-          QUARKUS_LAMBDA_HANDLER: avaliacao
+          QUARKUS_LAMBDA_HANDLER: listFeedback
           TABLE_NAME: !Ref FeedbacksTable
       Events:
         ApiEventGet:
@@ -373,7 +373,7 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       Name: !Sub '${Environment}-feedback-api'
-      StageName: !Ref Environment
+      StageName: 'prod'
       TracingEnabled: true
       MethodSettings:
         - ResourcePath: '/feedback'

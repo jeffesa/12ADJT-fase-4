@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FIAP Fase 4 - Feedback API",
-    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\n⚠️ SECURITY-FOCUSED ARCHITECTURE:\n\n1. PUBLIC REST API (no authentication - create only):\n   POST /feedback → Create feedback\n   Endpoint: https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback\n   Request: {\"descricao\": \"...\", \"nota\": 1-10}\n   Response: 201 Created\n   \n   ⚠️ NO LIST ENDPOINT ON PUBLIC API - Security by design\n\n2. INTERNAL GRAPHQL API (X-API-Key auth - list/query only):\n   POST /graphql → Query feedbacks (backend only)\n   Endpoint: https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/graphql\n   Header: X-API-Key: dev-graphql-key-422648464291\n   Request: {\"query\": \"query { listarAvaliacoes { ... } }\"}\n   Response: 200 OK\n   \n   ✓ Requires authentication\n   ✓ Internal use only\n   ✓ Backend services only",
+    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\n⚠️ SECURITY-FOCUSED ARCHITECTURE:\n\n1. PUBLIC REST API (no authentication - create only):\n   POST /feedback → Create feedback\n   Endpoint: https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback\n   Request: {\"descricao\": \"...\", \"nota\": 1-10}\n   Response: 201 Created\n   \n   ⚠️ NO LIST ENDPOINT ON PUBLIC API - Security by design\n\n2. INTERNAL GRAPHQL API (X-API-Key auth - list/query only):\n   POST /graphql → Query feedbacks (backend only)\n   Endpoint: https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/graphql\n   Header: X-API-Key: dev-graphql-key-422648464291\n   Request: {\"query\": \"query { listarAvaliacoes { ... } }\"}\n   Response: 200 OK\n   \n   ✓ Requires authentication\n   ✓ Internal use only\n   ✓ Backend services only",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -546,7 +546,7 @@
                   }
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/graphql",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/graphql",
                   "protocol": "https",
                   "host": [
                     "yu74m9aiul",
@@ -607,9 +607,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback crítico - teste teste\",\n  \"nota\": 1\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -653,9 +653,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback moderado - teste teste\",\n  \"nota\": 6\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -699,9 +699,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback positivo - teste teste\",\n  \"nota\": 9\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -744,9 +744,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": -1\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -788,9 +788,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": 11\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -832,9 +832,9 @@
                   "raw": "{\n  \"descricao\": \"\",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -873,9 +873,9 @@
                   "raw": "{\n  \"descricao\": \"   \",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -914,9 +914,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -955,9 +955,9 @@
                   "raw": "{\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -996,9 +996,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback\",\n  \"nota\": \"cinco\"\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -1042,9 +1042,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback no mínimo teste\",\n  \"nota\": 0\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -1088,9 +1088,9 @@
                   "raw": "{\n  \"descricao\": \"Feedback no máximo teste\",\n  \"nota\": 10\n}"
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -1142,10 +1142,10 @@
                   }
                 ],
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/feedback",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback",
                   "protocol": "https",
                   "host": [
-                    "b77f4fwsq6",
+                    "9799a6pv98",
                     "execute-api",
                     "sa-east-1",
                     "amazonaws",
@@ -1195,7 +1195,7 @@
                   }
                 },
                 "url": {
-                  "raw": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/graphql",
+                  "raw": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/graphql",
                   "protocol": "https",
                   "host": [
                     "yu74m9aiul",
@@ -1224,7 +1224,7 @@
     },
     {
       "key": "prodUrl",
-      "value": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev",
+      "value": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/dev",
       "type": "string"
     },
     {
@@ -1239,7 +1239,7 @@
     },
     {
       "key": "prodGraphqlUrl",
-      "value": "https://b77f4fwsq6.execute-api.sa-east-1.amazonaws.com/dev/graphql",
+      "value": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/graphql",
       "type": "string"
     },
     {
