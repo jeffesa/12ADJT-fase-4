@@ -376,7 +376,7 @@ Resources:
       StageName: !Ref Environment
       TracingEnabled: true
       MethodSettings:
-        - ResourcePath: '/avaliacao'
+        - ResourcePath: '/feedback'
           HttpMethod: POST
           LoggingLevel: INFO
           DataTraceEnabled: true
