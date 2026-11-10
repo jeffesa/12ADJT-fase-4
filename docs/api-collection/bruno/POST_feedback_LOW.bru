@@ -1,0 +1,30 @@
+meta {
+  name: POST /feedback - nota 9 (LOW urgência)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/feedback
+  body: json {
+    {
+      "descricao": "Feedback positivo - teste",
+      "nota": 9
+    }
+  }
+  auth: none
+}
+
+tests {
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  test("Urgência is LOW", function() {
+    const body = res.getBody();
+    expect(body.receiveFeedback.urgencia).to.equal("LOW");
+  });
+  test("Nota is 9", function() {
+    const body = res.getBody();
+    expect(body.receiveFeedback.nota).to.equal(9);
+  });
+}
