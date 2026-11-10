@@ -141,11 +141,7 @@ clean() {
   ok "✅ Volumes removidos. Execute './run.sh docker' para subir novamente"
 }
 
-show_logs() {
-  info "\n📋 Mostrando logs do LocalStack (Ctrl+C para sair)..."
-  check_docker || return 1
-  compose logs -f localstack
-}
+
 
 health_check() {
   info "\n🩺 Verificando saúde dos serviços (Quarkus Dev Mode)..."

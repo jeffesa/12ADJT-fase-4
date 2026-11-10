@@ -10,7 +10,7 @@ quarkus:
     name: receive-feedback
     version: 1.0.0
   
-  profile: dev
+  profile: prod
   
   # Logging
   log:
