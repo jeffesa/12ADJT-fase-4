@@ -95,7 +95,7 @@ run_docker() {
   
   ok "✅ Containers iniciados. Aguardando healthcheck..."
   RETRY=0
-  until compose exec -T localstack awslocal ec2 describe-regions &>/dev/null 2>&1; do
+  until curl -f http://localhost:4566/_localstack/health &>/dev/null 2>&1; do
     RETRY=$((RETRY + 1))
     if [ $RETRY -ge 60 ]; then
       err "❌ LocalStack não respondeu após 60s"
@@ -171,28 +171,28 @@ health_check() {
 list_resources() {
   info "\n📊 Listando recursos no LocalStack..."
   
-  if ! compose exec -T localstack awslocal ec2 describe-regions &>/dev/null 2>&1; then
+  if ! curl -f http://localhost:4566/_localstack/health &>/dev/null 2>&1; then
     err "❌ LocalStack não está pronto. Execute './run.sh docker' primeiro."
     return 1
   fi
   
   info "\n  📦 DynamoDB Tables:"
-  if compose exec -T localstack awslocal dynamodb list-tables 2>/dev/null | grep -q '"TableNames"'; then
-    compose exec -T localstack awslocal dynamodb list-tables --query 'TableNames[]' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /'
+  if aws --endpoint-url http://localhost:4566 dynamodb list-tables 2>/dev/null | grep -q '"TableNames"'; then
+    aws --endpoint-url http://localhost:4566 dynamodb list-tables --query 'TableNames[]' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /'
   else
     info "     (nenhuma)"
   fi
   
   info "\n  📨 SNS Topics:"
-  if compose exec -T localstack awslocal sns list-topics 2>/dev/null | grep -q '"Topics"'; then
-    compose exec -T localstack awslocal sns list-topics --query 'Topics[].TopicArn' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /'
+  if aws --endpoint-url http://localhost:4566 sns list-topics 2>/dev/null | grep -q '"Topics"'; then
+    aws --endpoint-url http://localhost:4566 sns list-topics --query 'Topics[].TopicArn' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /'
   else
     info "     (nenhum)"
   fi
   
   info "\n  📬 SQS Queues:"
-  if compose exec -T localstack awslocal sqs list-queues 2>/dev/null | grep -q '"QueueUrls"'; then
-    compose exec -T localstack awslocal sqs list-queues --query 'QueueUrls[]' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /'
+  if aws --endpoint-url http://localhost:4566 sqs list-queues 2>/dev/null | grep -q '"QueueUrls"'; then
+    aws --endpoint-url http://localhost:4566 sqs list-queues --query 'QueueUrls[]' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /'
   else
     info "     (nenhuma)"
   fi
@@ -221,7 +221,7 @@ e2e_setup() {
   # Wait for services to be ready
   info "\n⏳ Waiting for DynamoDB, SNS, SES to be accessible..."
   RETRY=0
-  until compose exec -T localstack awslocal dynamodb list-tables &>/dev/null 2>&1; do
+  until aws --endpoint-url http://localhost:4566 dynamodb list-tables &>/dev/null 2>&1; do
     RETRY=$((RETRY + 1))
     if [ $RETRY -ge 60 ]; then
       err "❌ AWS services not ready after 60s"
@@ -236,7 +236,7 @@ e2e_setup() {
   # Verify SES domain (mock in LocalStack)
   info "\n📧 Verifying SES email identities..."
   for email in "noreply@feedback-fase-4.com" "admin@feedback-fase-4.com"; do
-    compose exec -T localstack awslocal ses verify-email-identity --email-address "$email" &>/dev/null 2>&1
+    aws --endpoint-url http://localhost:4566 ses verify-email-identity --email-address "$email" &>/dev/null 2>&1
     ok "  ✅ Verified: $email"
   done
   
@@ -244,7 +244,7 @@ e2e_setup() {
   info "\n📊 Verifying resources created by initialization..."
   
   # Check DynamoDB table
-  if compose exec -T localstack awslocal dynamodb describe-table --table-name feedbacks &>/dev/null 2>&1; then
+  if aws --endpoint-url http://localhost:4566 dynamodb describe-table --table-name feedbacks &>/dev/null 2>&1; then
     ok "  ✅ DynamoDB table 'feedbacks' exists (hash: feedbackId, range: createdAt)"
   else
     err "  ❌ DynamoDB table 'feedbacks' not found"
@@ -253,7 +253,7 @@ e2e_setup() {
   
   # Check SNS topics
   for topic in "feedback-urgent-topic" "feedback-report-topic"; do
-    if compose exec -T localstack awslocal sns list-topics 2>/dev/null | grep -q "$topic"; then
+    if aws --endpoint-url http://localhost:4566 sns list-topics 2>/dev/null | grep -q "$topic"; then
       ok "  ✅ SNS topic '$topic' exists"
     else
       err "  ❌ SNS topic '$topic' not found"
@@ -263,7 +263,7 @@ e2e_setup() {
   
   # Check SQS queues
   for queue in "notification-queue" "report-queue"; do
-    if compose exec -T localstack awslocal sqs list-queues 2>/dev/null | grep -q "$queue"; then
+    if aws --endpoint-url http://localhost:4566 sqs list-queues 2>/dev/null | grep -q "$queue"; then
       ok "  ✅ SQS queue '$queue' exists"
     else
       err "  ❌ SQS queue '$queue' not found"
