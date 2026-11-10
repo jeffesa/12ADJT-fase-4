@@ -40,21 +40,21 @@ quarkus_dev_receive_feedback() {
   check_maven || return 1
   info "\n🚀 Iniciando receive-feedback (porta 8080)..."
   cd "$SCRIPT_DIR/receive-feedback"
-  mvn quarkus:dev
+  mvn quarkus:dev -Ddebug=false
 }
 
 quarkus_dev_send_notification() {
   check_maven || return 1
   info "\n🚀 Iniciando send-notification (porta 8081)..."
   cd "$SCRIPT_DIR/send-notification"
-  mvn quarkus:dev
+  mvn quarkus:dev -Ddebug=false
 }
 
 quarkus_dev_generate_report() {
   check_maven || return 1
   info "\n🚀 Iniciando generate-report (porta 8082)..."
   cd "$SCRIPT_DIR/generate-report"
-  mvn quarkus:dev
+  mvn quarkus:dev -Ddebug=false
 }
 
 run_tests() {
