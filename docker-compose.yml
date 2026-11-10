@@ -37,7 +37,7 @@ services:
     networks:
       - fase4-network
     healthcheck:
-      test: ["CMD", "awslocal", "ec2", "describe-regions"]
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
       interval: 10s
       timeout: 5s
       retries: 5
