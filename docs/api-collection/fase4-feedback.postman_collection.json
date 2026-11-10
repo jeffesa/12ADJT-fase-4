@@ -63,7 +63,7 @@
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -104,7 +104,7 @@
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -145,7 +145,7 @@
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -185,7 +185,7 @@
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -224,7 +224,7 @@
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -263,7 +263,7 @@
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -299,7 +299,7 @@
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -335,7 +335,7 @@
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -371,7 +371,7 @@
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -407,7 +407,7 @@
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -448,7 +448,7 @@
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -489,7 +489,7 @@
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -616,7 +616,7 @@
                     "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ],
                   "protocol": "https"
                 }
@@ -662,7 +662,7 @@
                     "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ],
                   "protocol": "https"
                 }
@@ -708,7 +708,7 @@
                     "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ],
                   "protocol": "https"
                 }
@@ -753,7 +753,7 @@
                     "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ],
                   "protocol": "https"
                 }
@@ -797,7 +797,7 @@
                     "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ],
                   "protocol": "https"
                 }
@@ -841,7 +841,7 @@
                     "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ],
                   "protocol": "https"
                 }
@@ -882,7 +882,7 @@
                     "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ],
                   "protocol": "https"
                 }
@@ -923,7 +923,7 @@
                     "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ],
                   "protocol": "https"
                 }
@@ -964,7 +964,7 @@
                     "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ],
                   "protocol": "https"
                 }
@@ -1005,7 +1005,7 @@
                     "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ],
                   "protocol": "https"
                 }
@@ -1051,7 +1051,7 @@
                     "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ],
                   "protocol": "https"
                 }
@@ -1097,7 +1097,7 @@
                     "com"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ],
                   "protocol": "https"
                 }
@@ -1153,7 +1153,7 @@
                   ],
                   "path": [
                     "dev",
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
