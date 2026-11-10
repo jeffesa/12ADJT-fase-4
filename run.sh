@@ -39,22 +39,25 @@ check_maven() {
 quarkus_dev_receive_feedback() {
   check_maven || return 1
   info "\n🚀 Iniciando receive-feedback (porta 8080)..."
+  info "    Bloqueia terminal. Use Ctrl+C para parar.\n"
   cd "$SCRIPT_DIR/receive-feedback"
-  mvn quarkus:dev -Ddebug=false
+  exec mvn quarkus:dev -Ddebug=false -Dquarkus.console.legacy=true
 }
 
 quarkus_dev_send_notification() {
   check_maven || return 1
   info "\n🚀 Iniciando send-notification (porta 8081)..."
+  info "    Bloqueia terminal. Use Ctrl+C para parar.\n"
   cd "$SCRIPT_DIR/send-notification"
-  mvn quarkus:dev -Ddebug=false
+  exec mvn quarkus:dev -Ddebug=false -Dquarkus.console.legacy=true
 }
 
 quarkus_dev_generate_report() {
   check_maven || return 1
   info "\n🚀 Iniciando generate-report (porta 8082)..."
+  info "    Bloqueia terminal. Use Ctrl+C para parar.\n"
   cd "$SCRIPT_DIR/generate-report"
-  mvn quarkus:dev -Ddebug=false
+  exec mvn quarkus:dev -Ddebug=false -Dquarkus.console.legacy=true
 }
 
 run_tests() {
