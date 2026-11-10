@@ -30,10 +30,10 @@ services:
       LAMBDA_EXECUTOR: docker-reuse
       LOCALSTACK_HOSTNAME: localhost
     volumes:
-      # Persist LocalStack state (opcional)
-      - localstack-data:/tmp/localstack
       # Script de inicialização para criar recursos
       - ./infra/localstack-init.sh:/docker-entrypoint-initaws.d/init-aws.sh
+      # NOTE: Removed localstack-data volume to avoid "Device or resource busy" errors
+      # LocalStack state is ephemeral in dev environment (reset on each start)
     networks:
       - fase4-network
     healthcheck:
@@ -42,10 +42,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-
-volumes:
-  localstack-data:
-    driver: local
 
 networks:
   fase4-network:
