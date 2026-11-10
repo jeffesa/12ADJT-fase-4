@@ -85,45 +85,38 @@ compose() {
 
 # ─── Ações ─────────────────────────────────────────────────────
 
-run_docker() {
-  info "\n🐳 Subindo LocalStack via Docker Compose..."
-  check_docker || return 1
-  check_docker_compose || return 1
+run_quarkus_dev() {
+  check_maven || return 1
   
-  compose down --remove-orphans 2>/dev/null || true
-  compose up --build -d || { err "❌ Falha ao subir containers"; return 1; }
-  
-  ok "✅ Containers iniciados. Aguardando healthcheck..."
-  RETRY=0
-  until curl -f http://localhost:4566/_localstack/health &>/dev/null 2>&1; do
-    RETRY=$((RETRY + 1))
-    if [ $RETRY -ge 60 ]; then
-      err "❌ LocalStack não respondeu após 60s"
-      return 1
-    fi
-    echo -n "."
-    sleep 1
-  done
-  ok "\n✅ LocalStack pronto!"
-  
-  info "\n📍 Endpoints LocalStack:"
-  info "   Edge:      http://localhost:4566"
-  info "   DynamoDB:  http://localhost:4569"
-  info "   SNS:       http://localhost:4575"
-  info "   SQS:       http://localhost:4576"
-  
-  info "\n📚 Próximos passos:"
-  info "   Abra 3 terminais separados e execute:"
-  info "   Terminal 1: cd receive-feedback && mvn quarkus:dev"
-  info "   Terminal 2: cd send-notification && mvn quarkus:dev"
-  info "   Terminal 3: cd generate-report && mvn quarkus:dev"
+  info "\n🚀 Iniciando Quarkus Dev Mode para os 3 módulos..."
+  info "   Abra 3 terminais separados e execute em cada um:"
+  info ""
+  info "   Terminal 1:"
+  info "     cd /Users/jefferson/Documents/FIAP/fase-4/receive-feedback"
+  info "     mvn quarkus:dev"
+  info ""
+  info "   Terminal 2:"
+  info "     cd /Users/jefferson/Documents/FIAP/fase-4/send-notification"
+  info "     mvn quarkus:dev"
+  info ""
+  info "   Terminal 3:"
+  info "     cd /Users/jefferson/Documents/FIAP/fase-4/generate-report"
+  info "     mvn quarkus:dev"
+  info ""
+  info "📍 Local Endpoints (uma vez que os módulos estiverem running):"
+  info "   receive-feedback: http://localhost:8080"
+  info "   send-notification: http://localhost:8081"
+  info "   generate-report: http://localhost:8082"
+  info ""
+  info "💡 Para testes de integração, use os endpoints em AWS:"
+  info "   https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/"
 }
 
-stop_docker() {
-  info "\n🛑 Parando LocalStack..."
-  check_docker || return 1
-  compose down
-  ok "✅ Containers parados"
+stop_quarkus_dev() {
+  warn "\n⏹️  Para parar Quarkus Dev Mode:"
+  warn "   Em cada terminal onde você executou 'mvn quarkus:dev', pressione Ctrl+C"
+  warn ""
+  warn "   Isso matará os processos Maven e fechará os servidores locais."
 }
 
 run_tests() {
@@ -155,47 +148,50 @@ show_logs() {
 }
 
 health_check() {
-  info "\n🩺 Verificando saúde dos serviços..."
+  info "\n🩺 Verificando saúde dos serviços (Quarkus Dev Mode)..."
   
-  local code
-  code=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:4566" 2>/dev/null)
-  if [ "$code" = "200" ] || [ "$code" = "404" ]; then
-    ok "  ✅ LocalStack (edge:4566): UP"
+  local dev_endpoints=(
+    "http://localhost:8080"
+    "http://localhost:8081"
+    "http://localhost:8082"
+  )
+  
+  local port_names=("receive-feedback" "send-notification" "generate-report")
+  
+  local all_up=true
+  for i in "${!dev_endpoints[@]}"; do
+    local code=$(curl -s -o /dev/null -w "%{http_code}" "${dev_endpoints[$i]}" 2>/dev/null)
+    if [ "$code" = "200" ] || [ "$code" = "404" ] || [ "$code" = "405" ]; then
+      ok "  ✅ ${port_names[$i]} (${dev_endpoints[$i]}): UP"
+    else
+      err "  ❌ ${port_names[$i]} (${dev_endpoints[$i]}): DOWN (HTTP $code)"
+      all_up=false
+    fi
+  done
+  
+  if [ "$all_up" = true ]; then
+    ok "\n✅ Todos os serviços estão UP"
   else
-    err "  ❌ LocalStack (edge:4566): DOWN (HTTP $code)"
-    warn "  Dica: Execute './run.sh docker' para iniciar"
+    warn "\n⚠️  Alguns serviços estão DOWN. Execute 'mvn quarkus:dev' em terminais separados."
     return 1
   fi
 }
 
 list_resources() {
-  info "\n📊 Listando recursos no LocalStack..."
+  info "\n📊 Verificando recursos na AWS (producción)..."
   
-  if ! curl -f http://localhost:4566/_localstack/health &>/dev/null 2>&1; then
-    err "❌ LocalStack não está pronto. Execute './run.sh docker' primeiro."
-    return 1
+  if ! command -v aws &>/dev/null; then
+    warn "⚠️  AWS CLI não encontrado. Instale para verificar recursos em produção."
+    return 0
   fi
   
   info "\n  📦 DynamoDB Tables:"
-  if aws --endpoint-url http://localhost:4566 dynamodb list-tables 2>/dev/null | grep -q '"TableNames"'; then
-    aws --endpoint-url http://localhost:4566 dynamodb list-tables --query 'TableNames[]' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /'
-  else
-    info "     (nenhuma)"
-  fi
+  aws dynamodb list-tables --region sa-east-1 --query 'TableNames[]' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /' || info "     (não conseguiu listar)"
   
   info "\n  📨 SNS Topics:"
-  if aws --endpoint-url http://localhost:4566 sns list-topics 2>/dev/null | grep -q '"Topics"'; then
-    aws --endpoint-url http://localhost:4566 sns list-topics --query 'Topics[].TopicArn' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /'
-  else
-    info "     (nenhum)"
-  fi
+  aws sns list-topics --region sa-east-1 --query 'Topics[].TopicArn' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /' || info "     (não conseguiu listar)"
   
-  info "\n  📬 SQS Queues:"
-  if aws --endpoint-url http://localhost:4566 sqs list-queues 2>/dev/null | grep -q '"QueueUrls"'; then
-    aws --endpoint-url http://localhost:4566 sqs list-queues --query 'QueueUrls[]' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /'
-  else
-    info "     (nenhuma)"
-  fi
+  info "\n💡 Nota: Recursos locais estão em memória durante dev mode. Para persistência, use AWS."
 }
 
 validate_sam() {
@@ -209,74 +205,18 @@ validate_sam() {
   ok "✅ Template SAM válido"
 }
 
-e2e_setup() {
-  info "\n🚀 E2E Setup: Starting LocalStack and verifying resources..."
-  
-  check_docker || return 1
-  check_docker_compose || return 1
-  
-  # Start LocalStack
-  run_docker || return 1
-  
-  # Wait for services to be ready
-  info "\n⏳ Waiting for DynamoDB, SNS, SES to be accessible..."
-  RETRY=0
-  until aws --endpoint-url http://localhost:4566 dynamodb list-tables &>/dev/null 2>&1; do
-    RETRY=$((RETRY + 1))
-    if [ $RETRY -ge 60 ]; then
-      err "❌ AWS services not ready after 60s"
-      return 1
-    fi
-    echo -n "."
-    sleep 1
-  done
-  
-  ok "\n✅ AWS services are ready"
-  
-  # Verify SES domain (mock in LocalStack)
-  info "\n📧 Verifying SES email identities..."
-  for email in "noreply@feedback-fase-4.com" "admin@feedback-fase-4.com"; do
-    aws --endpoint-url http://localhost:4566 ses verify-email-identity --email-address "$email" &>/dev/null 2>&1
-    ok "  ✅ Verified: $email"
-  done
-  
-  # Verify resources were created
-  info "\n📊 Verifying resources created by initialization..."
-  
-  # Check DynamoDB table
-  if aws --endpoint-url http://localhost:4566 dynamodb describe-table --table-name feedbacks &>/dev/null 2>&1; then
-    ok "  ✅ DynamoDB table 'feedbacks' exists (hash: feedbackId, range: createdAt)"
-  else
-    err "  ❌ DynamoDB table 'feedbacks' not found"
-    return 1
-  fi
-  
-  # Check SNS topics
-  for topic in "feedback-urgent-topic" "feedback-report-topic"; do
-    if aws --endpoint-url http://localhost:4566 sns list-topics 2>/dev/null | grep -q "$topic"; then
-      ok "  ✅ SNS topic '$topic' exists"
-    else
-      err "  ❌ SNS topic '$topic' not found"
-      return 1
-    fi
-  done
-  
-  # Check SQS queues
-  for queue in "notification-queue" "report-queue"; do
-    if aws --endpoint-url http://localhost:4566 sqs list-queues 2>/dev/null | grep -q "$queue"; then
-      ok "  ✅ SQS queue '$queue' exists"
-    else
-      err "  ❌ SQS queue '$queue' not found"
-      return 1
-    fi
-  done
-  
-  ok "\n✅ E2E Setup completed successfully!"
-  info "\n📝 Next steps:"
-  info "   Terminal 1: cd receive-feedback && mvn quarkus:dev"
-  info "   Terminal 2: cd send-notification && mvn quarkus:dev"
-  info "   Terminal 3: cd generate-report && mvn quarkus:dev"
-  info "   Then run: ./run.sh e2e-test"
+test_aws_integration() {
+  info "\n🌐 Testing Integration on AWS..."
+  info ""
+  info "   Use Postman or curl to test against the live AWS deployment:"
+  info "   Base URL: https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/"
+  info ""
+  info "   Example (create feedback):"
+  info "   curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback \\"
+  info "     -H 'Content-Type: application/json' \\"
+  info "     -d '{\"descricao\":\"Test\",\"nota\":5}'"
+  info ""
+  info "   See docs/api-collection/ for Postman collection."
 }
 
 e2e_test() {
@@ -319,36 +259,38 @@ show_menu() {
   printf "${C_CYAN}║   Menu de Desenvolvimento Local                    ║${C_RESET}\n"
   printf "${C_CYAN}╚════════════════════════════════════════════════════╝${C_RESET}\n"
   echo ""
-  echo "  1) Subir LocalStack (Docker Compose up --build)"
-  echo "  2) Parar LocalStack (Docker Compose down)"
+  echo "  ╔ Quarkus Dev Mode (Local Development) ╗"
+  echo "  1) Iniciar Quarkus Dev Mode (instruções)"
+  echo "  2) Parar Quarkus Dev Mode (instruções)"
+  echo ""
+  echo "  ╔ Build & Test ╗"
   echo "  3) Rodar testes (mvn clean verify)"
   echo "  4) Compilar módulos (mvn clean compile)"
-  echo "  5) Limpar volumes (Docker Compose down -v)"
-  echo "  6) Ver logs (Docker Compose logs -f)"
-  echo "  7) Health check dos serviços"
-  echo "  8) Listar recursos (DynamoDB, SNS, SQS)"
-  echo "  9) Validar SAM template (sam validate)"
   echo ""
-  echo "  11) E2E Setup: Start LocalStack and verify resources"
-  echo "  12) E2E Test: Run all three feedback flows"
-  echo "  13) E2E Verify: Check results and collect evidence"
+  echo "  ╔ AWS Integration Testing ╗"
+  echo "  5) Testar no AWS (instruções)"
+  echo "  6) Health check dos serviços (local)"
+  echo "  7) Listar recursos na AWS"
+  echo "  8) Validar SAM template (sam validate)"
+  echo ""
+  echo "  ╔ Testes End-to-End ╗"
+  echo "  11) E2E Test: Run all three feedback flows"
+  echo "  12) E2E Verify: Check results and collect evidence"
   echo ""
   echo "  0) Sair"
   echo ""
   read -r -p "Escolha uma opção: " option
   case $option in
-    1) run_docker && show_menu ;;
-    2) stop_docker && show_menu ;;
+    1) run_quarkus_dev && show_menu ;;
+    2) stop_quarkus_dev && show_menu ;;
     3) run_tests && show_menu ;;
     4) compile_modules && show_menu ;;
-    5) clean && show_menu ;;
-    6) show_logs ;;
-    7) health_check && show_menu ;;
-    8) list_resources && show_menu ;;
-    9) validate_sam && show_menu ;;
-    11) e2e_setup && show_menu ;;
-    12) e2e_test && show_menu ;;
-    13) e2e_verify && show_menu ;;
+    5) test_aws_integration && show_menu ;;
+    6) health_check && show_menu ;;
+    7) list_resources && show_menu ;;
+    8) validate_sam && show_menu ;;
+    11) e2e_test && show_menu ;;
+    12) e2e_verify && show_menu ;;
     0) echo "👋 Até mais!" && exit 0 ;;
     *) err "❌ Opção inválida." && show_menu ;;
   esac
@@ -358,19 +300,17 @@ show_menu() {
 
 if [ -n "$1" ]; then
   case $1 in
-    docker|up)      run_docker ;;
-    stop|down)      stop_docker ;;
-    tests|test)     run_tests ;;
-    compile|build)  compile_modules ;;
-    clean)          clean ;;
-    logs)           show_logs ;;
-    health)         health_check ;;
-    resources)      list_resources ;;
-    sam-validate)   validate_sam ;;
-    e2e-setup)      e2e_setup ;;
-    e2e-test)       e2e_test ;;
-    e2e-verify)     e2e_verify ;;
-    *)              echo "Uso: ./run.sh [docker|stop|tests|compile|clean|logs|health|resources|sam-validate|e2e-setup|e2e-test|e2e-verify]" ;;
+    quarkus|dev)     run_quarkus_dev ;;
+    stop)            stop_quarkus_dev ;;
+    tests|test)      run_tests ;;
+    compile|build)   compile_modules ;;
+    health)          health_check ;;
+    resources)       list_resources ;;
+    sam-validate)    validate_sam ;;
+    aws-test)        test_aws_integration ;;
+    e2e-test)        e2e_test ;;
+    e2e-verify)      e2e_verify ;;
+    *)               echo "Uso: ./run.sh [quarkus|stop|tests|compile|health|resources|sam-validate|aws-test|e2e-test|e2e-verify]" ;;
   esac
 else
   show_menu

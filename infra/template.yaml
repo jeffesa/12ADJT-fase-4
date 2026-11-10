@@ -1,6 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: 'FIAP Fase-4: Serverless Feedback Platform with AWS SAM'
+Description: 'FIAP Fase-4: Serverless Feedback Platform with AWS SAM
+
+  ⚠️ NOTE: This template is for AWS deployment only.
+  
+  For local development, use: mvn quarkus:dev -pl receive-feedback (and other modules)
+  LocalStack is no longer used. See LOCAL_DEVELOPMENT.md for local dev workflow.
+'
 
 #========================================
 # PARAMETERS

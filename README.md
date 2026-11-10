@@ -115,255 +115,63 @@ mvn clean verify
 
 Current status: **146+ tests, 0 failures, 0 errors**. Coverage reports are generated in `target/site/jacoco/jacoco.html` for each module and aggregated in the root target directory.
 
-## Local Setup
+## Local Development with Quarkus Dev Mode
 
 ### Prerequisites
 
 - Java 17 or later
 - Maven 3.8+
-- Docker and Docker Compose
-- AWS CLI (optional, for manual LocalStack testing)
+- AWS CLI (optional, for testing against AWS)
+- Text editor or IDE (VS Code, IntelliJ, etc.)
 
-### Start LocalStack
+### Local Development Workflow
 
-LocalStack emulates AWS services locally (DynamoDB, SNS, Lambda, API Gateway, EventBridge, SES).
+For local development, use Quarkus Dev Mode with hot reload. This approach allows you to test locally without LocalStack:
 
+**In 3 separate terminal windows:**
+
+Terminal 1 — receive-feedback (port 8080):
 ```bash
-docker-compose up -d
+cd receive-feedback
+mvn quarkus:dev
 ```
 
-This command:
-- Starts LocalStack container with all required services
-- Creates DynamoDB table `dev-feedback-table`
-- Sets up SNS topic `dev-feedback-urgent-topic`
-- Configures SQS queues for event processing
-- Initializes EventBridge rules
-
-**Health check — verify LocalStack is ready:**
-
+Terminal 2 — send-notification (port 8081):
 ```bash
-curl -s http://localhost:4566/_localstack/health | jq '.services'
+cd send-notification
+mvn quarkus:dev
 ```
 
-Expected output should show all services with status `"running"`. When LocalStack is ready, you should see the localstack container with status "Up":
-
+Terminal 3 — generate-report (port 8082):
 ```bash
-docker-compose ps
+cd generate-report
+mvn quarkus:dev
 ```
 
-If LocalStack is not responding, check logs with:
+Once all three modules are running, you can access:
+- receive-feedback: `http://localhost:8080`
+- send-notification: `http://localhost:8081`
+- generate-report: `http://localhost:8082`
+
+### Local Dev + AWS Testing Strategy
+
+**For Unit/Integration Tests:**
 ```bash
-docker-compose logs localstack
+mvn clean verify
 ```
 
-### Build and Run Locally
+**For AWS Integration Testing:**
 
-After LocalStack is running:
-
-```bash
-mvn clean package -DskipTests
+Point Postman to the live AWS endpoint:
+```
+https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/
 ```
 
-Then, test individual Lambdas with SAM CLI:
+The Postman collection is available in `docs/api-collection/fase4-feedback.postman_collection.json`. You can import it and switch between local and production environments.
 
-```bash
-# Test receiveFeedback mutation
-sam local invoke ReceiveFeedbackFunction --event infra/events/sample-feedback.json
+### Testing with Quarkus Dev Mode
 
-# Test listarAvaliacoes query
-sam local invoke ReceiveFeedbackFunction --event infra/events/sample-query.json
-```
-
-For interactive local development with a mock API Gateway:
-
-```bash
-sam local start-api --port 3000
-```
-
-GraphQL endpoint becomes available at `http://localhost:3000/graphql`.
-
-## AWS Deployment — Verified and Operational
-
-**Status:** ✅ Production deployed and tested (TASK-019)
-
-### Real Endpoint
-
-```
-https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao
-```
-
-### Deployment Verification
-
-The endpoint has been tested and verified with:
-
-1. **Feedback submission (POST)** — Successfully created feedback entries with proper validation
-2. **Urgency calculation** — Correctly classifies feedback as LOW/MEDIUM/HIGH based on rating
-3. **DynamoDB persistence** — All entries persisted to `prod-feedback-table`
-4. **SNS notifications** — HIGH urgency feedback correctly triggers notification Lambda
-5. **Error handling** — Invalid input returns proper HTTP 400 responses
-
-**Example verification command:**
-
-```bash
-# This will return 200/201 with a feedback object
-curl -X POST https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao \
-  -H "Content-Type: application/json" \
-  -d '{"descricao": "Testing AWS deployment", "nota": 8}'
-```
-
-### Deployment Steps
-
-For new deployments, follow the standard SAM workflow:
-
-```bash
-# 1. Build application
-mvn clean package -DskipTests
-
-# 2. Build SAM template
-sam build -t infra/template.yaml
-
-# 3. Deploy to AWS
-sam deploy --config-env default
-```
-
-Update `infra/samconfig.toml` with your AWS credentials and S3 bucket before deploying.
-
-### Troubleshooting
-
-**Issue: "Handler not found" or NullPointerException on invoke**
-- Cause: Quarkus Arc CDI bootstrap not initialized
-- Solution: Ensure Lambda handler is `io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest` (not your custom class)
-- Verification: Check that `QUARKUS_LAMBDA_HANDLER=receiveFeedback` env variable is set
-
-**Issue: DynamoDB table not found**
-- Cause: CloudFormation stack not deployed or table name mismatch
-- Solution: Verify stack is in UPDATE_COMPLETE status and table name matches environment (dev/prod)
-
-**Issue: SNS messages not delivered**
-- Cause: Topic subscription not active or Lambda permissions missing
-- Solution: Check SNS subscription endpoint and verify Lambda execution role has SNS:Publish permission
-
-## GraphQL API
-
-The platform exposes a **GraphQL-only API** (no REST endpoints). All operations use the GraphQL mutation/query pattern.
-
-### GraphQL Endpoint
-
-```
-https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao
-```
-
-**Status:** ✅ Verified and operational on AWS (TASK-019)
-
-### Authentication
-
-The API currently requires no authentication header (API Key requirement has been removed). Requests should include standard HTTP headers:
-
-```
-Content-Type: application/json
-```
-
-### Mutation: receiveFeedback
-
-Create a new feedback entry with description and rating (0-10).
-
-**Example curl request:**
-
-```bash
-curl -X POST https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao \
-  -H "Content-Type: application/json" \
-  -d '{
-    "descricao": "The application is user-friendly and responsive.",
-    "nota": 9
-  }'
-```
-
-**Response (success) — HTTP 200/201:**
-
-```json
-{
-  "receiveFeedback": {
-    "id": "4d92fffa-c040-4520-bf2a-f32dd6a97fda",
-    "descricao": "The application is user-friendly and responsive.",
-    "nota": 9,
-    "dataCriacao": "2024-10-26T15:30:45Z",
-    "urgencia": "LOW"
-  }
-}
-```
-
-**Response (validation error) — HTTP 400:**
-
-```json
-{
-  "title": "Validation Error",
-  "status": 400,
-  "detail": "Rating must be at most 10"
-}
-```
-
-**Urgency calculation:**
-- Rating ≥ 8 → LOW urgency
-- Rating 5-7 → MEDIUM urgency  
-- Rating ≤ 4 → HIGH urgency (triggers SNS notification)
-
----
-
-### Query: listarAvaliacoes
-
-Retrieve all stored feedback entries from DynamoDB.
-
-**Example curl request:**
-
-```bash
-curl -X POST https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-**Response (success):**
-
-```json
-{
-  "listarAvaliacoes": [
-    {
-      "id": "4d92fffa-c040-4520-bf2a-f32dd6a97fda",
-      "descricao": "The application is user-friendly and responsive.",
-      "nota": 9,
-      "dataCriacao": "2024-10-26T15:30:45Z",
-      "urgencia": "LOW"
-    },
-    {
-      "id": "a9303133-36f5-497d-8685-4397289607ef",
-      "descricao": "Product functionality needs improvement.",
-      "nota": 2,
-      "dataCriacao": "2024-10-26T14:15:20Z",
-      "urgencia": "HIGH"
-    },
-    {
-      "id": "550e8400-e29b-41d4-a716-446655440002",
-      "descricao": "Great support team!",
-      "nota": 10,
-      "dataCriacao": "2024-10-26T13:45:00Z",
-      "urgencia": "LOW"
-    }
-  ]
-}
-```
-
-### Testing with Bruno or Postman
-
-Create a new request:
-
-1. **Method:** POST
-2. **URL:** `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao`
-3. **Headers:**
-   - `Content-Type: application/json`
-4. **Body:** Use the JSON examples above
-
-### GraphQL Schema Introspection
-
-The API accepts simple JSON payloads (not GraphQL introspection format). Send your requests directly as JSON.
+Once modules are running via `mvn quarkus:dev`, you can test locally:
 
 ## Project Structure
 
@@ -410,10 +218,11 @@ fase-4/
 │       └── test/java/
 │
 ├── infra/                         # AWS infrastructure (SAM)
-│   ├── template.yaml              # SAM template (Lambdas, DynamoDB, SNS, EventBridge)
-│   ├── samconfig.toml             # SAM deployment configuration
-│   └── localstack-init.sh         # LocalStack initialization script
-│
+│   ├── infra/                    # AWS Infrastructure
+│   │   ├── template.yaml              # SAM template (Lambdas, DynamoDB, SNS, EventBridge)
+│   │   ├── samconfig.toml             # SAM deployment configuration
+│   │   └── (localstack-init.sh removed — use AWS for persistence)
+│   │
 ├── docs/                          # Documentation
 │   ├── planejamento/              # Planning and backlog
 │   │   ├── BACKLOG.md
@@ -423,7 +232,7 @@ fase-4/
 │   ├── api-collection/            # GraphQL/REST request collections
 │   └── ci-cd/                     # CI/CD pipeline documentation
 │
-├── docker-compose.yml             # LocalStack (local AWS emulation)
+├── run.sh                        # Development workflow script (Quarkus dev mode, AWS testing)
 ├── e2e-test.sh                    # End-to-end testing script
 ├── e2e-verify.sh                  # E2E verification script
 └── .github/
@@ -446,7 +255,7 @@ fase-4/
 | **SES** | AWS managed | Cost-effective email delivery; integrates with SNS topics. |
 | **Lambda** | Java 17 runtime | Serverless compute; charges only for execution time; native integration with AWS services. |
 | **GraphQL** | SmallRye 2.x | Type-safe API design; single endpoint; strong query language; ideal for serverless backends. |
-| **LocalStack** | 3.0 | Local AWS emulation; enables offline development and testing. |
+| **Quarkus** | 3.8.4 | Lightweight Java framework; hot reload for local dev; compiled to native; optimal for Lambda. |
 | **JaCoCo** | 0.8.11 | Code coverage measurement; integrates with SonarCloud. |
 | **SonarCloud** | Latest | Continuous code quality; coverage gate enforcement; OWASP security scanning. |
 
@@ -570,7 +379,7 @@ The `receive-feedback` Lambda persists the feedback to DynamoDB and publishes a 
 
 ### Can I run the project without AWS credentials?
 
-Yes. LocalStack emulates AWS services in Docker, so you can develop locally without AWS account access. Use the `docker-compose up -d` command to start LocalStack.
+For local development with Quarkus Dev Mode, you can test locally without AWS credentials. However, integration testing requires AWS access. For academic purposes, use the live AWS deployment endpoint for E2E testing.
 
 ### How is code coverage measured?
 
@@ -612,7 +421,6 @@ View CloudWatch Logs and X-Ray traces in the AWS Console, or configure CloudWatc
 - **AWS API Endpoint (Production):** https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao
 - **Quarkus Documentation:** https://quarkus.io
 - **AWS Lambda Developer Guide:** https://docs.aws.amazon.com/lambda
-- **LocalStack Documentation:** https://docs.localstack.cloud
 - **AWS SAM:** https://aws.amazon.com/serverless/sam/
 - **DynamoDB Developer Guide:** https://docs.aws.amazon.com/dynamodb
 - **SNS Developer Guide:** https://docs.aws.amazon.com/sns

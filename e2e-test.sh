@@ -30,9 +30,9 @@ log_test() {
 }
 
 # Endpoints (assume services running locally on Quarkus dev port)
-RECEIVE_FEEDBACK_URL="http://localhost:8080/graphql"
-GENERATE_REPORT_URL="http://localhost:8282/graphql"
-LOG_TAIL_CMD='docker compose logs --tail=50 localstack'
+RECEIVE_FEEDBACK_URL="http://localhost:8080"
+SEND_NOTIFICATION_URL="http://localhost:8081"
+GENERATE_REPORT_URL="http://localhost:8082"
 
 # Health check configuration
 DEFAULT_RECV_PORT=8080
@@ -332,26 +332,19 @@ echo "$FLOW3_RESPONSE" | jq '.' | sed 's/^/    /' >> "$LOG_FILE" 2>/dev/null || 
 info "\n📊 Capturing post-test evidence..."
 log_test "Capturing DynamoDB scan results"
 
-info "  DynamoDB feedbacks table scan:"
-DYNAMODB_SCAN=$(cd "$SCRIPT_DIR" && docker compose exec -T localstack awslocal dynamodb scan \
-  --table-name feedbacks \
-  --region us-east-1 2>&1)
-echo "DynamoDB Scan:" >> "$LOG_FILE"
-echo "$DYNAMODB_SCAN" >> "$LOG_FILE"
-echo "$DYNAMODB_SCAN" | jq '.Items | length' &>/dev/null
-if [ $? -eq 0 ]; then
-  ITEM_COUNT=$(echo "$DYNAMODB_SCAN" | jq '.Items | length' 2>/dev/null)
-  ok "    ✅ Found $ITEM_COUNT items in feedbacks table"
+info "  DynamoDB feedbacks table (from AWS):"
+if command -v aws &>/dev/null; then
+  DYNAMODB_SCAN=$(aws dynamodb scan \
+    --table-name prod-feedback-table \
+    --region sa-east-1 2>&1)
+  echo "DynamoDB Scan:" >> "$LOG_FILE"
+  echo "$DYNAMODB_SCAN" >> "$LOG_FILE"
+  ITEM_COUNT=$(echo "$DYNAMODB_SCAN" | jq '.Items | length' 2>/dev/null || echo "N/A")
+  ok "    ✅ AWS DynamoDB items: $ITEM_COUNT"
+else
+  warn "    ⚠️  AWS CLI not found. Skipping DynamoDB verification."
+  log_test "WARNING: AWS CLI not available for DynamoDB scan"
 fi
-
-log_test "Checking SNS topic message count"
-info "  SNS feedback-urgent-topic messages:"
-TOPIC_ATTRS=$(cd "$SCRIPT_DIR" && docker compose exec -T localstack awslocal sns get-topic-attributes \
-  --topic-arn arn:aws:sns:us-east-1:000000000000:feedback-urgent-topic \
-  --region us-east-1 2>&1)
-echo "SNS Topic Attributes:" >> "$LOG_FILE"
-echo "$TOPIC_ATTRS" >> "$LOG_FILE"
-ok "    ✅ SNS topic attributes retrieved"
 
 log_test "Test execution completed"
 info "\n✅ E2E Test execution completed"

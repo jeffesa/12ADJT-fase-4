@@ -1219,12 +1219,12 @@
   "variable": [
     {
       "key": "localUrl",
-      "value": "http://localhost:4566",
+      "value": "http://localhost:8080",
       "type": "string"
     },
     {
       "key": "prodUrl",
-      "value": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/dev",
+      "value": "https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod",
       "type": "string"
     },
     {
