@@ -4,7 +4,7 @@
 # Script runner: facilita execução do projeto multi-Lambda.
 #
 # Uso interativo:  ./run.sh
-# Uso direto:      ./run.sh [docker|stop|tests|compile|clean|logs|health|resources|sam-validate]
+# Uso direto:      ./run.sh [quarkus|stop|tests|compile|health|resources|sam-validate|aws-test|e2e-test|e2e-verify]
 # ═══════════════════════════════════════════════════════════════
 
 set -o pipefail
@@ -26,61 +26,22 @@ cd "$SCRIPT_DIR"
 
 # ─── Validação de pré-requisitos ───────────────────────────────
 
-check_docker() {
-  if docker ps &>/dev/null; then
-    return 0
-  fi
-  # macOS com Colima
-  if command -v colima &>/dev/null; then
-    warn "⚠️  Docker não está rodando. Tentando iniciar Colima..."
-    colima start 2>/dev/null || true
-    sleep 3
-  fi
-  if docker ps &>/dev/null; then
-    return 0
-  fi
-  err "❌ Docker não está rodando."
-  echo "   macOS: abra Docker Desktop ou execute 'colima start'"
-  echo "   Linux: sudo systemctl start docker"
-  return 1
-}
-
-check_docker_compose() {
-  if docker compose version &>/dev/null 2>&1; then
-    return 0
-  elif command -v docker-compose &>/dev/null; then
-    return 0
-  else
-    err "❌ Docker Compose não encontrado."
-    return 1
-  fi
-}
-
 check_java() {
   if command -v java &>/dev/null; then
     return 0
   fi
-  warn "⚠️  Java não encontrado (necessário para testes)."
-  return 0
+  err "❌ Java não encontrado. Necessário para Quarkus Dev Mode."
+  echo "   Instale Java 17+: https://www.java.com/download"
+  return 1
 }
 
 check_maven() {
   if command -v mvn &>/dev/null; then
     return 0
   fi
-  warn "⚠️  Maven não encontrado (necessário para compilar/testar)."
-  return 0
-}
-
-compose() {
-  if docker compose version &>/dev/null 2>&1; then
-    docker compose "$@"
-  elif command -v docker-compose &>/dev/null; then
-    docker-compose "$@"
-  else
-    err "❌ docker compose/docker-compose não encontrados"
-    return 1
-  fi
+  err "❌ Maven não encontrado. Necessário para compilar e testar."
+  echo "   Instale Maven 3.8+: https://maven.apache.org/download.cgi"
+  return 1
 }
 
 # ─── Ações ─────────────────────────────────────────────────────
@@ -89,62 +50,72 @@ run_quarkus_dev() {
   check_maven || return 1
   
   info "\n🚀 Iniciando Quarkus Dev Mode para os 3 módulos..."
+  info ""
   info "   Abra 3 terminais separados e execute em cada um:"
   info ""
-  info "   Terminal 1:"
-  info "     cd /Users/jefferson/Documents/FIAP/fase-4/receive-feedback"
-  info "     mvn quarkus:dev"
+  info "   📍 TERMINAL 1 (receive-feedback) — porta 8080:"
+  info "      cd $SCRIPT_DIR/receive-feedback"
+  info "      mvn quarkus:dev"
   info ""
-  info "   Terminal 2:"
-  info "     cd /Users/jefferson/Documents/FIAP/fase-4/send-notification"
-  info "     mvn quarkus:dev"
+  info "   📍 TERMINAL 2 (send-notification) — porta 8081:"
+  info "      cd $SCRIPT_DIR/send-notification"
+  info "      mvn quarkus:dev"
   info ""
-  info "   Terminal 3:"
-  info "     cd /Users/jefferson/Documents/FIAP/fase-4/generate-report"
-  info "     mvn quarkus:dev"
+  info "   📍 TERMINAL 3 (generate-report) — porta 8082:"
+  info "      cd $SCRIPT_DIR/generate-report"
+  info "      mvn quarkus:dev"
   info ""
-  info "📍 Local Endpoints (uma vez que os módulos estiverem running):"
-  info "   receive-feedback: http://localhost:8080"
-  info "   send-notification: http://localhost:8081"
-  info "   generate-report: http://localhost:8082"
+  info "✅ Quando todos os módulos estiverem rodando:"
+  info "   • Local endpoints: http://localhost:8080 (receive-feedback)"
+  info "   •                 http://localhost:8081 (send-notification)"
+  info "   •                 http://localhost:8082 (generate-report)"
   info ""
-  info "💡 Para testes de integração, use os endpoints em AWS:"
-  info "   https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/"
+  info "💡 Para testes de integração (recomendado):"
+  info "   Use os endpoints em produção na AWS (veja opção 5)"
+  info ""
+  info "🔄 Hot Reload: Edite o código Java, salve, e recompila automático!"
+  info ""
+  info "📖 Para mais detalhes, veja: LOCAL_DEVELOPMENT.md"
 }
 
 stop_quarkus_dev() {
-  warn "\n⏹️  Para parar Quarkus Dev Mode:"
-  warn "   Em cada terminal onde você executou 'mvn quarkus:dev', pressione Ctrl+C"
+  warn "\n⏹️  Parando Quarkus Dev Mode"
   warn ""
-  warn "   Isso matará os processos Maven e fechará os servidores locais."
+  warn "   Em CADA terminal onde você executou 'mvn quarkus:dev':"
+  warn "   • Pressione Ctrl+C"
+  warn "   • Isso matará o processo Maven"
+  warn "   • O servidor fechará a porta"
+  warn ""
+  warn "✅ Todos os serviços locais estarão parados."
 }
 
 run_tests() {
-  check_java || return 1
   check_maven || return 1
   info "\n🧪 Rodando testes (mvn clean verify)..."
+  info "   • JUnit tests"
+  info "   • JaCoCo coverage (≥80% gate)"
+  info "   • SonarCloud analysis"
+  info ""
   mvn clean verify || { err "❌ Testes falharam"; return 1; }
-  ok "✅ Testes passaram com sucesso"
+  ok "✅ Todos os testes passaram com sucesso"
+  ok "📊 Relatório de cobertura: target/site/jacoco/index.html"
 }
 
 compile_modules() {
   check_maven || return 1
   info "\n🔨 Compilando módulos (mvn clean compile)..."
   mvn clean compile -DskipTests || { err "❌ Compilação falhou"; return 1; }
-  ok "✅ Módulos compilados com sucesso"
+  ok "✅ Todos os módulos compilados com sucesso"
 }
-
-clean() {
-  info "\n🗑️  Limpando volumes e dados..."
-  check_docker || return 1
-  compose down -v
-  ok "✅ Volumes removidos. Execute './run.sh docker' para subir novamente"
-}
-
-
 
 health_check() {
   info "\n🩺 Verificando saúde dos serviços (Quarkus Dev Mode)..."
+  info ""
+  
+  if ! command -v curl &>/dev/null; then
+    err "❌ curl não encontrado (necessário para health check)"
+    return 1
+  fi
   
   local dev_endpoints=(
     "http://localhost:8080"
@@ -158,92 +129,116 @@ health_check() {
   for i in "${!dev_endpoints[@]}"; do
     local code=$(curl -s -o /dev/null -w "%{http_code}" "${dev_endpoints[$i]}" 2>/dev/null)
     if [ "$code" = "200" ] || [ "$code" = "404" ] || [ "$code" = "405" ]; then
-      ok "  ✅ ${port_names[$i]} (${dev_endpoints[$i]}): UP"
+      ok "  ✅ ${port_names[$i]}: UP (HTTP $code)"
     else
-      err "  ❌ ${port_names[$i]} (${dev_endpoints[$i]}): DOWN (HTTP $code)"
+      err "  ❌ ${port_names[$i]}: DOWN (HTTP $code or no response)"
       all_up=false
     fi
   done
   
+  echo ""
   if [ "$all_up" = true ]; then
-    ok "\n✅ Todos os serviços estão UP"
+    ok "✅ Todos os 3 serviços estão UP e respondendo"
   else
-    warn "\n⚠️  Alguns serviços estão DOWN. Execute 'mvn quarkus:dev' em terminais separados."
+    warn "⚠️  Alguns serviços estão DOWN"
+    info "   Execute 'mvn quarkus:dev' em 3 terminais separados"
     return 1
   fi
 }
 
 list_resources() {
-  info "\n📊 Verificando recursos na AWS (producción)..."
+  info "\n📊 Recursos AWS (Produção em us-east-1)..."
+  info ""
   
   if ! command -v aws &>/dev/null; then
-    warn "⚠️  AWS CLI não encontrado. Instale para verificar recursos em produção."
+    warn "⚠️  AWS CLI não encontrado. Instale para listar recursos."
     return 0
   fi
   
-  info "\n  📦 DynamoDB Tables:"
-  aws dynamodb list-tables --region sa-east-1 --query 'TableNames[]' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /' || info "     (não conseguiu listar)"
+  info "  📦 DynamoDB Tables:"
+  aws dynamodb list-tables --region us-east-1 --query 'TableNames[]' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     • /' || info "     (erro ao listar)"
   
-  info "\n  📨 SNS Topics:"
-  aws sns list-topics --region sa-east-1 --query 'Topics[].TopicArn' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     - /' || info "     (não conseguiu listar)"
+  info ""
+  info "  📨 SNS Topics:"
+  aws sns list-topics --region us-east-1 --query 'Topics[].TopicArn' --output text 2>/dev/null | tr '\t' '\n' | sed 's/^/     • /' || info "     (erro ao listar)"
   
-  info "\n💡 Nota: Recursos locais estão em memória durante dev mode. Para persistência, use AWS."
+  info ""
+  info "💡 Estes recursos estão em PRODUÇÃO (AWS). Use com cuidado!"
 }
 
 validate_sam() {
   if ! command -v sam &>/dev/null; then
     err "❌ SAM CLI não encontrado."
+    echo ""
     echo "   Instale: https://aws.amazon.com/serverless/sam/get-started/"
     return 1
   fi
   info "\n🏗️  Validando SAM template (infra/template.yaml)..."
-  sam validate --template infra/template.yaml || { err "❌ Template inválido"; return 1; }
-  ok "✅ Template SAM válido"
+  info ""
+  sam validate --template infra/template.yaml --lint || { err "❌ Template inválido"; return 1; }
+  ok "✅ SAM template válido"
 }
 
 test_aws_integration() {
-  info "\n🌐 Testing Integration on AWS..."
+  info "\n🌐 Testing Integration on AWS (Production)"
   info ""
-  info "   Use Postman or curl to test against the live AWS deployment:"
-  info "   Base URL: https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/"
+  info "   📍 API Endpoint:"
+  info "      https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback"
   info ""
-  info "   Example (create feedback):"
-  info "   curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback \\"
-  info "     -H 'Content-Type: application/json' \\"
-  info "     -d '{\"descricao\":\"Test\",\"nota\":5}'"
+  info "   📝 Exemplos de uso com curl:"
   info ""
-  info "   See docs/api-collection/ for Postman collection."
+  info "   1️⃣  Criar feedback (HIGH urgency - nota 2):"
+  info '      curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback \'
+  info '        -H "Content-Type: application/json" \'
+  info '        -d '"'"'{"descricao":"Test","nota":2}'"'"
+  info ""
+  info "   2️⃣  Criar feedback (LOW urgency - nota 9):"
+  info '      curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback \'
+  info '        -H "Content-Type: application/json" \'
+  info '        -d '"'"'{"descricao":"Test","nota":9}'"'"
+  info ""
+  info "   3️⃣  Verificar dados no DynamoDB:"
+  info "      aws dynamodb scan --table-name prod-feedback-table --region us-east-1"
+  info ""
+  info "   📦 Para testes automatizados com Postman:"
+  info "      Veja: docs/api-collection/"
+  info ""
+  info "   ⚠️  Nota: Estes testes usam dados REAIS em produção!"
 }
 
 e2e_test() {
-  info "\n🧪 E2E Test: Running all three feedback flows..."
+  info "\n🧪 E2E Test: Testing all three Lambda functions on AWS..."
+  info ""
   
   if ! command -v curl &>/dev/null; then
-    err "❌ curl is required for E2E tests"
+    err "❌ curl não encontrado (necessário para E2E tests)"
     return 1
   fi
   
-  # Run the e2e test script
-  if [ -f "./e2e-test.sh" ]; then
-    bash ./e2e-test.sh
-    return $?
-  else
-    err "❌ e2e-test.sh not found"
+  if [ ! -f "./e2e-test.sh" ]; then
+    err "❌ e2e-test.sh não encontrado"
     return 1
   fi
+  
+  info "   Executando: bash e2e-test.sh"
+  info ""
+  bash ./e2e-test.sh
+  return $?
 }
 
 e2e_verify() {
-  info "\n✅ E2E Verify: Checking test results and collecting evidence..."
+  info "\n✅ E2E Verify: Validating test results from AWS..."
+  info ""
   
-  # Run the e2e verification script
-  if [ -f "./e2e-verify.sh" ]; then
-    bash ./e2e-verify.sh
-    return $?
-  else
-    err "❌ e2e-verify.sh not found"
+  if [ ! -f "./e2e-verify.sh" ]; then
+    err "❌ e2e-verify.sh não encontrado"
     return 1
   fi
+  
+  info "   Executando: bash e2e-verify.sh"
+  info ""
+  bash ./e2e-verify.sh
+  return $?
 }
 
 # ─── Menu interativo ───────────────────────────────────────────
@@ -252,26 +247,30 @@ show_menu() {
   echo ""
   printf "${C_CYAN}╔════════════════════════════════════════════════════╗${C_RESET}\n"
   printf "${C_CYAN}║   Tech Challenge Fase 4 — Feedback Serverless      ║${C_RESET}\n"
-  printf "${C_CYAN}║   Menu de Desenvolvimento Local                    ║${C_RESET}\n"
+  printf "${C_CYAN}║   Quarkus Dev Mode (Local) + AWS (Production)      ║${C_RESET}\n"
   printf "${C_CYAN}╚════════════════════════════════════════════════════╝${C_RESET}\n"
   echo ""
-  echo "  ╔ Quarkus Dev Mode (Local Development) ╗"
-  echo "  1) Iniciar Quarkus Dev Mode (instruções)"
-  echo "  2) Parar Quarkus Dev Mode (instruções)"
+  echo "  🚀 Quarkus Dev Mode (Local Development)"
+  echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "  1) Iniciar Quarkus Dev Mode (3 terminais, hot reload)"
+  echo "  2) Parar Quarkus Dev Mode"
   echo ""
-  echo "  ╔ Build & Test ╗"
+  echo "  🔨 Build & Testing"
+  echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "  3) Rodar testes (mvn clean verify)"
   echo "  4) Compilar módulos (mvn clean compile)"
   echo ""
-  echo "  ╔ AWS Integration Testing ╗"
-  echo "  5) Testar no AWS (instruções)"
-  echo "  6) Health check dos serviços (local)"
-  echo "  7) Listar recursos na AWS"
-  echo "  8) Validar SAM template (sam validate)"
+  echo "  ☁️  AWS Integration & Production"
+  echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "  5) Info: Testing no AWS (instruções + exemplos curl)"
+  echo "  6) Health check (verifica se serviços locais estão UP)"
+  echo "  7) Listar recursos na AWS (DynamoDB, SNS)"
+  echo "  8) Validar SAM template (sam validate --lint)"
   echo ""
-  echo "  ╔ Testes End-to-End ╗"
-  echo "  11) E2E Test: Run all three feedback flows"
-  echo "  12) E2E Verify: Check results and collect evidence"
+  echo "  🧪 End-to-End Tests (AWS)"
+  echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "  11) E2E Test: Executar todos os testes"
+  echo "  12) E2E Verify: Validar resultados"
   echo ""
   echo "  0) Sair"
   echo ""
