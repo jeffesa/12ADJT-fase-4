@@ -3,13 +3,13 @@
 # Tech Challenge Fase 4 — Plataforma de Feedback Serverless
 # Script runner: facilita execução do projeto multi-Lambda.
 #
-# Funciona em: macOS, Linux, Windows (Git Bash)
-# Uso: ./run.sh ou ./run.sh [comando]
+# Uso interativo:  ./run.sh
+# Uso direto:      ./run.sh [quarkus-receive|quarkus-notify|quarkus-report|tests|compile|health|aws-list|sam-validate|aws-test|e2e-test|e2e-verify]
 # ═══════════════════════════════════════════════════════════════
 
 set -o pipefail
 
-# Cores (funcionam em macOS, Linux, Git Bash)
+# Cores
 C_CYAN='\033[0;36m'
 C_GREEN='\033[0;32m'
 C_RED='\033[0;31m'
@@ -30,7 +30,7 @@ check_maven() {
   if command -v mvn &>/dev/null; then
     return 0
   fi
-  err "❌ Maven não encontrado."
+  err "❌ Maven não encontrado. Necessário para Quarkus Dev Mode."
   return 1
 }
 
@@ -64,7 +64,7 @@ run_tests() {
   ok "✅ Testes passou"
 }
 
-compile() {
+compile_modules() {
   check_maven || return 1
   info "\n🔨 Compilando (mvn clean compile)..."
   mvn clean compile -DskipTests || { err "❌ Compilação falhou"; return 1; }
@@ -167,41 +167,93 @@ e2e_verify() {
   bash ./e2e-verify.sh
 }
 
+show_menu() {
+  while true; do
+    echo ""
+    printf "${C_CYAN}╔════════════════════════════════════════════════════╗${C_RESET}\n"
+    printf "${C_CYAN}║   Tech Challenge Fase 4 — Feedback Serverless      ║${C_RESET}\n"
+    printf "${C_CYAN}║   Quarkus Dev Mode + AWS                           ║${C_RESET}\n"
+    printf "${C_CYAN}╚════════════════════════════════════════════════════╝${C_RESET}\n"
+    echo ""
+    echo "  🚀 Quarkus Dev Mode (Local Development)"
+    echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  1) Iniciar receive-feedback (porta 8080)"
+    echo "  2) Iniciar send-notification (porta 8081)"
+    echo "  3) Iniciar generate-report (porta 8082)"
+    echo ""
+    echo "  🔨 Build & Testing"
+    echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  4) Rodar testes (mvn clean verify)"
+    echo "  5) Compilar módulos (mvn clean compile)"
+    echo ""
+    echo "  ☁️  AWS Integration & Production"
+    echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  6) Health check (verifica 3 serviços)"
+    echo "  7) Listar recursos na AWS"
+    echo "  8) Validar SAM template"
+    echo "  9) Info: Testing no AWS (exemplos curl)"
+    echo ""
+    echo "  🧪 End-to-End Tests"
+    echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  10) E2E Test"
+    echo "  11) E2E Verify"
+    echo ""
+    echo "  0) Sair"
+    echo ""
+    read -r -p "Escolha uma opção: " option
+    
+    case $option in
+      1) quarkus_dev_receive_feedback ;;
+      2) quarkus_dev_send_notification ;;
+      3) quarkus_dev_generate_report ;;
+      4) run_tests ;;
+      5) compile_modules ;;
+      6) health_check ;;
+      7) list_aws_resources ;;
+      8) validate_sam ;;
+      9) test_aws ;;
+      10) e2e_test ;;
+      11) e2e_verify ;;
+      0) echo "👋 Até mais!" && exit 0 ;;
+      *) err "❌ Opção inválida." ;;
+    esac
+    
+    echo ""
+    read -r -p "Pressione ENTER para continuar..." dummy
+  done
+}
+
 show_help() {
   echo ""
   echo "Tech Challenge Fase 4 — Feedback Serverless"
   echo ""
   echo "Uso:"
-  echo "  ./run.sh quarkus-receive      Inicia receive-feedback (porta 8080)"
-  echo "  ./run.sh quarkus-notify       Inicia send-notification (porta 8081)"
-  echo "  ./run.sh quarkus-report       Inicia generate-report (porta 8082)"
-  echo "  ./run.sh tests                Rodar testes (mvn clean verify)"
-  echo "  ./run.sh compile              Compilar (mvn clean compile)"
-  echo "  ./run.sh health               Health check dos 3 serviços"
-  echo "  ./run.sh aws-list             Listar recursos na AWS"
-  echo "  ./run.sh sam-validate         Validar SAM template"
-  echo "  ./run.sh aws-test             Info: exemplos curl para testar na AWS"
-  echo "  ./run.sh e2e-test             E2E test (rodar testes em AWS)"
-  echo "  ./run.sh e2e-verify           E2E verify (validar resultados)"
-  echo ""
-  echo "Exemplo — Começar a desenvolver:"
-  echo "  Terminal 1: ./run.sh quarkus-receive"
-  echo "  Terminal 2: ./run.sh quarkus-notify"
-  echo "  Terminal 3: ./run.sh quarkus-report"
+  echo "  ./run.sh                    Menu interativo"
+  echo "  ./run.sh quarkus-receive    Inicia receive-feedback (porta 8080)"
+  echo "  ./run.sh quarkus-notify     Inicia send-notification (porta 8081)"
+  echo "  ./run.sh quarkus-report     Inicia generate-report (porta 8082)"
+  echo "  ./run.sh tests              Rodar testes"
+  echo "  ./run.sh compile            Compilar"
+  echo "  ./run.sh health             Health check"
+  echo "  ./run.sh aws-list           Listar recursos AWS"
+  echo "  ./run.sh sam-validate       Validar SAM"
+  echo "  ./run.sh aws-test           Info: exemplos curl"
+  echo "  ./run.sh e2e-test           E2E test"
+  echo "  ./run.sh e2e-verify         E2E verify"
   echo ""
 }
 
 # ─── Entry point ───────────────────────────────────────────────
 
 if [ -z "$1" ]; then
-  show_help
+  show_menu
 else
   case "$1" in
     quarkus-receive)  quarkus_dev_receive_feedback ;;
     quarkus-notify)   quarkus_dev_send_notification ;;
     quarkus-report)   quarkus_dev_generate_report ;;
     tests|test)       run_tests ;;
-    compile|build)    compile ;;
+    compile|build)    compile_modules ;;
     health|check)     health_check ;;
     aws-list)         list_aws_resources ;;
     sam-validate)     validate_sam ;;
