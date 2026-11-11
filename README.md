@@ -1,10 +1,10 @@
-# Fase-4: Serverless Feedback Platform
+# Fase-4: Plataforma Serverless de Feedback
 
-A production-grade serverless feedback platform built on AWS Lambda, DynamoDB, SNS, and EventBridge. This platform demonstrates Clean Architecture principles with a modern Java stack, providing high throughput and low latency feedback collection and processing.
+Uma plataforma serverless de feedback de nível produção construída em AWS Lambda, DynamoDB, SNS e EventBridge. Esta plataforma demonstra princípios de Clean Architecture com uma stack Java moderna, fornecendo alta throughput e baixa latência na coleta e processamento de feedbacks.
 
-## Architecture Diagram
+## Diagrama de Arquitetura
 
-### Complete System Flow
+### Fluxo Completo do Sistema
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
@@ -117,83 +117,83 @@ A production-grade serverless feedback platform built on AWS Lambda, DynamoDB, S
                   └───────────────────────────┘
 
 ┌───────────────────────────────────────────────────────────────────────────┐
-│  KEY ARCHITECTURAL DECISIONS                                              │
+│  DECISÕES ARQUITETURAIS PRINCIPAIS                                        │
 ├───────────────────────────────────────────────────────────────────────────┤
-│  ✓ Event-Driven: SNS decouples feedback submission from notification      │
-│  ✓ Serverless: Auto-scaling, pay-per-request, no infrastructure          │
+│  ✓ Event-Driven: SNS desacopla submissão de feedback da notificação      │
+│  ✓ Serverless: Auto-scaling, pagamento por requisição, sem infraestrutura│
 │  ✓ Clean Architecture: Domain → Application → Infrastructure              │
-│  ✓ Selective Notification: Only HIGH urgency triggers immediate email     │
-│  ✓ Scheduled Reports: EventBridge cron for weekly aggregation             │
-│  ✓ Persistence: DynamoDB for fast writes and flexible queries             │
+│  ✓ Notificação Seletiva: Apenas urgência HIGH dispara email imediato     │
+│  ✓ Relatórios Agendados: EventBridge cron para agregação semanal         │
+│  ✓ Persistência: DynamoDB para escritas rápidas e consultas flexíveis    │
 └───────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Data Flow Summary
+### Resumo do Fluxo de Dados
 
-| Step | Component | Input | Output | Latency |
+| Etapa | Componente | Entrada | Saída | Latência |
 |------|-----------|-------|--------|---------|
 | 1 | API Gateway | POST /avaliacao | → Lambda 1 | ~10ms |
-| 2 | Lambda 1 (receive) | JSON payload | → DynamoDB + SNS (if HIGH) | ~50-200ms |
-| 3 | DynamoDB | Feedback entity | Persisted | ~20-50ms |
-| 4 | SNS Topic | JSON message | → Lambda 2 (if HIGH) | ~100-500ms |
-| 5 | Lambda 2 (notify) | SNS event | → SES email | ~50-200ms |
-| 6 | Lambda 3 (report) | Cron trigger | → DynamoDB scan → SES email | ~2-5s |
+| 2 | Lambda 1 (receive) | JSON payload | → DynamoDB + SNS (se HIGH) | ~50-200ms |
+| 3 | DynamoDB | Entidade Feedback | Persistido | ~20-50ms |
+| 4 | SNS Topic | Mensagem JSON | → Lambda 2 (se HIGH) | ~100-500ms |
+| 5 | Lambda 2 (notify) | Evento SNS | → Email SES | ~50-200ms |
+| 6 | Lambda 3 (report) | Trigger cron | → Scan DynamoDB → Email SES | ~2-5s |
 
-**Total latency (HIGH urgency):** ~250ms - 1s (user gets 201 response, email sent async)
+**Latência total (urgência HIGH):** ~250ms - 1s (usuário recebe resposta 201, email enviado assincronamente)
 
-## How It Works
+## Como Funciona
 
-### 🔄 Flow 1: Immediate Notification (HIGH Urgency Feedback)
+### 🔄 Fluxo 1: Notificação Imediata (Feedback de Urgência HIGH)
 
-When a user submits feedback with a low rating (0-5), the system triggers an immediate notification:
+Quando um usuário submete feedback com avaliação baixa (0-5), o sistema dispara uma notificação imediata:
 
-1. **User submits** `POST /avaliacao` with `nota: 1` (critical feedback)
+1. **Usuário submete** `POST /avaliacao` com `nota: 1` (feedback crítico)
 2. **Lambda 1 (receive-feedback)**:
-   - Validates input (rating 0-10, description not empty)
-   - Calculates urgency: `nota 1 → HIGH`
-   - Persists to DynamoDB
-   - **Publishes to SNS** (only if HIGH)
-3. **SNS Topic** receives message and **automatically invokes** Lambda 2
+   - Valida entrada (avaliação 0-10, descrição não vazia)
+   - Calcula urgência: `nota 1 → HIGH`
+   - Persiste no DynamoDB
+   - **Publica no SNS** (apenas se HIGH)
+3. **SNS Topic** recebe mensagem e **automaticamente invoca** Lambda 2
 4. **Lambda 2 (send-notification)**:
-   - Receives SNS event
-   - Parses feedback details
-   - Sends email via SES to admin
-   - Email subject: "⚠️ Feedback Crítico Recebido"
+   - Recebe evento SNS
+   - Faz parse dos detalhes do feedback
+   - Envia email via SES para admin
+   - Assunto do email: "⚠️ Feedback Crítico Recebido"
 
-**Result:** Admin receives email within 1 second of submission.
+**Resultado:** Admin recebe email dentro de 1 segundo da submissão.
 
-### 📊 Flow 2: Weekly Report (Scheduled)
+### 📊 Fluxo 2: Relatório Semanal (Agendado)
 
-Every Monday at 8 AM UTC (5 AM Brasília), the system generates an automated weekly report:
+Toda segunda-feira às 8h UTC (5h Brasília), o sistema gera um relatório semanal automatizado:
 
-1. **EventBridge Cron** triggers Lambda 3 at scheduled time
+1. **EventBridge Cron** dispara Lambda 3 no horário agendado
 2. **Lambda 3 (generate-report)**:
-   - Calculates period: last 7 days
-   - Queries DynamoDB for all feedbacks in period
-   - Aggregates statistics:
-     - Total feedback count
-     - Average rating (e.g., 6.20)
-     - Feedback count per day (7 days)
-     - Feedback count per urgency (HIGH/MEDIUM/LOW)
-   - Builds HTML report with tables
-   - Sends email via SES to admin
-3. **Admin receives** comprehensive weekly summary
+   - Calcula período: últimos 7 dias
+   - Consulta DynamoDB por todos os feedbacks no período
+   - Agrega estatísticas:
+     - Total de feedbacks
+     - Média de avaliação (ex: 6.20)
+     - Contagem de feedbacks por dia (7 dias)
+     - Contagem de feedbacks por urgência (HIGH/MEDIUM/LOW)
+   - Constrói relatório HTML com tabelas
+   - Envia email via SES para admin
+3. **Admin recebe** resumo semanal abrangente
 
-**Report includes:**
-- Total feedbacks in period
-- Average rating
-- Daily distribution table
-- Urgency distribution table
+**Relatório inclui:**
+- Total de feedbacks no período
+- Média de avaliação
+- Tabela de distribuição diária
+- Tabela de distribuição por urgência
 
-### 🎯 Urgency Calculation Rules
+### 🎯 Regras de Cálculo de Urgência
 
-| Rating | Urgency | Notification | Weekly Report |
+| Avaliação | Urgência | Notificação | Relatório Semanal |
 |--------|---------|--------------|---------------|
-| 0-5    | HIGH    | ✅ Immediate email | ✅ Included |
-| 6-7    | MEDIUM  | ❌ No notification | ✅ Included |
-| 8-10   | LOW     | ❌ No notification | ✅ Included |
+| 0-5    | HIGH    | ✅ Email imediato | ✅ Incluído |
+| 6-7    | MEDIUM  | ❌ Sem notificação | ✅ Incluído |
+| 8-10   | LOW     | ❌ Sem notificação | ✅ Incluído |
 
-**Configuration:** Thresholds are defined in `application.yaml` and can be adjusted without code changes.
+**Configuração:** Limites são definidos em `application.yaml` e podem ser ajustados sem mudanças no código.
 
 ## Badges
 
@@ -203,146 +203,146 @@ Every Monday at 8 AM UTC (5 AM Brasília), the system generates an automated wee
 [![AWS Deployment](https://img.shields.io/badge/AWS%20Deployment-Live-brightgreen)]()
 [![Tests](https://img.shields.io/badge/Tests-146%2B%20passing-green)]()
 
-## Implementation Status
+## Status de Implementação
 
-✅ **TASK-019: All 3 Lambdas Deployed and Operational**
-- Verified on AWS: All endpoints responding correctly
+✅ **TASK-019: Todas as 3 Lambdas Implantadas e Operacionais**
+- Verificado na AWS: Todos os endpoints respondendo corretamente
 - Endpoint: `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao`
-- 100% end-to-end testing completed (POST /avaliacao, DynamoDB persistence, SNS notifications)
+- 100% de testes end-to-end completados (POST /avaliacao, persistência DynamoDB, notificações SNS)
 
-✅ **TASK-020: JaCoCo + SonarCloud Fully Configured**
-- Coverage gate: 80% (enforced)
-- 146+ tests passing, 0 failures
-- HTML and XML reports generated for all modules
-- CI/CD pipeline automated on push/PR
+✅ **TASK-020: JaCoCo + SonarCloud Totalmente Configurados**
+- Gate de cobertura: 80% (imposto)
+- 146+ testes passando, 0 falhas
+- Relatórios HTML e XML gerados para todos os módulos
+- Pipeline CI/CD automatizado em push/PR
 
-✅ **API Production Ready**
-- GraphQL endpoint fully functional
-- Input validation working (rating 0-10 constraint enforced)
-- Error handling returning proper HTTP status codes
-- All Quarkus CDI @Inject fields properly initialized
+✅ **API Pronta para Produção**
+- Endpoint GraphQL totalmente funcional
+- Validação de entrada funcionando (restrição de avaliação 0-10 imposta)
+- Tratamento de erros retornando códigos HTTP adequados
+- Todos os campos CDI @Inject do Quarkus devidamente inicializados
 
-## Quick Start
+## Início Rápido
 
-### 1. Clone the Repository
+### 1. Clonar o Repositório
 
 ```bash
 git clone https://github.com/jeffesa/12ADJT-fase-4.git
 cd fase-4
 ```
 
-### 2. Build the Project
+### 2. Construir o Projeto
 
 ```bash
 mvn clean package -DskipTests
 ```
 
-### 3. Run Tests
+### 3. Executar Testes
 
-**All tests (all modules):**
+**Todos os testes (todos os módulos):**
 ```bash
 mvn clean test
 ```
 
-**Specific module:**
+**Módulo específico:**
 ```bash
 mvn clean test -pl receive-feedback
 mvn clean test -pl send-notification
 mvn clean test -pl generate-report
 ```
 
-**With coverage report:**
+**Com relatório de cobertura:**
 ```bash
 mvn clean verify
 ```
 
-Current status: **146+ tests, 0 failures, 0 errors**. Coverage reports are generated in `target/site/jacoco/jacoco.html` for each module and aggregated in the root target directory.
+Status atual: **146+ testes, 0 falhas, 0 erros**. Relatórios de cobertura são gerados em `target/site/jacoco/jacoco.html` para cada módulo e agregados no diretório target raiz.
 
-## Local Development with Quarkus Dev Mode
+## Desenvolvimento Local com Quarkus Dev Mode
 
-### Prerequisites
+### Pré-requisitos
 
-- Java 17 or later
+- Java 17 ou posterior
 - Maven 3.8+
-- AWS CLI (optional, for testing against AWS)
-- Text editor or IDE (VS Code, IntelliJ, etc.)
+- AWS CLI (opcional, para testes contra AWS)
+- Editor de texto ou IDE (VS Code, IntelliJ, etc.)
 
-### Local Development Workflow
+### Fluxo de Desenvolvimento Local
 
-For local development, use Quarkus Dev Mode with hot reload. This approach allows you to test locally without LocalStack:
+Para desenvolvimento local, use o Quarkus Dev Mode com hot reload. Esta abordagem permite testar localmente sem LocalStack:
 
-**In 3 separate terminal windows:**
+**Em 3 janelas de terminal separadas:**
 
-Terminal 1 — receive-feedback (port 8080):
+Terminal 1 — receive-feedback (porta 8080):
 ```bash
 cd receive-feedback
 mvn quarkus:dev
 ```
 
-Terminal 2 — send-notification (port 8081):
+Terminal 2 — send-notification (porta 8081):
 ```bash
 cd send-notification
 mvn quarkus:dev
 ```
 
-Terminal 3 — generate-report (port 8082):
+Terminal 3 — generate-report (porta 8082):
 ```bash
 cd generate-report
 mvn quarkus:dev
 ```
 
-Once all three modules are running, you can access:
+Uma vez que todos os três módulos estejam rodando, você pode acessar:
 - receive-feedback: `http://localhost:8080`
 - send-notification: `http://localhost:8081`
 - generate-report: `http://localhost:8082`
 
-### Local Dev + AWS Testing Strategy
+### Estratégia de Desenvolvimento Local + Testes AWS
 
-**For Unit/Integration Tests:**
+**Para Testes Unitários/Integração:**
 ```bash
 mvn clean verify
 ```
 
-**For AWS Integration Testing:**
+**Para Testes de Integração AWS:**
 
-Point Postman to the live AWS endpoint:
+Aponte o Postman para o endpoint AWS real:
 ```
 https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/
 ```
 
-The Postman collection is available in `docs/api-collection/fase4-feedback.postman_collection.json`. You can import it and switch between local and production environments.
+A coleção Postman está disponível em `docs/api-collection/fase4-feedback.postman_collection.json`. Você pode importá-la e alternar entre ambientes local e produção.
 
-### Testing with Quarkus Dev Mode
+### Testando com Quarkus Dev Mode
 
-Once modules are running via `mvn quarkus:dev`, you can test locally:
+Uma vez que os módulos estejam rodando via `mvn quarkus:dev`, você pode testar localmente:
 
-## Project Structure
+## Estrutura do Projeto
 
 ```
 fase-4/
-├── README.md                      # This file
-├── pom.xml                        # Parent Maven POM (multi-module)
-├── sonar-project.properties       # SonarCloud configuration
+├── README.md                      # Este arquivo
+├── pom.xml                        # POM Maven pai (multi-módulo)
+├── sonar-project.properties       # Configuração SonarCloud
 │
-├── receive-feedback/              # Lambda 1: Receives and persists feedback
+├── receive-feedback/              # Lambda 1: Recebe e persiste feedbacks
 │   ├── pom.xml
 │   ├── GRAPHQL_TEST_GUIDE.md
 │   └── src/
 │       ├── main/java/com/fiap/feedback/
-│       │   ├── domain/            # Clean Architecture: Domain layer
-│       │   │   ├── entity/        # Business entities (Feedback, Urgency)
-│       │   │   └── gateway/       # Gateway interfaces
-│       │   ├── application/       # Application layer
-│       │   │   ├── usecase/       # Use cases (ReceiveFeedbackUseCase)
-│       │   │   └── dto/           # Application DTOs
-│       │   └── infra/             # Infrastructure layer
-│       │       ├── graphql/       # GraphQL resolvers
-│       │       ├── persistence/   # DynamoDB implementation
-│       │       ├── messaging/     # SNS implementation
-│       │       └── dto/           # Input/Output DTOs
-│       └── test/java/             # Unit tests (23 test files, 146 tests)
+│       │   ├── domain/            # Clean Architecture: Camada de domínio
+│       │   │   ├── entity/        # Entidades de negócio (Feedback, Urgency)
+│       │   │   └── gateway/       # Interfaces de gateway
+│       │   ├── application/       # Camada de aplicação
+│       │   │   ├── usecase/       # Casos de uso (ReceiveFeedbackUseCase)
+│       │   │   └── dto/           # DTOs de aplicação
+│       │   └── infra/             # Camada de infraestrutura
+│       │       ├── graphql/       # Resolvers GraphQL
+│       │       ├── persistence/   # Implementação DynamoDB
+│       │       ├── messaging/     # Implementação SNS
+│       │       └── dto/           # DTOs Input/Output
+│       └── test/java/             # Testes unitários (23 arquivos, 146 testes)
 │
-├── send-notification/             # Lambda 2: Sends notifications for HIGH urgency
+├── send-notification/             # Lambda 2: Envia notificações para urgência HIGH
 │   ├── pom.xml
 │   └── src/
 │       ├── main/java/com/fiap/notification/
@@ -351,7 +351,7 @@ fase-4/
 │       │   └── infra/
 │       └── test/java/
 │
-├── generate-report/               # Lambda 3: Generates aggregated reports
+├── generate-report/               # Lambda 3: Gera relatórios agregados
 │   ├── pom.xml
 │   └── src/
 │       ├── main/java/com/fiap/report/
@@ -360,67 +360,67 @@ fase-4/
 │       │   └── infra/
 │       └── test/java/
 │
-├── infra/                         # AWS infrastructure (SAM)
-│   ├── infra/                    # AWS Infrastructure
-│   │   ├── template.yaml              # SAM template (Lambdas, DynamoDB, SNS, EventBridge)
-│   │   ├── samconfig.toml             # SAM deployment configuration
-│   │   └── (localstack-init.sh removed — use AWS for persistence)
+├── infra/                         # Infraestrutura AWS (SAM)
+│   ├── infra/                    # Infraestrutura AWS
+│   │   ├── template.yaml              # Template SAM (Lambdas, DynamoDB, SNS, EventBridge)
+│   │   ├── samconfig.toml             # Configuração de deployment SAM
+│   │   └── (localstack-init.sh removido — use AWS para persistência)
 │   │
-├── docs/                          # Documentation
-│   ├── planejamento/              # Planning and backlog
+├── docs/                          # Documentação
+│   ├── planejamento/              # Planejamento e backlog
 │   │   ├── BACKLOG.md
 │   │   └── HANDOFF_SESSION.md
-│   ├── qualidade/                 # Quality and testing documentation
-│   ├── deploy/                    # Deployment guides
-│   ├── api-collection/            # GraphQL/REST request collections
-│   └── ci-cd/                     # CI/CD pipeline documentation
+│   ├── qualidade/                 # Documentação de qualidade e testes
+│   ├── deploy/                    # Guias de deployment
+│   ├── api-collection/            # Coleções de requisições GraphQL/REST
+│   └── ci-cd/                     # Documentação do pipeline CI/CD
 │
-├── run.sh                        # Development workflow script (Quarkus dev mode, AWS testing)
-├── e2e-test.sh                    # End-to-end testing script
-├── e2e-verify.sh                  # E2E verification script
+├── run.sh                        # Script de workflow de desenvolvimento (Quarkus dev mode, testes AWS)
+├── e2e-test.sh                    # Script de testes end-to-end
+├── e2e-verify.sh                  # Script de verificação E2E
 └── .github/
     └── workflows/
-        ├── ci-cd.yml              # Build, test, and SonarCloud analysis
-        ├── branch-naming.yml      # Branch naming validation
-        └── auto-pr-to-main.yml    # Auto PR to main after develop merge
+        ├── ci-cd.yml              # Build, teste e análise SonarCloud
+        ├── branch-naming.yml      # Validação de nomenclatura de branches
+        └── auto-pr-to-main.yml    # PR automático para main após merge em develop
 ```
 
-## Technologies
+## Tecnologias
 
-| Technology | Version | Justification |
+| Tecnologia | Versão | Justificativa |
 |---|---|---|
-| **Java** | 17 | LTS version; strong performance and feature stability for enterprise workloads. |
-| **Quarkus** | 3.8.x | Optimized for AWS Lambda; reduced memory footprint, faster startup times, native compilation support. |
-| **Maven** | 3.8+ | Industry standard build tool; excellent multi-module project support. |
-| **DynamoDB** | AWS managed | Serverless, pay-per-request pricing, scales automatically, global replication support. |
-| **SNS** | AWS managed | Event-driven notifications; decouples feedback processing from email delivery. |
-| **EventBridge** | AWS managed | Flexible event routing; enables complex workflows between services. |
-| **SES** | AWS managed | Cost-effective email delivery; integrates with SNS topics. |
-| **Lambda** | Java 17 runtime | Serverless compute; charges only for execution time; native integration with AWS services. |
-| **GraphQL** | SmallRye 2.x | Type-safe API design; single endpoint; strong query language; ideal for serverless backends. |
-| **Quarkus** | 3.8.4 | Lightweight Java framework; hot reload for local dev; compiled to native; optimal for Lambda. |
-| **JaCoCo** | 0.8.11 | Code coverage measurement; integrates with SonarCloud. |
-| **SonarCloud** | Latest | Continuous code quality; coverage gate enforcement; OWASP security scanning. |
+| **Java** | 17 | Versão LTS; forte desempenho e estabilidade de recursos para cargas de trabalho empresariais. |
+| **Quarkus** | 3.8.x | Otimizado para AWS Lambda; redução do consumo de memória, tempos de inicialização mais rápidos, suporte à compilação nativa. |
+| **Maven** | 3.8+ | Ferramenta de build padrão da indústria; excelente suporte para projetos multi-módulo. |
+| **DynamoDB** | AWS gerenciado | Serverless, preço por requisição, escala automaticamente, suporte à replicação global. |
+| **SNS** | AWS gerenciado | Notificações orientadas a eventos; desacopla processamento de feedback da entrega de email. |
+| **EventBridge** | AWS gerenciado | Roteamento de eventos flexível; habilita workflows complexos entre serviços. |
+| **SES** | AWS gerenciado | Entrega de email custo-efetiva; integra com tópicos SNS. |
+| **Lambda** | Runtime Java 17 | Computação serverless; cobra apenas pelo tempo de execução; integração nativa com serviços AWS. |
+| **GraphQL** | SmallRye 2.x | Design de API type-safe; endpoint único; linguagem de query forte; ideal para backends serverless. |
+| **Quarkus** | 3.8.4 | Framework Java leve; hot reload para dev local; compilado nativo; ótimo para Lambda. |
+| **JaCoCo** | 0.8.11 | Medição de cobertura de código; integra com SonarCloud. |
+| **SonarCloud** | Mais recente | Qualidade de código contínua; imposição de gate de cobertura; escaneamento de segurança OWASP. |
 
-## Tests and Coverage
+## Testes e Cobertura
 
-### Current Status
+### Status Atual
 
-- **Total tests:** 146+ passing
-- **Failures:** 0
-- **Errors:** 0
-- **Coverage gate:** ≥80% (SonarCloud enforced)
-- **CI/CD integration:** Automated on push/PR
+- **Total de testes:** 146+ passando
+- **Falhas:** 0
+- **Erros:** 0
+- **Gate de cobertura:** ≥80% (imposto pelo SonarCloud)
+- **Integração CI/CD:** Automatizado em push/PR
 
-### Running Tests
+### Executando Testes
 
-**Run all tests:**
+**Executar todos os testes:**
 
 ```bash
 mvn clean test
 ```
 
-**Run tests for a specific module:**
+**Executar testes para um módulo específico:**
 
 ```bash
 mvn clean test -pl receive-feedback
@@ -428,149 +428,149 @@ mvn clean test -pl send-notification
 mvn clean test -pl generate-report
 ```
 
-**Run tests with coverage report:**
+**Executar testes com relatório de cobertura:**
 
 ```bash
 mvn clean verify
 ```
 
-Coverage reports are generated in `target/site/jacoco/jacoco.html` for each module and aggregated at the project root.
+Relatórios de cobertura são gerados em `target/site/jacoco/jacoco.html` para cada módulo e agregados na raiz do projeto.
 
-### Coverage Targets
+### Metas de Cobertura
 
-- **Overall threshold:** ≥80% (enforced by SonarCloud quality gate)
-- **Target status:** All modules tested and covered
-- **Coverage breakdown by module:**
-  - **receive-feedback:** Domain and application layers tested (use cases, validators)
-  - **send-notification:** Refactored with @QuarkusTest; 14 unit tests added
-  - **generate-report:** High coverage (91.17% line coverage, 100% class coverage)
+- **Limite geral:** ≥80% (imposto pelo quality gate do SonarCloud)
+- **Status da meta:** Todos os módulos testados e cobertos
+- **Detalhamento de cobertura por módulo:**
+  - **receive-feedback:** Camadas de domínio e aplicação testadas (casos de uso, validadores)
+  - **send-notification:** Refatorado com @QuarkusTest; 14 testes unitários adicionados
+  - **generate-report:** Alta cobertura (91.17% de cobertura de linha, 100% de cobertura de classe)
 
-### Excluded from Coverage
+### Excluídos da Cobertura
 
-- `**/config/**` — Configuration classes (environment setup)
-- `**/dto/**` — Data Transfer Objects (simple mappers)
-- `**/*Handler.java` — Lambda request handlers (runtime-only, tested via integration)
-- `**/exception/**` — Custom exceptions (trivial implementations)
-- `**/persistence/**` and `**/messaging/**` — Infrastructure layer (tested via integration)
+- `**/config/**` — Classes de configuração (setup de ambiente)
+- `**/dto/**` — Data Transfer Objects (mapeadores simples)
+- `**/*Handler.java` — Handlers de requisição Lambda (apenas runtime, testados via integração)
+- `**/exception/**` — Exceções customizadas (implementações triviais)
+- `**/persistence/**` e `**/messaging/**` — Camada de infraestrutura (testados via integração)
 
-### Viewing Coverage Reports
+### Visualizando Relatórios de Cobertura
 
-After running tests:
+Após executar os testes:
 
 ```bash
-# Open HTML report in browser
+# Abrir relatório HTML no navegador
 open target/site/jacoco/jacoco.html
 
-# Or view per-module reports
+# Ou visualizar relatórios por módulo
 open receive-feedback/target/site/jacoco/jacoco.html
 open send-notification/target/site/jacoco/jacoco.html
 open generate-report/target/site/jacoco/jacoco.html
 ```
 
-## CI/CD and SonarCloud
+## CI/CD e SonarCloud
 
-### CI/CD Pipeline
+### Pipeline CI/CD
 
-Triggered on:
-- Push to `main` or `develop` branch
-- Pull request to `develop` branch
-- Manual workflow dispatch
+Disparado em:
+- Push para branch `main` ou `develop`
+- Pull request para branch `develop`
+- Dispatch manual de workflow
 
-**Pipeline steps:**
+**Etapas do pipeline:**
 
-1. **Checkout code** — Clone repository with full history (required for SonarCloud)
-2. **Setup Java 17** — Maven build runtime
-3. **Build and Test** — Execute `mvn clean verify`
-4. **Generate coverage** — JaCoCo creates XML reports
-5. **SonarCloud Scan** — Analyzes code quality and coverage
-6. **Quality gate check** — Fails if coverage < 80% or critical issues detected
+1. **Checkout code** — Clona repositório com histórico completo (necessário para SonarCloud)
+2. **Setup Java 17** — Runtime de build Maven
+3. **Build and Test** — Executa `mvn clean verify`
+4. **Generate coverage** — JaCoCo cria relatórios XML
+5. **SonarCloud Scan** — Analisa qualidade de código e cobertura
+6. **Quality gate check** — Falha se cobertura < 80% ou problemas críticos detectados
 
-### SonarCloud Configuration
+### Configuração SonarCloud
 
-- **Organization:** jeffesa
+- **Organização:** jeffesa
 - **Project Key:** jeffesa_12ADJT-fase-4
 - **URL:** https://sonarcloud.io/dashboard?id=jeffesa_12ADJT-fase-4
 
-**Quality gate rules:**
+**Regras do quality gate:**
 
-- Coverage: ≥80%
-- Critical issues: 0
-- Blocker issues: 0
+- Cobertura: ≥80%
+- Problemas críticos: 0
+- Problemas bloqueadores: 0
 
-### Accessing SonarCloud
+### Acessando SonarCloud
 
 ```bash
-# View project dashboard
+# Visualizar dashboard do projeto
 open https://sonarcloud.io/dashboard?id=jeffesa_12ADJT-fase-4
 
-# View code quality metrics
+# Visualizar métricas de qualidade de código
 open https://sonarcloud.io/code?id=jeffesa_12ADJT-fase-4
 
-# View security issues
+# Visualizar problemas de segurança
 open https://sonarcloud.io/security?id=jeffesa_12ADJT-fase-4
 ```
 
 ## FAQ
 
-### How do I test the GraphQL API locally?
+### Como testar a API GraphQL localmente?
 
-Use the `sam local start-api` command to run the GraphQL endpoint on your machine, then send requests via curl or Postman.
+Use o comando `sam local start-api` para executar o endpoint GraphQL em sua máquina, então envie requisições via curl ou Postman.
 
-### What happens when I submit HIGH urgency feedback?
+### O que acontece quando eu submeto feedback de urgência HIGH?
 
-The `receive-feedback` Lambda persists the feedback to DynamoDB and publishes a message to the SNS topic. The `send-notification` Lambda subscribes to that topic, receives the event, and sends an email notification.
+A Lambda `receive-feedback` persiste o feedback no DynamoDB e publica uma mensagem no tópico SNS. A Lambda `send-notification` se inscreve nesse tópico, recebe o evento e envia uma notificação por email.
 
-### Can I run the project without AWS credentials?
+### Posso executar o projeto sem credenciais AWS?
 
-For local development with Quarkus Dev Mode, you can test locally without AWS credentials. However, integration testing requires AWS access. For academic purposes, use the live AWS deployment endpoint for E2E testing.
+Para desenvolvimento local com Quarkus Dev Mode, você pode testar localmente sem credenciais AWS. No entanto, testes de integração requerem acesso à AWS. Para fins acadêmicos, use o endpoint de deployment AWS real para testes E2E.
 
-### How is code coverage measured?
+### Como a cobertura de código é medida?
 
-JaCoCo instruments your code during test execution and generates XML reports. SonarCloud parses these reports and enforces a minimum coverage threshold (≥80%).
+JaCoCo instrumenta seu código durante a execução de testes e gera relatórios XML. SonarCloud analisa esses relatórios e impõe um limite mínimo de cobertura (≥80%).
 
-### What is the DynamoDB table structure?
+### Qual é a estrutura da tabela DynamoDB?
 
-The `dev-feedback-table` (or `prod-feedback-table`) has:
+A `dev-feedback-table` (ou `prod-feedback-table`) tem:
 - **Partition Key:** `id` (String, UUID)
-- **Attributes:** `descricao`, `nota`, `createdAt`, `urgency`, `ttl`
-- **TTL:** 90 days (auto-deletion of old feedback)
+- **Atributos:** `descricao`, `nota`, `createdAt`, `urgency`, `ttl`
+- **TTL:** 90 dias (auto-exclusão de feedbacks antigos)
 
-### How do I deploy to production?
+### Como fazer deploy em produção?
 
-Update `infra/samconfig.toml` with production values, set environment variables (e.g., `ADMIN_EMAIL`), and run:
+Atualize `infra/samconfig.toml` com valores de produção, defina variáveis de ambiente (ex: `ADMIN_EMAIL`) e execute:
 
 ```bash
 sam deploy --config-env prod
 ```
 
-The CI/CD pipeline automates this process on push to `main`.
+O pipeline CI/CD automatiza esse processo em push para `main`.
 
-### Can I use REST endpoints instead of GraphQL?
+### Posso usar endpoints REST ao invés de GraphQL?
 
-No. This platform implements GraphQL only. All operations (mutation and query) use the GraphQL protocol via a single endpoint.
+Não. Esta plataforma implementa apenas GraphQL. Todas as operações (mutation e query) usam o protocolo GraphQL via um único endpoint.
 
-### How do I monitor Lambda performance?
+### Como monitorar o desempenho das Lambdas?
 
-View CloudWatch Logs and X-Ray traces in the AWS Console, or configure CloudWatch dashboards to visualize:
-- Lambda invocation count
-- Error rate and duration
-- DynamoDB read/write capacity consumed
-- SNS message count
+Visualize CloudWatch Logs e traces X-Ray no Console AWS, ou configure dashboards CloudWatch para visualizar:
+- Contagem de invocações Lambda
+- Taxa de erros e duração
+- Capacidade de leitura/escrita consumida do DynamoDB
+- Contagem de mensagens SNS
 
-## Useful Links
+## Links Úteis
 
-- **Repository:** https://github.com/jeffesa/12ADJT-fase-4
-- **SonarCloud Dashboard:** https://sonarcloud.io/dashboard?id=jeffesa_12ADJT-fase-4
-- **AWS API Endpoint (Production):** https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao
-- **Quarkus Documentation:** https://quarkus.io
-- **AWS Lambda Developer Guide:** https://docs.aws.amazon.com/lambda
+- **Repositório:** https://github.com/jeffesa/12ADJT-fase-4
+- **Dashboard SonarCloud:** https://sonarcloud.io/dashboard?id=jeffesa_12ADJT-fase-4
+- **Endpoint API AWS (Produção):** https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao
+- **Documentação Quarkus:** https://quarkus.io
+- **Guia do Desenvolvedor AWS Lambda:** https://docs.aws.amazon.com/lambda
 - **AWS SAM:** https://aws.amazon.com/serverless/sam/
-- **DynamoDB Developer Guide:** https://docs.aws.amazon.com/dynamodb
-- **SNS Developer Guide:** https://docs.aws.amazon.com/sns
-- **EventBridge Documentation:** https://docs.aws.amazon.com/eventbridge
+- **Guia do Desenvolvedor DynamoDB:** https://docs.aws.amazon.com/dynamodb
+- **Guia do Desenvolvedor SNS:** https://docs.aws.amazon.com/sns
+- **Documentação EventBridge:** https://docs.aws.amazon.com/eventbridge
 
 ---
 
-**Last updated:** October 26, 2024  
-**Maintainer:** FIAP Tech Challenge Fase 4 Team  
-**License:** MIT
+**Última atualização:** 26 de outubro de 2024  
+**Mantenedor:** Equipe FIAP Tech Challenge Fase 4  
+**Licença:** MIT
