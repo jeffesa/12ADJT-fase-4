@@ -569,8 +569,3 @@ Visualize CloudWatch Logs e traces X-Ray no Console AWS, ou configure dashboards
 - **Guia do Desenvolvedor SNS:** https://docs.aws.amazon.com/sns
 - **Documentação EventBridge:** https://docs.aws.amazon.com/eventbridge
 
----
-
-**Última atualização:** 26 de outubro de 2024  
-**Mantenedor:** Equipe FIAP Tech Challenge Fase 4  
-**Licença:** MIT
