@@ -4,53 +4,196 @@ A production-grade serverless feedback platform built on AWS Lambda, DynamoDB, S
 
 ## Architecture Diagram
 
+### Complete System Flow
+
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                       API GATEWAY                               │
-│              (GraphQL endpoint with API Key auth)               │
-└────────┬────────────────────────────────────────────────────────┘
-         │
-         │ GraphQL Mutation/Query
-         │
-    ┌────▼──────────────────────────────────────────────────────┐
-    │    LAMBDA 1: Receive Feedback                             │
-    │  - Validates input (description, rating 0-10)            │
-    │  - Persists feedback to DynamoDB                         │
-    │  - Publishes HIGH urgency to SNS topic                  │
-    └────┬──────────────────────────┬──────────────────────────┘
-         │                          │
-         │                   ┌──────▼──────┐
-         │                   │ SNS TOPIC   │
-         │                   │ (High Urgency)
-         │                   └──────┬──────┘
-         │                          │
-    ┌────▼─────────────────┐   ┌───▼──────────────────────────┐
-    │  DYNAMODB            │   │ LAMBDA 2: Send Notification  │
-    │  (Feedbacks Table)   │   │  - Consumes HIGH priority   │
-    │  - Stores feedback   │   │  - Sends email via SES      │
-    │  - Query: list all   │   │  - Publishes to EventBridge │
-    │  - TTL: 90 days      │   └───┬──────────────────────────┘
-    └────┬──────────────────┘       │
-         │                          │
-         │                   ┌──────▼──────────────┐
-         │                   │  EVENTBRIDGE        │
-         │                   │ (Event routing)     │
-         │                   └──────┬──────────────┘
-         │                          │
-         │                   ┌──────▼──────────────────────────┐
-         │                   │ LAMBDA 3: Generate Report       │
-         │                   │  - Consumes events              │
-         │                   │  - Aggregates metrics           │
-         │                   │  - Sends summary reports        │
-         │                   └─────────────────────────────────┘
-         │
-         └──────────────────────────────────────┐
-                                                │
-                                    ┌──────────▼────┐
-                                    │  GraphQL Query │
-                                    │  listarAvaliacoes
-                                    └────────────────┘
+┌───────────────────────────────────────────────────────────────────────────┐
+│                    SERVERLESS FEEDBACK PLATFORM                           │
+│                   3 Lambda Functions + Event-Driven                       │
+└───────────────────────────────────────────────────────────────────────────┘
+
+                            ┌─────────────────┐
+                            │   USER/CLIENT   │
+                            └────────┬────────┘
+                                     │
+                    POST /avaliacao  │  GET /avaliacao
+                    {"descricao":..  │
+                     "nota": 1}      │
+                                     ▼
+                        ┌────────────────────────┐
+                        │    API GATEWAY         │
+                        │  v32wl8xbtk (prod)     │
+                        │  /prod/avaliacao       │
+                        └──────────┬─────────────┘
+                                   │ invoke
+                                   ▼
+        ┌──────────────────────────────────────────────────────────┐
+        │  LAMBDA 1: receive-feedback                              │
+        │  ┌────────────────────────────────────────────────────┐  │
+        │  │ ReceiveFeedbackUseCase                             │  │
+        │  │                                                    │  │
+        │  │  1. Validates: nota 0-10, descrição não vazia     │  │
+        │  │  2. Creates: new Feedback(desc, rating)           │  │
+        │  │  3. Calculates Urgency:                           │  │
+        │  │     • HIGH:   nota 0-5                            │  │
+        │  │     • MEDIUM: nota 6-7                            │  │
+        │  │     • LOW:    nota 8-10                           │  │
+        │  │  4. Persists: DynamoDB → prod-feedback-table      │  │
+        │  │  5. Decision: if (urgency == HIGH) publish SNS    │  │
+        │  └──────────────┬─────────────────────┬──────────────┘  │
+        └─────────────────┼─────────────────────┼─────────────────┘
+                          │                     │
+              ┌───────────┘                     └──────────────┐
+              │ ALL feedbacks                   │ HIGH only    │
+              ▼                                 ▼              │
+    ┌──────────────────┐          ┌────────────────────────┐  │
+    │    DYNAMODB      │          │    SNS TOPIC           │  │
+    │ prod-feedback-   │          │ prod-feedback-urgent-  │  │
+    │    table         │          │    topic               │  │
+    │                  │          │                        │  │
+    │ Stores:          │          │ Message:               │  │
+    │ • id (PK)        │          │ {                      │  │
+    │ • descricao      │          │   "id": "uuid",        │  │
+    │ • nota           │          │   "description": "...", │  │
+    │ • urgencia       │          │   "urgency": "HIGH",   │  │
+    │ • dataCriacao    │          │   "rating": 1          │  │
+    └──────┬───────────┘          │ }                      │  │
+           │                      └───────┬────────────────┘  │
+           │                              │ trigger           │
+           │                              ▼                   │
+           │              ┌──────────────────────────────────────┐
+           │              │ LAMBDA 2: send-notification          │
+           │              │ ┌──────────────────────────────────┐ │
+           │              │ │ SendNotificationUseCase          │ │
+           │              │ │                                  │ │
+           │              │ │ 1. Receives SNSEvent (auto)      │ │
+           │              │ │ 2. Parses JSON message           │ │
+           │              │ │ 3. Creates Notification entity   │ │
+           │              │ │ 4. Sends email via SES:          │ │
+           │              │ │    • To: admin@example.com       │ │
+           │              │ │    • Subject: "⚠️ Crítico"      │ │
+           │              │ │    • Body: HTML with details     │ │
+           │              │ └──────────────┬───────────────────┘ │
+           │              └─────────────────┼─────────────────────┘
+           │                                ▼
+           │                    ┌───────────────────────┐
+           │                    │   AMAZON SES          │
+           │                    │   Email sent to admin │
+           │                    └───────────────────────┘
+           │
+           │ Weekly scan (every Monday 8h UTC)
+           │
+           ▼
+    ┌──────────────────────────────────────────────────────────┐
+    │  EVENTBRIDGE CRON                                        │
+    │  Schedule: cron(0 8 ? * MON *)                           │
+    │  Trigger: Every Monday 8 AM UTC (5 AM Brasília)          │
+    └─────────────────────┬────────────────────────────────────┘
+                          │ invoke weekly
+                          ▼
+        ┌──────────────────────────────────────────────────────────┐
+        │  LAMBDA 3: generate-report                               │
+        │  ┌────────────────────────────────────────────────────┐  │
+        │  │ GenerateReportUseCase                              │  │
+        │  │                                                    │  │
+        │  │ 1. Period: last 7 days (startDate → endDate)      │  │
+        │  │ 2. Query: DynamoDB.scan(period)                   │  │
+        │  │ 3. Aggregates:                                    │  │
+        │  │    • Total feedbacks                              │  │
+        │  │    • Average rating                               │  │
+        │  │    • Count by day (7 days)                        │  │
+        │  │    • Count by urgency (HIGH/MEDIUM/LOW)           │  │
+        │  │ 4. Builds HTML report                             │  │
+        │  │ 5. Sends via SES:                                 │  │
+        │  │    • Subject: "Weekly Feedback Report"            │  │
+        │  │    • Body: HTML tables with statistics            │  │
+        │  └────────────────────────────────────────────────────┘  │
+        └─────────────────────┬────────────────────────────────────┘
+                              ▼
+                  ┌───────────────────────────┐
+                  │   AMAZON SES              │
+                  │   Weekly report sent      │
+                  │   to admin@example.com    │
+                  └───────────────────────────┘
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│  KEY ARCHITECTURAL DECISIONS                                              │
+├───────────────────────────────────────────────────────────────────────────┤
+│  ✓ Event-Driven: SNS decouples feedback submission from notification      │
+│  ✓ Serverless: Auto-scaling, pay-per-request, no infrastructure          │
+│  ✓ Clean Architecture: Domain → Application → Infrastructure              │
+│  ✓ Selective Notification: Only HIGH urgency triggers immediate email     │
+│  ✓ Scheduled Reports: EventBridge cron for weekly aggregation             │
+│  ✓ Persistence: DynamoDB for fast writes and flexible queries             │
+└───────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Data Flow Summary
+
+| Step | Component | Input | Output | Latency |
+|------|-----------|-------|--------|---------|
+| 1 | API Gateway | POST /avaliacao | → Lambda 1 | ~10ms |
+| 2 | Lambda 1 (receive) | JSON payload | → DynamoDB + SNS (if HIGH) | ~50-200ms |
+| 3 | DynamoDB | Feedback entity | Persisted | ~20-50ms |
+| 4 | SNS Topic | JSON message | → Lambda 2 (if HIGH) | ~100-500ms |
+| 5 | Lambda 2 (notify) | SNS event | → SES email | ~50-200ms |
+| 6 | Lambda 3 (report) | Cron trigger | → DynamoDB scan → SES email | ~2-5s |
+
+**Total latency (HIGH urgency):** ~250ms - 1s (user gets 201 response, email sent async)
+
+## How It Works
+
+### 🔄 Flow 1: Immediate Notification (HIGH Urgency Feedback)
+
+When a user submits feedback with a low rating (0-5), the system triggers an immediate notification:
+
+1. **User submits** `POST /avaliacao` with `nota: 1` (critical feedback)
+2. **Lambda 1 (receive-feedback)**:
+   - Validates input (rating 0-10, description not empty)
+   - Calculates urgency: `nota 1 → HIGH`
+   - Persists to DynamoDB
+   - **Publishes to SNS** (only if HIGH)
+3. **SNS Topic** receives message and **automatically invokes** Lambda 2
+4. **Lambda 2 (send-notification)**:
+   - Receives SNS event
+   - Parses feedback details
+   - Sends email via SES to admin
+   - Email subject: "⚠️ Feedback Crítico Recebido"
+
+**Result:** Admin receives email within 1 second of submission.
+
+### 📊 Flow 2: Weekly Report (Scheduled)
+
+Every Monday at 8 AM UTC (5 AM Brasília), the system generates an automated weekly report:
+
+1. **EventBridge Cron** triggers Lambda 3 at scheduled time
+2. **Lambda 3 (generate-report)**:
+   - Calculates period: last 7 days
+   - Queries DynamoDB for all feedbacks in period
+   - Aggregates statistics:
+     - Total feedback count
+     - Average rating (e.g., 6.20)
+     - Feedback count per day (7 days)
+     - Feedback count per urgency (HIGH/MEDIUM/LOW)
+   - Builds HTML report with tables
+   - Sends email via SES to admin
+3. **Admin receives** comprehensive weekly summary
+
+**Report includes:**
+- Total feedbacks in period
+- Average rating
+- Daily distribution table
+- Urgency distribution table
+
+### 🎯 Urgency Calculation Rules
+
+| Rating | Urgency | Notification | Weekly Report |
+|--------|---------|--------------|---------------|
+| 0-5    | HIGH    | ✅ Immediate email | ✅ Included |
+| 6-7    | MEDIUM  | ❌ No notification | ✅ Included |
+| 8-10   | LOW     | ❌ No notification | ✅ Included |
+
+**Configuration:** Thresholds are defined in `application.yaml` and can be adjusted without code changes.
 
 ## Badges
 
