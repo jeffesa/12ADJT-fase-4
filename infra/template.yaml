@@ -251,7 +251,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedbackApi
-            Path: /feedback
+            Path: /avaliacao
             Method: POST
       LoggingConfig:
         LogGroup: !Ref ReceiveFeedbackLogGroup
@@ -279,7 +279,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref FeedbackApi
-            Path: /feedback
+            Path: /avaliacao
             Method: GET
       LoggingConfig:
         LogGroup: !Ref ReceiveFeedbackLogGroup
