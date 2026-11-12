@@ -71,7 +71,6 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             }
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error: " + e.getMessage(), e);
-            e.printStackTrace();
             return internalServerError();
         }
     }

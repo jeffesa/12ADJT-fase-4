@@ -149,7 +149,6 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error in GraphQL handler: " + e.getMessage(), e);
-            e.printStackTrace();
             return internalServerError();
         }
     }
