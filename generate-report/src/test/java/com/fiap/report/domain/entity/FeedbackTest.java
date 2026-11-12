@@ -41,10 +41,11 @@ class FeedbackTest {
     @Test
     void equalsAndHashCodeUseIdOnly() {
         Feedback original = new Feedback("feedback-1", 4, Urgency.HIGH, CREATED_AT);
+        Feedback sameFields = new Feedback("feedback-1", 4, Urgency.HIGH, CREATED_AT);
         Feedback sameIdOtherFields = new Feedback("feedback-1", 9, Urgency.LOW, CREATED_AT.plusDays(1));
         Feedback otherId = new Feedback("feedback-2", 4, Urgency.HIGH, CREATED_AT);
 
-        assertEquals(original, original);
+        assertEquals(original, sameFields);
         assertEquals(original, sameIdOtherFields);
         assertEquals(original.hashCode(), sameIdOtherFields.hashCode());
         assertNotEquals(original, otherId);
