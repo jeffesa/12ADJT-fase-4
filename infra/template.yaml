@@ -25,6 +25,11 @@ Parameters:
     Description: Email address for sending notifications and reports. Must be verified in SES (prod).
     AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
+  SenderEmail:
+    Type: String
+    Description: Sender address (SES From). Must be a verified identity in SES sa-east-1.
+    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
   Region:
     Type: String
     Default: us-east-1
@@ -332,6 +337,7 @@ Resources:
           QUARKUS_PROFILE: prod
           QUARKUS_LAMBDA_HANDLER: sendNotification
           ADMIN_EMAIL: !Ref AdminEmail
+          SENDER_EMAIL: !Ref SenderEmail
       Events:
         SnsEvent:
           Type: SNS
@@ -360,6 +366,7 @@ Resources:
           QUARKUS_LAMBDA_HANDLER: generateReport
           TABLE_NAME: !Ref FeedbacksTable
           ADMIN_EMAIL: !Ref AdminEmail
+          SENDER_EMAIL: !Ref SenderEmail
       Events:
         ScheduledEvent:
           Type: Schedule
