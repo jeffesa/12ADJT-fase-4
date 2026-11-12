@@ -3,12 +3,15 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main, develop]
-  # PRs: valida apenas os que têm base develop (feature/fix → develop)
+  # PRs para develop (feature/fix → develop) e para main (release develop → main).
+  # PRs para main exigem SonarCloud com quality gate bloqueante.
   pull_request:
-    branches: [develop]
+    branches: [develop, main]
   workflow_dispatch:
 
 jobs:
+  # Nome do job usado como status check obrigatório na proteção da branch main:
+  # "Build & Test & SonarCloud"
   build:
     name: Build & Test & SonarCloud
     runs-on: ubuntu-latest
@@ -20,6 +23,30 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Necessário para SonarCloud history
+
+      # Decisão de política do token SonarCloud:
+      # - main (push ou PR para main): SONAR_TOKEN obrigatório, falha se ausente.
+      # - develop: pode ser ignorado sem token (a análise Sonar não roda nesse caso).
+      - name: Check SonarCloud token policy
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref }}
+          BASE_REF: ${{ github.base_ref }}
+          SONAR_TOKEN_VALUE: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -n "$SONAR_TOKEN_VALUE" ]; then
+            echo "SONAR_TOKEN configurado."
+            exit 0
+          fi
+          if [ "$EVENT_NAME" = "push" ] && [ "$REF_NAME" = "refs/heads/main" ]; then
+            echo "::error title=SONAR_TOKEN ausente::SONAR_TOKEN não está configurado. Push para main exige análise SonarCloud e quality gate."
+            exit 1
+          fi
+          if [ "$EVENT_NAME" = "pull_request" ] && [ "$BASE_REF" = "main" ]; then
+            echo "::error title=SONAR_TOKEN ausente::SONAR_TOKEN não está configurado. PR para main exige análise SonarCloud e quality gate."
+            exit 1
+          fi
+          echo "::notice::SONAR_TOKEN não configurado. Análise SonarCloud ignorada neste evento."
 
       # Instala Java 21 (scanner SonarCloud) e Java 17 (build do projeto)
       # O último listado vira JAVA_HOME padrão (Java 17 para o build)
@@ -55,16 +82,80 @@ jobs:
         if: always()
 
       # Análise SonarCloud (Java 21 necessário para o scanner v4.x+)
-      # Note: Desabilitado -Dsonar.qualitygate.wait=true temporariamente para diagnóstico
-      # O SonarCloud agora com Automatic Analysis desabilitado deve processar a análise corretamente
+      # -Dsonar.qualitygate.wait=true faz o Maven falhar se o quality gate reprovar.
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JAVA_HOME: ${{ env.JAVA_HOME_21_X64 }}
-        run: mvn -B sonar:sonar -Dsonar.host.url=https://sonarcloud.io
+        run: mvn -B sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.qualitygate.wait=true
 
       # Log de conclusão
       - name: Build Status
         if: success()
         run: echo "✅ Build, tests, and SonarCloud analysis completed successfully"
+
+  # Deploy automático somente após merge em main (push), depois do build/Sonar aprovado.
+  deploy:
+    name: Deploy to prod (SAM)
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: prod
+    permissions:
+      id-token: write
+      contents: read
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
+    env:
+      AWS_DEPLOY_ROLE_ARN: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+      ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+
+    steps:
+      # Falha cedo com mensagem clara se os secrets obrigatórios não existirem
+      - name: Check required deploy secrets
+        run: |
+          if [ -z "$AWS_DEPLOY_ROLE_ARN" ]; then
+            echo "::error title=Secret ausente::AWS_DEPLOY_ROLE_ARN não está configurado no environment prod."
+            exit 1
+          fi
+          if [ -z "$ADMIN_EMAIL" ]; then
+            echo "::error title=Secret ausente::ADMIN_EMAIL não está configurado no environment prod."
+            exit 1
+          fi
+          echo "Secrets de deploy configurados."
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: maven
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: sa-east-1
+
+      - name: Set up AWS SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      # Gera os function.zip referenciados pelo template (CodeUri)
+      - name: Package Lambda artifacts
+        run: mvn -B package -DskipTests
+
+      - name: SAM build
+        working-directory: infra
+        run: sam build
+
+      - name: SAM deploy (prod)
+        working-directory: infra
+        run: >-
+          sam deploy --config-env prod --no-confirm-changeset
+          --parameter-overrides "Environment=prod AdminEmail=$ADMIN_EMAIL Region=sa-east-1"
