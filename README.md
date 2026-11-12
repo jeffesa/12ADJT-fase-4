@@ -537,13 +537,13 @@ A `dev-feedback-table` (ou `prod-feedback-table`) tem:
 
 ### Como fazer deploy em produção?
 
-Atualize `infra/samconfig.toml` com valores de produção, defina variáveis de ambiente (ex: `ADMIN_EMAIL`) e execute:
+O deploy é automatizado pelo GitHub Actions (`.github/workflows/ci-cd.yml`) usando AWS SAM e autenticação OIDC, sem chaves de acesso de longa duração:
 
-```bash
-sam deploy --config-env prod
-```
+1. Abra um Pull Request de `develop` para `main`.
+2. O workflow roda build, testes e análise SonarCloud. O quality gate falha o job se reprovar. Para bloquear o merge, o job `Build & Test & SonarCloud` deve ser configurado como status check obrigatório na proteção da branch `main`.
+3. Após o merge em `main`, o job `deploy` executa `sam build` e `sam deploy --config-env prod` automaticamente.
 
-O pipeline CI/CD automatiza esse processo em push para `main`.
+Os secrets `AWS_DEPLOY_ROLE_ARN` e `ADMIN_EMAIL` são configurados no environment `prod` do GitHub.
 
 ### Posso usar endpoints REST ao invés de GraphQL?
 
