@@ -376,6 +376,21 @@ class NotificationTest {
     }
 
     @Test
+    void testEquals_DifferenceInAnyFieldMakesNotificationsDifferent() {
+        UUID id = UUID.randomUUID();
+        UUID feedbackId = UUID.randomUUID();
+        LocalDateTime createdAt = LocalDateTime.of(2024, 10, 21, 10, 30);
+        Notification base = new Notification(id, feedbackId, "Terrible", "HIGH", "admin@company.com", createdAt);
+
+        assertNotEquals(base, new Notification(UUID.randomUUID(), feedbackId, "Terrible", "HIGH", "admin@company.com", createdAt));
+        assertNotEquals(base, new Notification(id, UUID.randomUUID(), "Terrible", "HIGH", "admin@company.com", createdAt));
+        assertNotEquals(base, new Notification(id, feedbackId, "Other", "HIGH", "admin@company.com", createdAt));
+        assertNotEquals(base, new Notification(id, feedbackId, "Terrible", "LOW", "admin@company.com", createdAt));
+        assertNotEquals(base, new Notification(id, feedbackId, "Terrible", "HIGH", "other@company.com", createdAt));
+        assertNotEquals(base, new Notification(id, feedbackId, "Terrible", "HIGH", "admin@company.com", createdAt.plusDays(1)));
+    }
+
+    @Test
     void testEquals_EqualsNullReturnsFalse() {
         // Arrange
         UUID feedbackId = UUID.randomUUID();

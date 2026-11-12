@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.SendEmailRequest;
 import software.amazon.awssdk.services.ses.model.SendEmailResponse;
@@ -177,6 +178,28 @@ class SesNotificationSenderTest {
         // Assert: ToAddresses contains the admin email from notification
         SendEmailRequest request = mockSesClient.lastRequest.get();
         assertTrue(request.destination().toAddresses().contains("specific.admin@company.com"));
+    }
+
+    @Test
+    void testSend_ThrowsNotificationException_WithSesErrorMessage() {
+        // Arrange
+        Notification notification = new Notification(
+            UUID.randomUUID(), "Test", "HIGH", "admin@company.com"
+        );
+        mockSesClient.exceptionToThrow = (SesException) SesException.builder()
+            .message("Service error")
+            .awsErrorDetails(AwsErrorDetails.builder()
+                .errorMessage("Email address is not verified")
+                .build())
+            .build();
+
+        // Act & Assert
+        NotificationException exception = assertThrows(
+            NotificationException.class,
+            () -> sender.send(notification)
+        );
+        assertTrue(exception.getMessage().contains("Email address is not verified"));
+        assertInstanceOf(SesException.class, exception.getCause());
     }
 
     @Test
