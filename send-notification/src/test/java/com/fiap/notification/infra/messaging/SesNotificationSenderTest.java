@@ -203,6 +203,25 @@ class SesNotificationSenderTest {
     }
 
     @Test
+    void testSend_ThrowsNotificationException_WhenSesExceptionHasNoErrorDetails() {
+        // Arrange
+        Notification notification = new Notification(
+            UUID.randomUUID(), "Test", "HIGH", "admin@company.com"
+        );
+        mockSesClient.exceptionToThrow = (SesException) SesException.builder()
+            .message("boom")
+            .build();
+
+        // Act & Assert
+        NotificationException exception = assertThrows(
+            NotificationException.class,
+            () -> sender.send(notification)
+        );
+        assertTrue(exception.getMessage().contains("boom"));
+        assertInstanceOf(SesException.class, exception.getCause());
+    }
+
+    @Test
     void testSend_ThrowsNotificationException_WhenSesExceptionOccurs() {
         // Arrange
         UUID feedbackId = UUID.randomUUID();
