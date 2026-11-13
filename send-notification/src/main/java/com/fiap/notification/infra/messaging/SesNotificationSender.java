@@ -86,10 +86,10 @@ public class SesNotificationSender implements NotificationSender {
         } catch (SesException e) {
             LOGGER.log(Level.SEVERE,
                 "SES error sending email for feedback " + notification.getFeedbackId() +
-                ": " + e.awsErrorDetails().errorMessage()
+                ": " + sesErrorMessage(e)
             );
             throw new NotificationException(
-                "Failed to send email via SES: " + e.awsErrorDetails().errorMessage(),
+                "Failed to send email via SES: " + sesErrorMessage(e),
                 e
             );
         } catch (Exception e) {
@@ -99,6 +99,19 @@ public class SesNotificationSender implements NotificationSender {
             );
             throw new NotificationException("Failed to send email: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Returns the SES error message, falling back to the exception message when
+     * SES does not provide awsErrorDetails.
+     *
+     * @param e the SES exception
+     * @return the error message to log and report
+     */
+    private static String sesErrorMessage(SesException e) {
+        return e.awsErrorDetails() != null && e.awsErrorDetails().errorMessage() != null
+            ? e.awsErrorDetails().errorMessage()
+            : e.getMessage();
     }
 
     /**

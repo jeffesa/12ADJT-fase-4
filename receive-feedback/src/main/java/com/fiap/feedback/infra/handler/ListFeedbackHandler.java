@@ -43,7 +43,6 @@ public class ListFeedbackHandler implements RequestHandler<APIGatewayProxyReques
             return handleGetFeedbacks();
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error: " + e.getMessage(), e);
-            e.printStackTrace();
             return internalServerError();
         }
     }

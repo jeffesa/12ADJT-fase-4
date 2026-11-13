@@ -1,6 +1,8 @@
 package com.fiap.feedback.infra.graphql;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -301,6 +303,17 @@ class ReceiveFeedbackQueryResolverTest {
             result.get(2).urgencia().equals("MEDIUM") ||
             result.get(2).urgencia().equals("LOW")
         );
+    }
+
+    @Test
+    void queryRethrowsWhenUseCaseFails() {
+        ReceiveFeedbackUseCase useCase = mock(ReceiveFeedbackUseCase.class);
+        when(useCase.listarTodos()).thenThrow(new IllegalStateException("Scan failed"));
+        ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
+
+        IllegalStateException error = assertThrows(IllegalStateException.class, resolver::listarAvaliacoes);
+
+        assertEquals("Scan failed", error.getMessage());
     }
 
     /**

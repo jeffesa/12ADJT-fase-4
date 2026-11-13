@@ -1,211 +1,130 @@
 package com.fiap.feedback.infra.handler;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
 import com.fiap.feedback.domain.entity.Urgency;
-import com.fiap.feedback.infra.dto.InputOutputMapper;
-import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
 
 /**
- * Unit tests for ReceiveFeedbackHandler.
- * 
- * Verifies that the Lambda handler correctly constructs HTTP responses
- * with appropriate structure and status codes.
+ * Unit tests for ReceiveFeedbackHandler POST /avaliacao.
+ *
+ * The use case is mocked with Mockito. Bean Validation runs with the real
+ * Hibernate Validator so the constraint messages come from ReceiveFeedbackInput.
  */
 class ReceiveFeedbackHandlerTest {
 
+    private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Test
-    void testHandleRequestSuccessfulFeedback_ReturnsStatus201() throws Exception {
-        // Test that successful feedback results in 201 status
-        // Status code is 201 Created
-        assertEquals(201, 201);
+    private ReceiveFeedbackHandler handler;
+    private ReceiveFeedbackUseCase receiveFeedbackUseCase;
+
+    @BeforeEach
+    void setUp() throws ReflectiveOperationException {
+        handler = new ReceiveFeedbackHandler();
+        receiveFeedbackUseCase = mock(ReceiveFeedbackUseCase.class);
+        setField(handler, "receiveFeedbackUseCase", receiveFeedbackUseCase);
+        setField(handler, "validator", VALIDATOR);
     }
 
     @Test
-    void testHandleRequestSuccessfulFeedback_ResponseContainsReceiveFeedbackWrapper()
-            throws Exception {
-        // Arrange: Create a feedback and map it
-        String feedbackId = UUID.randomUUID().toString();
-        Feedback feedback = new Feedback(feedbackId, "Good feedback", 7, Urgency.MEDIUM, LocalDateTime.now(), false);
-        ReceiveFeedbackOutput output = InputOutputMapper.toOutput(feedback);
+    void validPostReturns201WithCreatedFeedback() throws Exception {
+        LocalDateTime createdAt = LocalDateTime.of(2024, 3, 15, 10, 30);
+        Feedback saved = new Feedback(UUID.randomUUID().toString(), "Good service", 7, Urgency.MEDIUM, createdAt, false);
+        when(receiveFeedbackUseCase.receiveFeedback("Good service", 7)).thenReturn(saved);
 
-        // Act & Assert: Response should be wrapped in receiveFeedback
-        assertNotNull(output);
-        assertNotNull(output.id());
-        assertEquals("Good feedback", output.descricao());
+        APIGatewayProxyResponseEvent response = handle("{\"descricao\":\"Good service\",\"nota\":7}");
+
+        assertEquals(201, response.getStatusCode());
+        JsonNode feedback = objectMapper.readTree(response.getBody()).get("receiveFeedback");
+        assertEquals(saved.getId(), feedback.get("id").asText());
+        assertEquals("Good service", feedback.get("descricao").asText());
+        assertEquals(7, feedback.get("nota").asInt());
+        assertEquals("MEDIUM", feedback.get("urgencia").asText());
+        assertEquals(createdAt.toString(), feedback.get("dataCriacao").asText());
     }
 
     @Test
-    void testHandleRequestSuccessfulFeedback_ResponseIncludesAllFields()
-            throws Exception {
-        // Arrange
-        String feedbackId = UUID.randomUUID().toString();
-        Feedback feedback = new Feedback(feedbackId, "Test feedback", 5, Urgency.HIGH, LocalDateTime.now(), false);
-        ReceiveFeedbackOutput output = InputOutputMapper.toOutput(feedback);
+    void blankDescriptionReturns400WithValidationDetail() throws Exception {
+        APIGatewayProxyResponseEvent response = handle("{\"descricao\":\"\",\"nota\":7}");
 
-        // Assert: Response includes all required fields
-        assertNotNull(output.id());
-        assertNotNull(output.descricao());
-        assertNotNull(output.nota());
-        assertNotNull(output.urgencia());
-        assertNotNull(output.dataCriacao());
-        
-        assertEquals("Test feedback", output.descricao());
-        assertEquals(5, output.nota());
-        assertEquals("HIGH", output.urgencia());
+        assertEquals(400, response.getStatusCode());
+        JsonNode body = objectMapper.readTree(response.getBody());
+        assertEquals("Validation Error", body.get("title").asText());
+        assertEquals(400, body.get("status").asInt());
+        assertEquals("Description cannot be empty", body.get("detail").asText());
+        verify(receiveFeedbackUseCase, never()).receiveFeedback(anyString(), anyInt());
     }
 
     @Test
-    void testHandleRequestValidationError_EmptyDescription_ReturnsStatus400()
-            throws Exception {
-        // Test that validation errors result in 400 status
-        assertEquals(400, 400);
+    void ratingOutOfRangeReturns400WithValidationDetail() throws Exception {
+        APIGatewayProxyResponseEvent response = handle("{\"descricao\":\"Good service\",\"nota\":11}");
+
+        assertEquals(400, response.getStatusCode());
+        JsonNode body = objectMapper.readTree(response.getBody());
+        assertEquals("Rating must be at most 10", body.get("detail").asText());
+        verify(receiveFeedbackUseCase, never()).receiveFeedback(anyString(), anyInt());
     }
 
     @Test
-    void testHandleRequestValidationError_RatingOutOfRange_ReturnsStatus400()
-            throws Exception {
-        // Test that out-of-range ratings result in 400 status
-        assertEquals(400, 400);
+    void nullBodyReturns400() throws Exception {
+        APIGatewayProxyResponseEvent response = handle(null);
+
+        assertEquals(400, response.getStatusCode());
+        JsonNode body = objectMapper.readTree(response.getBody());
+        assertEquals("Validation Error", body.get("title").asText());
+        assertEquals("Request body cannot be empty", body.get("detail").asText());
+        verify(receiveFeedbackUseCase, never()).receiveFeedback(anyString(), anyInt());
     }
 
     @Test
-    void testHandleRequestValidationError_NullBody_ReturnsStatus400()
-            throws Exception {
-        // Test that null body results in 400 status
-        assertEquals(400, 400);
+    void useCaseFailureReturns500WithoutInternalMessage() throws Exception {
+        when(receiveFeedbackUseCase.receiveFeedback(anyString(), anyInt()))
+                .thenThrow(new RuntimeException("Database connection failed"));
+
+        APIGatewayProxyResponseEvent response = handle("{\"descricao\":\"Good service\",\"nota\":7}");
+
+        assertEquals(500, response.getStatusCode());
+        JsonNode body = objectMapper.readTree(response.getBody());
+        assertEquals("Internal Server Error", body.get("title").asText());
+        assertEquals(500, body.get("status").asInt());
+        assertFalse(body.get("detail").asText().contains("Database"));
     }
 
-    @Test
-    void testHandleRequestInternalError_ReturnsStatus500()
-            throws Exception {
-        // Test that internal errors result in 500 status
-        assertEquals(500, 500);
+    private APIGatewayProxyResponseEvent handle(String body) {
+        APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
+        event.setHttpMethod("POST");
+        event.setBody(body);
+        return handler.handleRequest(event, null);
     }
 
-    @Test
-    void testHandleRequestErrorResponse_RFC7807Format()
-            throws Exception {
-        // Verify RFC 7807 format: title, status, detail fields present
-        String problemDetail = "{\"title\":\"Validation Error\",\"status\":400,\"detail\":\"Description cannot be empty\"}";
-        
-        JsonNode responseNode = objectMapper.readTree(problemDetail);
-        assertTrue(responseNode.has("title"), "Error response must have title");
-        assertTrue(responseNode.has("status"), "Error response must have status");
-        assertTrue(responseNode.has("detail"), "Error response must have detail");
-        
-        assertEquals("Validation Error", responseNode.get("title").asText());
-        assertEquals(400, responseNode.get("status").asInt());
-    }
-
-    @Test
-    void testHandleRequestParsesJsonBody_ValidInput()
-            throws Exception {
-        // Verify JSON can be parsed correctly
-        String feedbackId = UUID.randomUUID().toString();
-        Feedback feedback = new Feedback(feedbackId, "Excellent", 9, Urgency.LOW, LocalDateTime.now(), false);
-        ReceiveFeedbackOutput output = InputOutputMapper.toOutput(feedback);
-        
-        assertEquals("Excellent", output.descricao());
-        assertEquals(9, output.nota());
-    }
-
-    @Test
-    void testErrorResponseHasCorrectRFC7807Structure() throws Exception {
-        // Verify RFC 7807 format: title, status, detail fields present
-        String problemDetail = "{\"title\":\"Validation Error\",\"status\":400,\"detail\":\"Invalid input\"}";
-        
-        JsonNode node = objectMapper.readTree(problemDetail);
-        assertTrue(node.has("title"), "RFC 7807 response must include title");
-        assertTrue(node.has("status"), "RFC 7807 response must include status");
-        assertTrue(node.has("detail"), "RFC 7807 response must include detail");
-        assertEquals("Validation Error", node.get("title").asText());
-        assertEquals(400, node.get("status").asInt());
-    }
-
-    @Test
-    void testSuccessResponseHasCorrectNestedStructure() throws Exception {
-        // Verify success response structure: { receiveFeedback: { ... } }
-        String successResponse = "{\"receiveFeedback\":{\"id\":\"123e4567-e89b-12d3-a456-426614174000\"," +
-                "\"descricao\":\"Good service\",\"nota\":8,\"urgencia\":\"LOW\"," +
-                "\"dataCriacao\":\"2024-01-01T10:00:00\"}}";
-        
-        JsonNode node = objectMapper.readTree(successResponse);
-        assertTrue(node.has("receiveFeedback"), "Success response must have receiveFeedback wrapper");
-        
-        JsonNode feedback = node.get("receiveFeedback");
-        assertTrue(feedback.has("id"), "Feedback must have id");
-        assertTrue(feedback.has("descricao"), "Feedback must have descricao");
-        assertTrue(feedback.has("nota"), "Feedback must have nota");
-        assertTrue(feedback.has("urgencia"), "Feedback must have urgencia");
-        assertTrue(feedback.has("dataCriacao"), "Feedback must have dataCriacao");
-    }
-
-    @Test
-    void testValidationErrorResponse() throws Exception {
-        // Verify validation error responses contain proper status code
-        String validationError = "{\"title\":\"Validation Error\",\"status\":400,\"detail\":\"Description must be at least 5 characters\"}";
-        
-        JsonNode node = objectMapper.readTree(validationError);
-        assertEquals(400, node.get("status").asInt(), "Validation errors should return 400 status");
-    }
-
-    @Test
-    void testInternalServerErrorResponse() throws Exception {
-        // Verify server error responses contain proper status code
-        String serverError = "{\"title\":\"Internal Server Error\",\"status\":500,\"detail\":\"An unexpected error occurred. Please try again later.\"}";
-        
-        JsonNode node = objectMapper.readTree(serverError);
-        assertEquals(500, node.get("status").asInt(), "Server errors should return 500 status");
-    }
-
-    @Test
-    void testHandlerValidatesDescriptionNotEmpty() throws Exception {
-        // Test that handler validation rejects empty descriptions
-        assertTrue(true);
-    }
-
-    @Test
-    void testHandlerValidatesRatingInRange() throws Exception {
-        // Test that handler validation rejects ratings outside range
-        assertTrue(true);
-    }
-
-    @Test
-    void testHandlerResponseContentTypeIsJson() throws Exception {
-        // Verify response content type
-        String validResponse = "{\"receiveFeedback\":{\"id\":\"test-id\",\"descricao\":\"test\",\"nota\":5,\"urgencia\":\"HIGH\",\"dataCriacao\":\"2024-01-01T00:00:00\"}}";
-        JsonNode node = objectMapper.readTree(validResponse);
-        assertNotNull(node);
-    }
-
-    @Test
-    void testHandlerLogsRequestDetails() throws Exception {
-        // Verify handler logs requests (tested through execution)
-        assertTrue(true);
-    }
-
-    @Test
-    void testHandlerUsesCorrectMappingForOutput() throws Exception {
-        // Verify handler uses InputOutputMapper
-        String feedbackId = UUID.randomUUID().toString();
-        Feedback feedback = new Feedback(feedbackId, "Test", 6, Urgency.MEDIUM, LocalDateTime.now(), false);
-        ReceiveFeedbackOutput output = InputOutputMapper.toOutput(feedback);
-        
-        assertEquals("Test", output.descricao());
-        assertEquals(6, output.nota());
-        assertEquals("MEDIUM", output.urgencia());
+    private static void setField(Object target, String name, Object value) throws ReflectiveOperationException {
+        Field field = target.getClass().getDeclaredField(name);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 }
