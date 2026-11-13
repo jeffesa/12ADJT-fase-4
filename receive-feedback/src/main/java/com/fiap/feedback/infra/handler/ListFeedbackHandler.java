@@ -67,6 +67,7 @@ public class ListFeedbackHandler implements RequestHandler<APIGatewayProxyReques
                 .add("nota", feedback.getRating())
                 .add("urgencia", feedback.getUrgency().toString())
                 .add("dataCriacao", feedback.getCreatedAt().toString())
+                .add("deploy", "testando")
                 .build());
         }
         
