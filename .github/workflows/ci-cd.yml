@@ -25,8 +25,10 @@ jobs:
           fetch-depth: 0  # Necessário para SonarCloud history
 
       # Decisão de política do token SonarCloud:
-      # - main (push ou PR para main): SONAR_TOKEN obrigatório, falha se ausente.
-      # - develop: pode ser ignorado sem token (a análise Sonar não roda nesse caso).
+      # - PR para main: SONAR_TOKEN obrigatório, falha se ausente (gate do PR é o controle de qualidade).
+      # - push para main: não roda Sonar (SonarCloud não analisa a main como branch; a análise
+      #   vem da develop, no mesmo commit, já aprovada pelo quality gate antes do PR).
+      # - develop e PRs para develop: SONAR_TOKEN obrigatório para o gate rodar.
       - name: Check SonarCloud token policy
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -37,10 +39,6 @@ jobs:
           if [ -n "$SONAR_TOKEN_VALUE" ]; then
             echo "SONAR_TOKEN configurado."
             exit 0
-          fi
-          if [ "$EVENT_NAME" = "push" ] && [ "$REF_NAME" = "refs/heads/main" ]; then
-            echo "::error title=SONAR_TOKEN ausente::SONAR_TOKEN não está configurado. Push para main exige análise SonarCloud e quality gate."
-            exit 1
           fi
           if [ "$EVENT_NAME" = "pull_request" ] && [ "$BASE_REF" = "main" ]; then
             echo "::error title=SONAR_TOKEN ausente::SONAR_TOKEN não está configurado. PR para main exige análise SonarCloud e quality gate."
@@ -83,8 +81,9 @@ jobs:
 
       # Análise SonarCloud (Java 21 necessário para o scanner v4.x+)
       # -Dsonar.qualitygate.wait=true faz o Maven falhar se o quality gate reprovar.
+      # Não roda em push para main: o SonarCloud não analisa a main como branch no plano atual.
       - name: SonarCloud Scan
-        if: ${{ env.SONAR_TOKEN != '' }}
+        if: ${{ env.SONAR_TOKEN != '' && !(github.event_name == 'push' && github.ref == 'refs/heads/main') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           JAVA_HOME: ${{ env.JAVA_HOME_21_X64 }}
