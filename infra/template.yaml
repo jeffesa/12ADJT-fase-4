@@ -456,8 +456,8 @@ Resources:
 #========================================
 Outputs:
   ApiEndpoint:
-    Description: 'HTTP API endpoint URL for POST /feedback'
-    Value: !Sub 'https://${FeedbackApi}.execute-api.${Region}.amazonaws.com/${Environment}/feedback'
+    Description: 'HTTP API endpoint URL for POST /avaliacao'
+    Value: !Sub 'https://${FeedbackApi}.execute-api.${Region}.amazonaws.com/${Environment}/avaliacao'
     Export:
       Name: !Sub '${Environment}-FeedbackApiEndpoint'
 
