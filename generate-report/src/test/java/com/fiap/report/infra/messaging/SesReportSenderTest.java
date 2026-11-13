@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.ses.SesClient;
 import software.amazon.awssdk.services.ses.model.SendEmailRequest;
 import software.amazon.awssdk.services.ses.model.SendEmailResponse;
@@ -227,6 +228,29 @@ class SesReportSenderTest {
             ReportException.class,
             () -> sender.send(report, adminEmail)
         );
+    }
+
+    @Test
+    void testSend_UsesSesErrorMessageWhenAwsErrorDetailsArePresent() {
+        // Arrange
+        LocalDate startDate = LocalDate.of(2024, 10, 21);
+        LocalDate endDate = LocalDate.of(2024, 10, 25);
+        WeeklyReport report = createTestReport(startDate, endDate);
+        String adminEmail = "admin@feedback-fase-4.com";
+
+        mockSesClient.exceptionToThrow = (SesException) SesException.builder()
+                .message("Service error")
+                .awsErrorDetails(AwsErrorDetails.builder()
+                        .errorMessage("Email address is not verified")
+                        .build())
+                .build();
+
+        // Act
+        ReportException error = assertThrows(ReportException.class,
+                () -> sender.send(report, adminEmail));
+
+        // Assert
+        assertTrue(error.getMessage().contains("Email address is not verified"));
     }
 
     @Test
