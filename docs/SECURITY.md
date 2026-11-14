@@ -14,17 +14,21 @@ The serverless model provides:
 
 ## Security Components
 
-### 1. API Key Authentication
+### 1. Bearer Token Authentication
 
-The Feedback API requires an API Key for client authentication and is protected through:
+All routes (`POST /avaliacao`, `GET /avaliacao` and `POST /graphql`) require the header `Authorization: Bearer <token>`. The token is validated inside the Lambda handlers, so the same rule applies locally and in production.
 
-- **API Gateway Usage Plan**: Enforces throttling and quota limits
+- **Token source**: a single shared token, stored as the GitHub secret `API_TOKEN` and passed to the deploy as the `ApiToken` parameter (`NoEcho`, 24 to 128 characters: letters, digits, `_` and `-`). The Lambdas read it from the `API_TOKEN` environment variable.
+- **Creating the secret**: `openssl rand -hex 24 | tee >(pbcopy) | gh secret set API_TOKEN --repo jeffesa/12ADJT-fase-4`. GitHub does not show the value again, so keep a copy.
+- **Rotation**: replace the `API_TOKEN` secret and run a new deploy. The old token stops working after the deploy.
+- **Responses**: `401` with `Missing bearer token` (header absent, empty or wrong scheme) or `Invalid bearer token` (token does not match), both with `WWW-Authenticate: Bearer`. If `API_TOKEN` is not configured, every request is rejected with `500` (fail closed).
+- **Handling**: the comparison is constant-time, and the token is never logged. Never commit the token to version control.
+
+The API Gateway Usage Plan below enforces throttling and quota limits:
+
   - **Burst Limit**: 100 requests per second
   - **Rate Limit**: 1,000 requests per second (sustained)
   - **Daily Quota**: 10,000 requests per day
-
-- **Requirement**: All requests to the POST `/avaliacao` endpoint must include the API Key in the request headers (`X-API-Key` header)
-- **Key Management**: API Keys are generated and managed through AWS API Gateway and must be treated as secrets (never committed to version control)
 
 ### 2. IAM Roles and Least-Privilege Access
 
@@ -102,7 +106,6 @@ The Feedback API is protected from abuse and overload through AWS API Gateway Us
 ### Enforcement
 - Requests exceeding limits receive HTTP 429 (Too Many Requests)
 - Clients must implement exponential backoff retry logic
-- The API Key is linked to the Usage Plan; per-key metrics are tracked
 
 ### Configuration
 ```yaml
@@ -133,8 +136,8 @@ All resources are prefixed with the environment name to ensure complete isolatio
 - **Development (dev)**: Used for testing, experimentation, and integration validation
 - **Production (prod)**: Live environment serving real users
 
-### Separate API Keys and Usage Plans
-Each environment has its own API Key and Usage Plan, preventing dev traffic from affecting production quotas or throttling.
+### Separate Usage Plans
+Each environment has its own Usage Plan, preventing dev traffic from affecting production quotas or throttling.
 
 ### Email Verification (SES)
 - In production, the `AdminEmail` parameter must reference an email address verified in Amazon SES
@@ -176,7 +179,7 @@ Parameters:
 ## Security Best Practices Implemented
 
 1. **Least-Privilege IAM Roles**: Each Lambda has minimal required permissions
-2. **API Key Authentication**: All API requests require an API Key
+2. **Bearer Token Authentication**: All API requests require `Authorization: Bearer <token>`
 3. **Rate Limiting**: Usage Plans prevent abuse and resource exhaustion
 4. **Encryption**: Data at rest (DynamoDB) and in transit (HTTPS) are encrypted
 5. **Audit Logging**: CloudWatch Logs capture all operations for compliance and debugging

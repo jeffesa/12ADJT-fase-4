@@ -19,15 +19,18 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 
 import com.fiap.feedback.application.usecase.ListFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
+import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
 
 /**
- * AWS Lambda handler for REST API: GET /feedback.
- * Returns all feedbacks as a public endpoint.
+ * AWS Lambda handler for REST API: GET /avaliacao.
+ * Returns all feedbacks. Requires "Authorization: Bearer <token>" (API_TOKEN).
  */
 @Named("listFeedback")
 public class ListFeedbackHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final Logger LOGGER = Logger.getLogger(ListFeedbackHandler.class.getName());
+
+    private BearerTokenAuthenticator authenticator = BearerTokenAuthenticator.fromEnvironment();
 
     @Inject
     private ListFeedbackUseCase listFeedbackUseCase;
@@ -37,9 +40,14 @@ public class ListFeedbackHandler implements RequestHandler<APIGatewayProxyReques
             APIGatewayProxyRequestEvent event,
             Context context) {
         
-        LOGGER.log(Level.INFO, "Lambda handler invoked - GET /feedback");
+        LOGGER.log(Level.INFO, "Lambda handler invoked - GET /avaliacao");
         
         try {
+            var denied = authenticator.authenticate(event);
+            if (denied.isPresent()) {
+                return denied.get();
+            }
+
             return handleGetFeedbacks();
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error: " + e.getMessage(), e);
@@ -47,11 +55,15 @@ public class ListFeedbackHandler implements RequestHandler<APIGatewayProxyReques
         }
     }
 
+    void setAuthenticator(BearerTokenAuthenticator authenticator) {
+        this.authenticator = authenticator;
+    }
+
     /**
-     * Handles GET /feedback: list all feedbacks.
+     * Handles GET /avaliacao: list all feedbacks.
      */
     private APIGatewayProxyResponseEvent handleGetFeedbacks() {
-        LOGGER.log(Level.INFO, "GET /feedback - listing all feedbacks");
+        LOGGER.log(Level.INFO, "GET /avaliacao - listing all feedbacks");
         
         if (listFeedbackUseCase == null) {
             throw new IllegalStateException("ListFeedbackUseCase not injected");

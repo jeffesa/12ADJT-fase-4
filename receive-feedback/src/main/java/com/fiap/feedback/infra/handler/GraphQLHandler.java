@@ -22,24 +22,25 @@ import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
 import com.fiap.feedback.infra.dto.InputOutputMapper;
 import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
+import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
 
 /**
- * AWS Lambda handler for GraphQL API: POST /graphql (internal, requires authentication).
+ * AWS Lambda handler for GraphQL API: POST /graphql (requires Bearer authentication).
  * 
- * This handler is INTERNAL ONLY and requires API Key authentication via header.
+ * Requires Bearer token authentication via header.
  * It supports GraphQL queries for listing feedbacks.
  * 
- * Authentication: X-API-Key header must match environment variable GRAPHQL_API_KEY
+ * Authentication: "Authorization: Bearer <token>" must match environment variable API_TOKEN
  * 
  * This is a Quarkus CDI bean (named "graphqlHandler") that Lambda invokes through
  * QuarkusStreamHandler. The Quarkus entry point (QuarkusStreamHandler::handleRequest)
  * ensures Arc CDI is fully initialized before delegating to this handler.
  * 
- * Request: POST /graphql with X-API-Key header and {"query": "query { listarAvaliacoes { ... } }"}
+ * Request: POST /graphql with Authorization: Bearer header and {"query": "query { listarAvaliacoes { ... } }"}
  * 
  * Response codes:
  * - 200 OK: GraphQL query executed successfully
- * - 401 Unauthorized: missing or invalid API key
+ * - 401 Unauthorized: missing or invalid bearer token
  * - 400 Bad Request: invalid GraphQL query
  * - 500 Internal Server Error: unexpected server error
  */
@@ -48,12 +49,12 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
 
     private static final Logger LOGGER = Logger.getLogger(GraphQLHandler.class.getName());
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final String API_KEY_HEADER = "X-API-Key";
-    private static final String EXPECTED_API_KEY = System.getenv().getOrDefault("GRAPHQL_API_KEY", "dev-key-change-in-prod");
     
     static {
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
+
+    private BearerTokenAuthenticator authenticator = BearerTokenAuthenticator.fromEnvironment();
 
     @Inject
     private ReceiveFeedbackUseCase receiveFeedbackUseCase;
@@ -67,29 +68,11 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
         LOGGER.log(Level.FINE, "Request method: " + event.getHttpMethod() + ", path: " + event.getPath());
         
         try {
-            // Authentication check
-            Map<String, String> headers = event.getHeaders();
-            if (headers == null || headers.isEmpty()) {
-                LOGGER.log(Level.WARNING, "No headers received");
-                return unauthorized("Missing X-API-Key header");
+            var denied = authenticator.authenticate(event);
+            if (denied.isPresent()) {
+                return denied.get();
             }
-            
-            // API Gateway sends headers in lowercase
-            String providedKey = headers.get("x-api-key");
-            if (providedKey == null) {
-                providedKey = headers.get("X-API-Key");
-            }
-            
-            if (providedKey == null) {
-                LOGGER.log(Level.WARNING, "Missing x-api-key header. Headers: " + headers.keySet());
-                return unauthorized("Missing X-API-Key header");
-            }
-            
-            if (!providedKey.equals(EXPECTED_API_KEY)) {
-                LOGGER.log(Level.WARNING, "Invalid API key provided: " + providedKey);
-                return unauthorized("Invalid API key");
-            }
-            
+
             if (receiveFeedbackUseCase == null) {
                 throw new IllegalStateException("ReceiveFeedbackUseCase not injected");
             }
@@ -153,21 +136,8 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
         }
     }
 
-    /**
-     * Creates a 401 Unauthorized response.
-     */
-    private APIGatewayProxyResponseEvent unauthorized(String detail) {
-        JsonObject errorDetail = Json.createObjectBuilder()
-            .add("title", "Unauthorized")
-            .add("status", 401)
-            .add("detail", detail)
-            .build();
-        
-        APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
-        response.setStatusCode(401);
-        response.setBody(errorDetail.toString());
-        response.setHeaders(defaultHeaders());
-        return response;
+    void setAuthenticator(BearerTokenAuthenticator authenticator) {
+        this.authenticator = authenticator;
     }
 
     /**
