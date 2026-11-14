@@ -583,6 +583,7 @@ Visualize CloudWatch Logs e traces X-Ray no Console AWS, ou configure dashboards
 - **Repositório:** https://github.com/jeffesa/12ADJT-fase-4
 - **Dashboard SonarCloud:** https://sonarcloud.io/dashboard?id=jeffesa_12ADJT-fase-4
 - **Endpoint API AWS (Produção):** https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao
+- **Collection Bruno:** [bruno/README.md](bruno/README.md)
 - **Documentação Quarkus:** https://quarkus.io
 - **Guia do Desenvolvedor AWS Lambda:** https://docs.aws.amazon.com/lambda
 - **AWS SAM:** https://aws.amazon.com/serverless/sam/
