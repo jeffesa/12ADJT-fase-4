@@ -111,6 +111,7 @@ jobs:
     env:
       AWS_DEPLOY_ROLE_ARN: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
       ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+      SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
 
     steps:
       # Falha cedo com mensagem clara se os secrets obrigatórios não existirem
@@ -122,6 +123,10 @@ jobs:
           fi
           if [ -z "$ADMIN_EMAIL" ]; then
             echo "::error title=Secret ausente::ADMIN_EMAIL não está configurado no environment prod."
+            exit 1
+          fi
+          if [ -z "$SENDER_EMAIL" ]; then
+            echo "::error title=Secret ausente::SENDER_EMAIL não está configurado no environment prod."
             exit 1
           fi
           echo "Secrets de deploy configurados."
@@ -157,4 +162,4 @@ jobs:
         working-directory: infra
         run: >-
           sam deploy --config-env prod --no-confirm-changeset
-          --parameter-overrides "Environment=prod AdminEmail=$ADMIN_EMAIL Region=sa-east-1"
+          --parameter-overrides "Environment=prod AdminEmail=$ADMIN_EMAIL SenderEmail=$SENDER_EMAIL Region=sa-east-1"
