@@ -128,7 +128,7 @@
           }
         },
         {
-          "name": "POST /avaliacao nota ausente (500 - comportamento atual)",
+          "name": "POST /avaliacao nota ausente (400)",
           "event": [
             {
               "listen": "test",
