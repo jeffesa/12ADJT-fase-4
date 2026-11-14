@@ -312,6 +312,9 @@ https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/
 
 A coleção Postman está disponível em `docs/api-collection/fase4-feedback.postman_collection.json`. Você pode importá-la e alternar entre ambientes local e produção.
 
+No Bruno: **Collection > Import > Postman Collection** (collection) e **Environments > Import** (`fase4-local.postman_environment.json` e `fase4-prod.postman_environment.json`, na mesma pasta).
+A chave do GraphQL é a variável `apiKey` do ambiente (vazia no arquivo; preencha só na sua máquina). Em prod, rode apenas a pasta `01 - Seguro em prod`.
+
 ### Testando com Quarkus Dev Mode
 
 Uma vez que os módulos estejam rodando via `mvn quarkus:dev`, você pode testar localmente:
@@ -320,12 +323,14 @@ Uma vez que os módulos estejam rodando via `mvn quarkus:dev`, você pode testar
 
 Pré-requisito (uma vez): `mvn -B -q -DskipTests -Dquarkus.devservices.enabled=false install -pl .,receive-feedback`
 
-Comando para iniciar (JDK 17, na raiz do repositório):
+Comando para iniciar (JDK 17, a partir da pasta do módulo `local-http`; rodar `mvn quarkus:dev` na raiz sobe só o receive-feedback, sem rotas HTTP, e `GET /avaliacao` devolve 405):
 
 ```bash
-AWS_PROFILE=fase4 AWS_REGION=sa-east-1 GRAPHQL_API_KEY=<sua-chave-local> \
+cd local-http && AWS_PROFILE=fase4 AWS_REGION=sa-east-1 GRAPHQL_API_KEY=<sua-chave-local> \
   mvn -B quarkus:dev -Ddebug=false -Dquarkus.console.enabled=false
 ```
+
+As portas 8080 (HTTP) e 18081 (Mock Event Server do Lambda) precisam estar livres.
 
 Rotas disponíveis em `http://localhost:8080`:
 
@@ -583,6 +588,7 @@ Visualize CloudWatch Logs e traces X-Ray no Console AWS, ou configure dashboards
 - **Repositório:** https://github.com/jeffesa/12ADJT-fase-4
 - **Dashboard SonarCloud:** https://sonarcloud.io/dashboard?id=jeffesa_12ADJT-fase-4
 - **Endpoint API AWS (Produção):** https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao
+- **Collection de API (JSON do Postman, importável no Bruno):** [docs/api-collection/fase4-feedback.postman_collection.json](docs/api-collection/fase4-feedback.postman_collection.json)
 - **Documentação Quarkus:** https://quarkus.io
 - **Guia do Desenvolvedor AWS Lambda:** https://docs.aws.amazon.com/lambda
 - **AWS SAM:** https://aws.amazon.com/serverless/sam/

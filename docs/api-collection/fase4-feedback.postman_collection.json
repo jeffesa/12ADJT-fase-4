@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FIAP Fase 4 - Feedback API",
-    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\n⚠️ SECURITY-FOCUSED ARCHITECTURE:\n\n1. PUBLIC REST API (no authentication - create only):\n   POST /avaliacao → Create feedback\n   Endpoint: https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao\n   Request: {\"descricao\": \"...\", \"nota\": 1-10}\n   Response: 201 Created\n   \n   ⚠️ NO LIST ENDPOINT ON PUBLIC API - Security by design\n\n2. INTERNAL GRAPHQL API (X-API-Key auth - list/query only):\n   POST /graphql → Query feedbacks (backend only)\n   Endpoint: https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/graphql\n   Header: X-API-Key: dev-graphql-key-422648464291\n   Request: {\"query\": \"query { listarAvaliacoes { ... } }\"}\n   Response: 200 OK\n   \n   ✓ Requires authentication\n   ✓ Internal use only\n   ✓ Backend services only",
+    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\n⚠️ SECURITY-FOCUSED ARCHITECTURE:\n\n1. PUBLIC REST API (no authentication - create only):\n   POST /avaliacao → Create feedback\n   Endpoint: https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao\n   Request: {\"descricao\": \"...\", \"nota\": 1-10}\n   Response: 201 Created\n   \n   ⚠️ NO LIST ENDPOINT ON PUBLIC API - Security by design\n\n2. INTERNAL GRAPHQL API (X-API-Key auth - list/query only):\n   POST /graphql → Query feedbacks (backend only)\n   Endpoint: https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/graphql\n   Header: X-API-Key: {{apiKey}}\n   Request: {\"query\": \"query { listarAvaliacoes { ... } }\"}\n   Response: 200 OK\n   \n   ✓ Requires authentication\n   ✓ Internal use only\n   ✓ Backend services only\n\nVariáveis: baseUrl e apiKey vêm do ambiente (fase4-local / fase4-prod). A apiKey nunca é commitada. Pastas 01-03 são o conjunto novo; as pastas local e prod são as requisições originais (localUrl/prodUrl).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -17,6 +17,406 @@
     }
   ],
   "item": [
+    {
+      "name": "01 - Seguro em prod (leituras e erros 400/401)",
+      "description": "Pode rodar em prod: só leituras, erros de validação (nada é gravado) e erros 401. Não usa a apiKey correta.",
+      "item": [
+        {
+          "name": "GET /avaliacao (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                  "const b = pm.response.json();",
+                  "pm.test('tem avaliacoes (array) e total', () => { pm.expect(b.avaliacoes).to.be.an('array'); pm.expect(b).to.have.property('total'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/avaliacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "avaliacao"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /avaliacao nota 11 (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/avaliacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "avaliacao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descricao\": \"Nota acima do limite\",\n  \"nota\": 11\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /avaliacao descrição vazia (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/avaliacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "avaliacao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descricao\": \"\",\n  \"nota\": 8\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /avaliacao nota ausente (500 - comportamento atual)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 500', () => pm.expect(pm.response.code).to.equal(500));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/avaliacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "avaliacao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
+            },
+            "description": "O ReceiveFeedbackHandler não trata nota nula (Integer sem @NotNull): o status real hoje é 500, não 400. Nada é gravado. Se o handler passar a validar, ajuste o teste para 400."
+          }
+        },
+        {
+          "name": "POST /graphql sem chave (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Sem o header X-API-Key.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /graphql chave errada (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "chave-invalida"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Header X-API-Key com valor inválido.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Cria registros e usa apiKey (local; NÃO rodar em prod sem intenção)",
+      "description": "POST válido grava item real na tabela do ambiente. /graphql com a chave correta exige a variável apiKey. Use no ambiente local.",
+      "item": [
+        {
+          "name": "POST /avaliacao sucesso LOW nota 8 (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                  "const f = pm.response.json().receiveFeedback;",
+                  "pm.test('nota é 8', () => pm.expect(f.nota).to.equal(8));",
+                  "pm.test('urgencia é LOW', () => pm.expect(f.urgencia).to.equal('LOW'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/avaliacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "avaliacao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descricao\": \"Feedback LOW via collection\",\n  \"nota\": 8\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /avaliacao sucesso MEDIUM nota 6 (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                  "const f = pm.response.json().receiveFeedback;",
+                  "pm.test('nota é 6', () => pm.expect(f.nota).to.equal(6));",
+                  "pm.test('urgencia é MEDIUM', () => pm.expect(f.urgencia).to.equal('MEDIUM'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/avaliacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "avaliacao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descricao\": \"Feedback MEDIUM via collection\",\n  \"nota\": 6\n}"
+            }
+          }
+        },
+        {
+          "name": "POST /graphql listarAvaliacoes com X-API-Key (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                  "const r = pm.response.json();",
+                  "pm.test('data.listarAvaliacoes é array', () => pm.expect(r.data.listarAvaliacoes).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/graphql",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "graphql"
+              ]
+            },
+            "description": "Requer a variável apiKey (ambiente). Em prod, só rode se for intencional.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - ATENÇÃO HIGH (dispara SNS/email)",
+      "description": "⚠ Nota 0-5 é HIGH: dispara publicação no SNS e email. Não execute em prod sem intenção.",
+      "item": [
+        {
+          "name": "POST /avaliacao sucesso HIGH nota 1 (201) - ATENÇÃO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                  "const f = pm.response.json().receiveFeedback;",
+                  "pm.test('nota é 1', () => pm.expect(f.nota).to.equal(1));",
+                  "pm.test('urgencia é HIGH', () => pm.expect(f.urgencia).to.equal('HIGH'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/avaliacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "avaliacao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descricao\": \"Feedback HIGH via collection\",\n  \"nota\": 1\n}"
+            },
+            "description": "⚠ ATENÇÃO: nota 1 gera urgência HIGH e dispara SNS/email. NÃO execute em prod sem intenção."
+          }
+        }
+      ]
+    },
     {
       "name": "local",
       "description": "Ambiente local (LocalStack). Seta baseUrl/notificationUrl/historyUrl para localhost.",
@@ -337,7 +737,8 @@
                   "path": [
                     "avaliacao"
                   ]
-                }
+                },
+                "description": "Falha conhecida: o ReceiveFeedbackHandler responde 500 (não 400) para nota ausente/não numérica. O teste mantém o 400 esperado originalmente."
               }
             },
             {
@@ -409,7 +810,8 @@
                   "path": [
                     "avaliacao"
                   ]
-                }
+                },
+                "description": "Falha conhecida: o ReceiveFeedbackHandler responde 500 (não 400) para nota ausente/não numérica. O teste mantém o 400 esperado originalmente."
               }
             },
             {
@@ -536,7 +938,7 @@
                   },
                   {
                     "key": "X-API-Key",
-                    "value": "dev-graphql-key-422648464291"
+                    "value": "{{apiKey}}"
                   }
                 ],
                 "body": {
@@ -546,17 +948,11 @@
                   }
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/graphql",
-                  "protocol": "https",
+                  "raw": "{{localUrl}}/graphql",
                   "host": [
-                    "yu74m9aiul",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{localUrl}}"
                   ],
                   "path": [
-                    "dev",
                     "graphql"
                   ]
                 }
@@ -607,18 +1003,13 @@
                   "raw": "{\n  \"descricao\": \"Feedback crítico - teste teste\",\n  \"nota\": 1\n}"
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -653,18 +1044,13 @@
                   "raw": "{\n  \"descricao\": \"Feedback moderado - teste teste\",\n  \"nota\": 6\n}"
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -699,18 +1085,13 @@
                   "raw": "{\n  \"descricao\": \"Feedback positivo - teste teste\",\n  \"nota\": 9\n}"
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -744,18 +1125,13 @@
                   "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": -1\n}"
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -788,18 +1164,13 @@
                   "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": 11\n}"
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -832,18 +1203,13 @@
                   "raw": "{\n  \"descricao\": \"\",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -873,18 +1239,13 @@
                   "raw": "{\n  \"descricao\": \"   \",\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -914,19 +1275,15 @@
                   "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
-                  ],
-                  "protocol": "https"
-                }
+                  ]
+                },
+                "description": "Falha conhecida: o ReceiveFeedbackHandler responde 500 (não 400) para nota ausente/não numérica. O teste mantém o 400 esperado originalmente."
               }
             },
             {
@@ -955,18 +1312,13 @@
                   "raw": "{\n  \"nota\": 5\n}"
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -996,19 +1348,15 @@
                   "raw": "{\n  \"descricao\": \"Feedback\",\n  \"nota\": \"cinco\"\n}"
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
-                  ],
-                  "protocol": "https"
-                }
+                  ]
+                },
+                "description": "Falha conhecida: o ReceiveFeedbackHandler responde 500 (não 400) para nota ausente/não numérica. O teste mantém o 400 esperado originalmente."
               }
             },
             {
@@ -1042,18 +1390,13 @@
                   "raw": "{\n  \"descricao\": \"Feedback no mínimo teste\",\n  \"nota\": 0\n}"
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             },
@@ -1088,18 +1431,13 @@
                   "raw": "{\n  \"descricao\": \"Feedback no máximo teste\",\n  \"nota\": 10\n}"
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
                     "avaliacao"
-                  ],
-                  "protocol": "https"
+                  ]
                 }
               }
             }
@@ -1142,18 +1480,12 @@
                   }
                 ],
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao",
-                  "protocol": "https",
+                  "raw": "{{prodUrl}}/avaliacao",
                   "host": [
-                    "v32wl8xbtk",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
-                    "dev",
-                    "feedback"
+                    "avaliacao"
                   ]
                 }
               }
@@ -1185,7 +1517,7 @@
                   },
                   {
                     "key": "X-API-Key",
-                    "value": "dev-graphql-key-422648464291"
+                    "value": "{{apiKey}}"
                   }
                 ],
                 "body": {
@@ -1195,17 +1527,11 @@
                   }
                 },
                 "url": {
-                  "raw": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/graphql",
-                  "protocol": "https",
+                  "raw": "{{prodUrl}}/graphql",
                   "host": [
-                    "yu74m9aiul",
-                    "execute-api",
-                    "sa-east-1",
-                    "amazonaws",
-                    "com"
+                    "{{prodUrl}}"
                   ],
                   "path": [
-                    "dev",
                     "graphql"
                   ]
                 }
@@ -1217,6 +1543,16 @@
     }
   ],
   "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "",
+      "type": "secret"
+    },
     {
       "key": "localUrl",
       "value": "http://localhost:8080",
@@ -1240,11 +1576,6 @@
     {
       "key": "prodGraphqlUrl",
       "value": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/graphql",
-      "type": "string"
-    },
-    {
-      "key": "prodApiKey",
-      "value": "dev-graphql-key-422648464291",
       "type": "string"
     }
   ]
