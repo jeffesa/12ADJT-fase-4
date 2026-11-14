@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FIAP Fase 4 - Feedback API",
-    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\n⚠️ SECURITY-FOCUSED ARCHITECTURE:\n\n1. PUBLIC REST API (no authentication - create only):\n   POST /avaliacao → Create feedback\n   Endpoint: https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao\n   Request: {\"descricao\": \"...\", \"nota\": 1-10}\n   Response: 201 Created\n   \n   ⚠️ NO LIST ENDPOINT ON PUBLIC API - Security by design\n\n2. INTERNAL GRAPHQL API (X-API-Key auth - list/query only):\n   POST /graphql → Query feedbacks (backend only)\n   Endpoint: https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/graphql\n   Header: X-API-Key: {{apiKey}}\n   Request: {\"query\": \"query { listarAvaliacoes { ... } }\"}\n   Response: 200 OK\n   \n   ✓ Requires authentication\n   ✓ Internal use only\n   ✓ Backend services only\n\nVariáveis: baseUrl e apiKey vêm do ambiente (fase4-local / fase4-prod). A apiKey nunca é commitada. Pastas 01-03 são o conjunto novo; as pastas local e prod são as requisições originais (localUrl/prodUrl).",
+    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\nAcesso à API:\n\n1. REST (públicos, sem autenticação):\n   POST /avaliacao → cria um feedback\n   GET /avaliacao → lista os feedbacks\n   Endpoint: https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao\n   Request (POST): {\"descricao\": \"...\", \"nota\": 0-10}\n   Response: 201 Created (POST) / 200 OK (GET)\n   Entradas inválidas (nota ausente, nota não numérica, descrição ausente ou vazia, corpo vazio ou JSON malformado) retornam 400.\n\n2. GraphQL (exige o header X-API-Key):\n   POST /graphql → consulta os feedbacks via GraphQL\n   Endpoint: https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/graphql\n   Header: X-API-Key: {{apiKey}}\n   Sem a chave ou com chave errada: 401.\n\nVariáveis: baseUrl e apiKey vêm do ambiente (fase4-local / fase4-prod). A apiKey nunca é commitada. Pastas 01-03 são o conjunto novo; as pastas local e prod são as requisições originais (localUrl/prodUrl).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -128,14 +128,14 @@
           }
         },
         {
-          "name": "POST /avaliacao nota ausente (500 - comportamento atual)",
+          "name": "POST /avaliacao nota ausente (400)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 500', () => pm.expect(pm.response.code).to.equal(500));"
+                  "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));"
                 ]
               }
             }
@@ -160,8 +160,7 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
-            },
-            "description": "O ReceiveFeedbackHandler não trata nota nula (Integer sem @NotNull): o status real hoje é 500, não 400. Nada é gravado. Se o handler passar a validar, ajuste o teste para 400."
+            }
           }
         },
         {
@@ -737,8 +736,7 @@
                   "path": [
                     "avaliacao"
                   ]
-                },
-                "description": "Falha conhecida: o ReceiveFeedbackHandler responde 500 (não 400) para nota ausente/não numérica. O teste mantém o 400 esperado originalmente."
+                }
               }
             },
             {
@@ -810,8 +808,7 @@
                   "path": [
                     "avaliacao"
                   ]
-                },
-                "description": "Falha conhecida: o ReceiveFeedbackHandler responde 500 (não 400) para nota ausente/não numérica. O teste mantém o 400 esperado originalmente."
+                }
               }
             },
             {
@@ -1282,8 +1279,7 @@
                   "path": [
                     "avaliacao"
                   ]
-                },
-                "description": "Falha conhecida: o ReceiveFeedbackHandler responde 500 (não 400) para nota ausente/não numérica. O teste mantém o 400 esperado originalmente."
+                }
               }
             },
             {
@@ -1355,8 +1351,7 @@
                   "path": [
                     "avaliacao"
                   ]
-                },
-                "description": "Falha conhecida: o ReceiveFeedbackHandler responde 500 (não 400) para nota ausente/não numérica. O teste mantém o 400 esperado originalmente."
+                }
               }
             },
             {

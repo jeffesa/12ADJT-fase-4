@@ -115,6 +115,47 @@ class ReceiveFeedbackHandlerTest {
         assertFalse(body.get("detail").asText().contains("Database"));
     }
 
+    @Test
+    void missingRatingReturns400() throws Exception {
+        assertBadRequest(handle("{\"descricao\":\"Good service\"}"), "Rating is required");
+    }
+
+    @Test
+    void stringRatingReturns400() throws Exception {
+        assertBadRequest(handle("{\"descricao\":\"Good service\",\"nota\":\"abc\"}"),
+                "Request body is not valid JSON or has fields of the wrong type");
+    }
+
+    @Test
+    void missingDescriptionReturns400() throws Exception {
+        assertBadRequest(handle("{\"nota\":7}"), "Description cannot be empty");
+    }
+
+    @Test
+    void emptyBodyReturns400() throws Exception {
+        assertBadRequest(handle(""), "Request body cannot be empty");
+    }
+
+    @Test
+    void malformedJsonReturns400() throws Exception {
+        assertBadRequest(handle("{\"descricao\":"),
+                "Request body is not valid JSON or has fields of the wrong type");
+    }
+
+    @Test
+    void jsonNullBodyReturns400() throws Exception {
+        assertBadRequest(handle("null"), "Request body cannot be empty");
+    }
+
+    private void assertBadRequest(APIGatewayProxyResponseEvent response, String detail) throws Exception {
+        assertEquals(400, response.getStatusCode());
+        JsonNode body = objectMapper.readTree(response.getBody());
+        assertEquals("Validation Error", body.get("title").asText());
+        assertEquals(400, body.get("status").asInt());
+        assertEquals(detail, body.get("detail").asText());
+        verify(receiveFeedbackUseCase, never()).receiveFeedback(anyString(), anyInt());
+    }
+
     private APIGatewayProxyResponseEvent handle(String body) {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         event.setHttpMethod("POST");

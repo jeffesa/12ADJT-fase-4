@@ -18,6 +18,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 
@@ -115,7 +116,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     /**
      * Handles POST /avaliacao: create feedback.
      */
-    private APIGatewayProxyResponseEvent handlePostAvaliacao(APIGatewayProxyRequestEvent event) throws com.fasterxml.jackson.core.JsonProcessingException {
+    private APIGatewayProxyResponseEvent handlePostAvaliacao(APIGatewayProxyRequestEvent event) {
         LOGGER.log(Level.INFO, "POST /avaliacao - creating feedback");
         
         if (receiveFeedbackUseCase == null) {
@@ -130,7 +131,19 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             return badRequest("Request body cannot be empty");
         }
         
-        ReceiveFeedbackInput input = OBJECT_MAPPER.readValue(body, ReceiveFeedbackInput.class);
+        ReceiveFeedbackInput input;
+        try {
+            input = OBJECT_MAPPER.readValue(body, ReceiveFeedbackInput.class);
+        } catch (JsonProcessingException e) {
+            LOGGER.log(Level.WARNING, "Invalid request body: " + e.getOriginalMessage());
+            return badRequest("Request body is not valid JSON or has fields of the wrong type");
+        }
+        if (input == null) {
+            return badRequest("Request body cannot be empty");
+        }
+        if (input.nota() == null) {
+            return badRequest("Rating is required");
+        }
         LOGGER.log(Level.FINE, "Request parsed");
         
         var violations = validator.validate(input);
