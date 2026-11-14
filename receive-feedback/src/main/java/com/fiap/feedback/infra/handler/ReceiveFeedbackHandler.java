@@ -28,9 +28,13 @@ import com.fiap.feedback.domain.entity.Feedback;
 import com.fiap.feedback.infra.dto.InputOutputMapper;
 import com.fiap.feedback.infra.dto.ReceiveFeedbackInput;
 import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
+import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
 
 /**
  * AWS Lambda handler for REST API: /avaliacao (routes POST and GET).
+ *
+ * Requires "Authorization: Bearer <token>" (token from the API_TOKEN environment variable).
+ * Without a valid token the request is rejected with 401 before any other processing.
  * 
  * POST /avaliacao → Create feedback (ReceiveFeedbackUseCase)
  * GET /avaliacao → List all feedbacks (ListFeedbackUseCase)
@@ -44,6 +48,8 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     static {
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
+
+    private BearerTokenAuthenticator authenticator = BearerTokenAuthenticator.fromEnvironment();
 
     @Inject
     private ReceiveFeedbackUseCase receiveFeedbackUseCase;
@@ -63,6 +69,11 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         LOGGER.log(Level.INFO, "Lambda handler invoked - " + method + " /avaliacao");
         
         try {
+            var denied = authenticator.authenticate(event);
+            if (denied.isPresent()) {
+                return denied.get();
+            }
+
             if ("GET".equals(method)) {
                 return handleGetAvaliacoes();
             } else if ("POST".equals(method)) {
@@ -74,6 +85,10 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             LOGGER.log(Level.SEVERE, "Error: " + e.getMessage(), e);
             return internalServerError();
         }
+    }
+
+    void setAuthenticator(BearerTokenAuthenticator authenticator) {
+        this.authenticator = authenticator;
     }
 
     /**
