@@ -323,12 +323,14 @@ Uma vez que os módulos estejam rodando via `mvn quarkus:dev`, você pode testar
 
 Pré-requisito (uma vez): `mvn -B -q -DskipTests -Dquarkus.devservices.enabled=false install -pl .,receive-feedback`
 
-Comando para iniciar (JDK 17, na raiz do repositório):
+Comando para iniciar (JDK 17, a partir da pasta do módulo `local-http`; rodar `mvn quarkus:dev` na raiz sobe só o receive-feedback, sem rotas HTTP, e `GET /avaliacao` devolve 405):
 
 ```bash
-AWS_PROFILE=fase4 AWS_REGION=sa-east-1 GRAPHQL_API_KEY=<sua-chave-local> \
+cd local-http && AWS_PROFILE=fase4 AWS_REGION=sa-east-1 GRAPHQL_API_KEY=<sua-chave-local> \
   mvn -B quarkus:dev -Ddebug=false -Dquarkus.console.enabled=false
 ```
+
+As portas 8080 (HTTP) e 18081 (Mock Event Server do Lambda) precisam estar livres.
 
 Rotas disponíveis em `http://localhost:8080`:
 
