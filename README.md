@@ -316,6 +316,27 @@ A coleção Postman está disponível em `docs/api-collection/fase4-feedback.pos
 
 Uma vez que os módulos estejam rodando via `mvn quarkus:dev`, você pode testar localmente:
 
+### Executando o receive-feedback com HTTP local
+
+Pré-requisito (uma vez): `mvn -B -q -DskipTests -Dquarkus.devservices.enabled=false install -pl .,receive-feedback`
+
+Comando para iniciar (JDK 17, na raiz do repositório):
+
+```bash
+AWS_PROFILE=fase4 AWS_REGION=sa-east-1 GRAPHQL_API_KEY=<sua-chave-local> \
+  mvn -B quarkus:dev -Ddebug=false -Dquarkus.console.enabled=false
+```
+
+Rotas disponíveis em `http://localhost:8080`:
+
+- `POST /avaliacao`: cria um feedback (ex.: `{"descricao":"Teste local","nota":8}`)
+- `GET /avaliacao`: lista os feedbacks
+- `POST /graphql`: consulta GraphQL, exige o header `X-API-Key` com o valor de `GRAPHQL_API_KEY`
+
+A variável `GRAPHQL_API_KEY` deve ser definida apenas no ambiente local (shell). Nunca faça commit dela.
+
+> **Atenção:** a execução local grava na tabela de desenvolvimento `dev-feedback-table` (não na `prod-feedback-table`). Remova os itens de teste criados quando terminar.
+
 ## Estrutura do Projeto
 
 ```
