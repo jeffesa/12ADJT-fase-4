@@ -56,6 +56,9 @@ public class ReceiveFeedbackResolver {
     public ReceiveFeedbackOutput receiveFeedback(ReceiveFeedbackInput input) {
         LOGGER.log(Level.INFO, "GraphQL mutation receiveFeedback called");
         
+        if (input.nota() == null) {
+            throw new IllegalArgumentException("Rating is required");
+        }
         try {
             Feedback feedback = receiveFeedbackUseCase.receiveFeedback(
                 input.descricao(),
