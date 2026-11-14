@@ -701,9 +701,9 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 
 ## Critérios de Aceitação (escopo atual)
 - [x] Menu interativo com interface visual (cores, bordas)
-- [x] Subir módulos em Quarkus Dev Mode: receive-feedback (8080), send-notification (8081), generate-report (8082)
+- [ ] Subir módulos em Quarkus Dev Mode: receive-feedback (8080) iniciou e respondeu; send-notification (8081) e generate-report (8082) não iniciam sem Docker (DevServices LocalStack)
 - [x] Compilar módulos (`mvn clean compile`)
-- [x] Rodar testes de todos os módulos (`mvn clean verify`). Comando implementado; execução local falhou no send-notification porque o DevService do LocalStack precisa de Docker
+- [ ] Rodar testes de todos os módulos (`mvn clean verify`). Parcial: receive-feedback (98) e generate-report (159) passaram; send-notification falhou porque o DevService do LocalStack precisa de Docker
 - [x] Health check via `/q/health`, aceitando somente HTTP 200 com `"UP"`
 - [x] Listar recursos AWS em sa-east-1 (DynamoDB `prod-*` e `dev-*`, SNS, Lambda `prod-*`)
 - [x] Modo interativo (sem argumentos) e direto (com argumentos)
@@ -715,6 +715,7 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 ## Removidos do escopo (LocalStack removido em `9a1af29`)
 - Subir/parar LocalStack, limpar volumes e ver logs do LocalStack (`docker-compose`)
 - Listar recursos do LocalStack com SQS (o projeto não usa SQS)
+- Opção E2E Test (`e2e-test.sh` exige `docker compose`); permanece apenas E2E Verify
 - Collection Postman com Newman
 - Validação de Docker e suporte a Colima/Docker Desktop
 
