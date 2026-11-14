@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDateTime;
@@ -74,5 +75,13 @@ class ReceiveFeedbackResolverTest {
                 () -> resolver.receiveFeedback(new ReceiveFeedbackInput("Good service", 7)));
 
         assertEquals("Database unavailable", error.getMessage());
+    }
+
+    @Test
+    void receiveFeedbackRejectsMissingRating() {
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> resolver.receiveFeedback(new ReceiveFeedbackInput("Good service", null)));
+        assertEquals("Rating is required", error.getMessage());
+        verifyNoInteractions(receiveFeedbackUseCase);
     }
 }
