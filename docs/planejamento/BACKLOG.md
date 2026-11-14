@@ -693,31 +693,33 @@ Documentar todas as decisões de segurança, configuração de IAM, governança 
 
 **Labels:** `priority: medium`, `épico: tooling`, `pontos: 3`, `type: infra`
 **Milestone:** Sprint 6 - Finalização
-**Status:** ✅ CONCLUÍDA
+**Status:** 🟡 EM ANDAMENTO (escopo adaptado ao Quarkus Dev Mode; `./run.sh tests` falhou localmente por falta de Docker)
 
 
-## � Descrição
-Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao desenvolvedor executar operações comuns sem memorizar comandos: subir/parar LocalStack, compilar, rodar testes, verificar saúde dos serviços, ver logs, etc.
+## Descrição
+Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao desenvolvedor executar operações comuns sem memorizar comandos: subir os módulos em Quarkus Dev Mode, compilar, rodar testes, verificar saúde dos serviços e listar recursos AWS.
 
-## ✅ Critérios de Aceitação
-- [ ] Menu interativo com interface visual (cores, bordas ASCII)
-- [ ] Opção 1: Subir LocalStack + compilar (`docker-compose up -d` + compile modules)
-- [ ] Opção 2: Parar LocalStack (`docker-compose down`)
-- [ ] Opção 3: Rodar testes de todos os módulos (`mvn clean verify`)
-- [ ] Opção 4: Limpar volumes/dados (`docker-compose down -v`)
-- [ ] Opção 5: Ver logs do LocalStack (`docker-compose logs -f`)
-- [ ] Opção 6: Health check das 3 Lambdas (curl para endpoints health)
-- [ ] Opção 7: Listar recursos criados no LocalStack (DynamoDB tables, SNS topics, SQS queues)
-- [ ] Opção 8: Rodar collection Postman (Newman) — opcional, se houver
-- [ ] Modo interativo (sem argumentos): exibir menu
-- [ ] Modo direto (com argumentos): executar comando diretamente (`./run.sh docker`, `./run.sh stop`, etc.)
-- [ ] Validação de dependências (Docker, Maven, Java) com mensagens claras
-- [ ] Suporte a Colima (macOS) e Docker Desktop
-- [ ] Saída colorida com status (✅ sucesso, ❌ erro, ⚠️ aviso)
+## Critérios de Aceitação (escopo atual)
+- [x] Menu interativo com interface visual (cores, bordas)
+- [x] Subir módulos em Quarkus Dev Mode: receive-feedback (8080), send-notification (8081), generate-report (8082)
+- [x] Compilar módulos (`mvn clean compile`)
+- [x] Rodar testes de todos os módulos (`mvn clean verify`). Comando implementado; execução local falhou no send-notification porque o DevService do LocalStack precisa de Docker
+- [x] Health check via `/q/health`, aceitando somente HTTP 200 com `"UP"`
+- [x] Listar recursos AWS em sa-east-1 (DynamoDB `prod-*` e `dev-*`, SNS, Lambda `prod-*`)
+- [x] Modo interativo (sem argumentos) e direto (com argumentos)
+- [x] Validação de dependências (Maven e Java ≥ 17) com mensagens claras
+- [x] Saída colorida com status (✅ sucesso, ❌ erro, ⚠️ aviso)
+- [ ] Health check passar: os módulos precisam de `quarkus-smallrye-health` (decisão de produto pendente)
 - [ ] Documentação no README sobre como usar o menu
 
+## Removidos do escopo (LocalStack removido em `9a1af29`)
+- Subir/parar LocalStack, limpar volumes e ver logs do LocalStack (`docker-compose`)
+- Listar recursos do LocalStack com SQS (o projeto não usa SQS)
+- Collection Postman com Newman
+- Validação de Docker e suporte a Colima/Docker Desktop
+
 ## 🔧 Dependências Técnicas
-- [TASK-003] concluída (docker-compose.yml existente)
+- [TASK-003] docker-compose removido em `9a1af29`; não bloqueia mais esta task
 - [TASK-018] concluída (testes criados)
 
 ---
