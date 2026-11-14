@@ -342,6 +342,29 @@ A variável `GRAPHQL_API_KEY` deve ser definida apenas no ambiente local (shell)
 
 > **Atenção:** a execução local grava na tabela de desenvolvimento `dev-feedback-table` (não na `prod-feedback-table`). Remova os itens de teste criados quando terminar.
 
+## Menu de desenvolvimento (run.sh)
+
+O `run.sh` reúne as tarefas do dia a dia. Sem argumentos abre um menu interativo (`./run.sh`); com argumento executa direto (`./run.sh compile`).
+
+| Comando | O que faz |
+|---|---|
+| `./run.sh deps` | Valida JDK 17, Maven, AWS CLI, SAM CLI, curl e o profile AWS `fase4` |
+| `./run.sh compile` | Compila todos os módulos (`mvn clean package -DskipTests`) |
+| `./run.sh tests [módulo]` | Roda os testes de todos os módulos, ou de um (`receive-feedback`, `send-notification`, `generate-report`) |
+| `./run.sh local-up` | Instala o `receive-feedback` e sobe o `local-http` em primeiro plano (Ctrl+C para parar) |
+| `./run.sh local-check` | Confere se o módulo local responde `GET /avaliacao` com HTTP 200 |
+| `./run.sh sam-validate` | Valida o template SAM (`sam validate --lint`) |
+| `./run.sh prod-check` | Faz `GET` no endpoint de produção (somente leitura) |
+| `./run.sh aws-list` | Lista stacks, Lambdas, tabelas DynamoDB e tópicos SNS (somente leitura) |
+| `./run.sh help` | Lista os comandos |
+
+**Pré-requisitos:** JDK 17 (o script localiza e usa o 17 sozinho, mesmo que o JDK padrão seja outro), Maven, AWS CLI, SAM CLI, curl e o profile AWS `fase4` (região `sa-east-1`).
+
+**Atenção:**
+- O `local-up` exige as portas 8080 (HTTP) e 18081 (Mock Event Server do Lambda) livres. Se estiverem ocupadas, o script mostra o processo e não encerra nada.
+- A execução local grava na tabela `dev-feedback-table`, nunca em `prod`.
+- Se `GRAPHQL_API_KEY` não estiver definida, o script usa `minha-chave-local` (valor apenas local).
+
 ## Estrutura do Projeto
 
 ```
