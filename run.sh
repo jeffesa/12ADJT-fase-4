@@ -4,7 +4,7 @@
 # Script runner: facilita execução do projeto multi-Lambda.
 #
 # Uso interativo:  ./run.sh
-# Uso direto:      ./run.sh [quarkus-receive|quarkus-notify|quarkus-report|tests|compile|health|aws-list|sam-validate|aws-test|e2e-verify]
+# Uso direto:      ./run.sh [quarkus-receive|quarkus-notify|quarkus-report|tests|compile|health|aws-list|sam-validate|aws-test]
 # ═══════════════════════════════════════════════════════════════
 
 set -o pipefail
@@ -212,14 +212,6 @@ test_aws() {
   info "      aws dynamodb scan --table-name prod-feedback-table --region sa-east-1"
 }
 
-e2e_verify() {
-  if [ ! -f "./e2e-verify.sh" ]; then
-    err "❌ e2e-verify.sh não encontrado"
-    return 1
-  fi
-  info "\n✅ E2E Verify..."
-  bash ./e2e-verify.sh
-}
 
 show_menu() {
   while true; do
@@ -247,10 +239,6 @@ show_menu() {
     echo "  8) Validar SAM template"
     echo "  9) Info: Testing no AWS (exemplos curl)"
     echo ""
-    echo "  🧪 End-to-End"
-    echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "  10) E2E Verify"
-    echo ""
     echo "  0) Sair"
     echo ""
     read -r -p "Escolha uma opção: " option
@@ -265,7 +253,6 @@ show_menu() {
       7) list_aws_resources ;;
       8) validate_sam ;;
       9) test_aws ;;
-      10) e2e_verify ;;
       0) echo "👋 Até mais!" && exit 0 ;;
       *) err "❌ Opção inválida." ;;
     esac
@@ -290,7 +277,6 @@ show_help() {
   echo "  ./run.sh aws-list           Listar recursos AWS ($AWS_REGION)"
   echo "  ./run.sh sam-validate       Validar SAM"
   echo "  ./run.sh aws-test           Info: exemplos curl"
-  echo "  ./run.sh e2e-verify         E2E verify"
   echo ""
 }
 
@@ -309,7 +295,6 @@ else
     aws-list)         list_aws_resources ;;
     sam-validate)     validate_sam ;;
     aws-test)         test_aws ;;
-    e2e-verify)       e2e_verify ;;
     *)                show_help ;;
   esac
 fi

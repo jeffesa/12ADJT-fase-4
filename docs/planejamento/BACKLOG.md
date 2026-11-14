@@ -715,7 +715,7 @@ Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao 
 ## Removidos do escopo (LocalStack removido em `9a1af29`)
 - Subir/parar LocalStack, limpar volumes e ver logs do LocalStack (`docker-compose`)
 - Listar recursos do LocalStack com SQS (o projeto não usa SQS)
-- Opção E2E Test (`e2e-test.sh` exige `docker compose`); permanece apenas E2E Verify
+- Opções E2E no menu e no modo direto: `e2e-test.sh` exige `docker compose`; `e2e-verify.sh` posta feedback no endpoint de produção e lê DynamoDB de produção, então também saiu do menu
 - Collection Postman com Newman
 - Validação de Docker e suporte a Colima/Docker Desktop
 
