@@ -312,8 +312,7 @@ https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/
 
 A coleção Postman está disponível em `docs/api-collection/fase4-feedback.postman_collection.json`. Você pode importá-la e alternar entre ambientes local e produção.
 
-No Bruno: **Collection > Import > Postman Collection** (collection) e **Environments > Import** (`fase4-local.postman_environment.json` e `fase4-prod.postman_environment.json`, na mesma pasta).
-A chave do GraphQL é a variável `apiKey` do ambiente (vazia no arquivo; preencha só na sua máquina). Em prod, rode apenas a pasta `01 - Seguro em prod`.
+No Bruno: **Collection > Import > Postman Collection** (só a collection, sem arquivos de ambiente). Defina as variáveis da collection `localToken` (padrão `minha-chave-local`) e `prodToken` (cole o valor do secret `API_TOKEN` só na sua máquina). Todas as rotas exigem `Authorization: Bearer <token>`. Em prod, os requests com nota de 0 a 5 gravam registros reais e disparam SNS/email.
 
 ### Testando com Quarkus Dev Mode
 
@@ -326,7 +325,7 @@ Pré-requisito (uma vez): `mvn -B -q -DskipTests -Dquarkus.devservices.enabled=f
 Comando para iniciar (JDK 17, a partir da pasta do módulo `local-http`; rodar `mvn quarkus:dev` na raiz sobe só o receive-feedback, sem rotas HTTP, e `GET /avaliacao` devolve 405):
 
 ```bash
-cd local-http && AWS_PROFILE=fase4 AWS_REGION=sa-east-1 GRAPHQL_API_KEY=<sua-chave-local> \
+cd local-http && AWS_PROFILE=fase4 AWS_REGION=sa-east-1 API_TOKEN=<seu-token-local> \
   mvn -B quarkus:dev -Ddebug=false -Dquarkus.console.enabled=false
 ```
 
@@ -336,9 +335,9 @@ Rotas disponíveis em `http://localhost:8080`:
 
 - `POST /avaliacao`: cria um feedback (ex.: `{"descricao":"Teste local","nota":8}`)
 - `GET /avaliacao`: lista os feedbacks
-- `POST /graphql`: consulta GraphQL, exige o header `X-API-Key` com o valor de `GRAPHQL_API_KEY`
+- `POST /graphql`: consulta GraphQL
 
-A variável `GRAPHQL_API_KEY` deve ser definida apenas no ambiente local (shell). Nunca faça commit dela.
+Todas as rotas exigem o header `Authorization: Bearer <token>`, com o valor de `API_TOKEN`. Sem token ou com token errado a resposta é 401. Em produção, o token é o secret `API_TOKEN` do GitHub (`openssl rand -hex 24 | tee >(pbcopy) | gh secret set API_TOKEN --repo jeffesa/12ADJT-fase-4`; o GitHub não mostra o valor depois, então guarde uma cópia; trocar o token exige novo deploy). Defina `API_TOKEN` apenas no shell local e nunca faça commit dele.
 
 > **Atenção:** a execução local grava na tabela de desenvolvimento `dev-feedback-table` (não na `prod-feedback-table`). Remova os itens de teste criados quando terminar.
 
@@ -363,7 +362,7 @@ O `run.sh` reúne as tarefas do dia a dia. Sem argumentos abre um menu interativ
 **Atenção:**
 - O `local-up` exige as portas 8080 (HTTP) e 18081 (Mock Event Server do Lambda) livres. Se estiverem ocupadas, o script mostra o processo e não encerra nada.
 - A execução local grava na tabela `dev-feedback-table`, nunca em `prod`.
-- Se `GRAPHQL_API_KEY` não estiver definida, o script usa `minha-chave-local` (valor apenas local).
+- Se `API_TOKEN` não estiver definida, o script usa `minha-chave-local` (valor apenas local). O `prod-check` espera 401 sem token e, se `PROD_API_TOKEN` estiver definida, 200 com token.
 
 ## Estrutura do Projeto
 

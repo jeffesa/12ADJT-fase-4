@@ -6,11 +6,15 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import jakarta.validation.Validation;
@@ -24,9 +28,11 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.fiap.feedback.application.usecase.ListFeedbackUseCase;
 import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
 import com.fiap.feedback.domain.entity.Urgency;
+import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
 
 /**
  * Unit tests for ReceiveFeedbackHandler POST /avaliacao.
@@ -42,13 +48,53 @@ class ReceiveFeedbackHandlerTest {
 
     private ReceiveFeedbackHandler handler;
     private ReceiveFeedbackUseCase receiveFeedbackUseCase;
+    private ListFeedbackUseCase listFeedbackUseCase;
 
     @BeforeEach
     void setUp() throws ReflectiveOperationException {
         handler = new ReceiveFeedbackHandler();
         receiveFeedbackUseCase = mock(ReceiveFeedbackUseCase.class);
         setField(handler, "receiveFeedbackUseCase", receiveFeedbackUseCase);
+        listFeedbackUseCase = mock(ListFeedbackUseCase.class);
+        setField(handler, "listFeedbackUseCase", listFeedbackUseCase);
         setField(handler, "validator", VALIDATOR);
+        handler.setAuthenticator(new BearerTokenAuthenticator("test-token"));
+    }
+
+    @Test
+    void getWithTokenReturns200() throws Exception {
+        when(listFeedbackUseCase.listAllFeedbacks()).thenReturn(List.of());
+        APIGatewayProxyResponseEvent response = handle("GET", null, "Bearer test-token");
+        assertEquals(200, response.getStatusCode());
+        assertEquals(0, objectMapper.readTree(response.getBody()).get("total").asInt());
+    }
+
+    @Test
+    void postWithoutTokenReturns401AndTouchesNothing() throws Exception {
+        APIGatewayProxyResponseEvent response = handle("POST", "{\"descricao\":\"Good service\",\"nota\":7}", null);
+        assertEquals(401, response.getStatusCode());
+        assertEquals("Missing bearer token", objectMapper.readTree(response.getBody()).get("detail").asText());
+        verifyNoInteractions(receiveFeedbackUseCase, listFeedbackUseCase);
+    }
+
+    @Test
+    void postWithInvalidTokenReturns401AndTouchesNothing() throws Exception {
+        APIGatewayProxyResponseEvent response = handle("POST", "{\"descricao\":\"Good service\",\"nota\":7}", "Bearer nope");
+        assertEquals(401, response.getStatusCode());
+        assertEquals("Invalid bearer token", objectMapper.readTree(response.getBody()).get("detail").asText());
+        verifyNoInteractions(receiveFeedbackUseCase, listFeedbackUseCase);
+    }
+
+    @Test
+    void getWithoutTokenReturns401AndTouchesNothing() {
+        assertEquals(401, handle("GET", null, null).getStatusCode());
+        verifyNoInteractions(receiveFeedbackUseCase, listFeedbackUseCase);
+    }
+
+    @Test
+    void getWithInvalidTokenReturns401AndTouchesNothing() {
+        assertEquals(401, handle("GET", null, "Bearer nope").getStatusCode());
+        verifyNoInteractions(receiveFeedbackUseCase, listFeedbackUseCase);
     }
 
     @Test
@@ -157,9 +203,18 @@ class ReceiveFeedbackHandlerTest {
     }
 
     private APIGatewayProxyResponseEvent handle(String body) {
+        return handle("POST", body, "Bearer test-token");
+    }
+
+    private APIGatewayProxyResponseEvent handle(String method, String body, String authorization) {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
-        event.setHttpMethod("POST");
+        event.setHttpMethod(method);
         event.setBody(body);
+        if (authorization != null) {
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Authorization", authorization);
+            event.setHeaders(headers);
+        }
         return handler.handleRequest(event, null);
     }
 

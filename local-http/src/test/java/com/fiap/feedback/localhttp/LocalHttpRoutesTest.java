@@ -51,7 +51,7 @@ class LocalHttpRoutesTest {
     @Test
     void mapsMethodPathHeadersAndBodyToEvent() {
         request(HttpMethod.POST, "/avaliacao",
-                MultiMap.caseInsensitiveMultiMap().add("Content-Type", "application/json").add("X-API-Key", "k"),
+                MultiMap.caseInsensitiveMultiMap().add("Content-Type", "application/json").add("Authorization", "Bearer k"),
                 "{\"nota\":8}");
         MultiMap q = MultiMap.caseInsensitiveMultiMap().add("a", "1");
         when(ctx.queryParams()).thenReturn(q);
@@ -61,7 +61,7 @@ class LocalHttpRoutesTest {
         assertEquals("POST", event.getHttpMethod());
         assertEquals("/avaliacao", event.getPath());
         assertEquals("application/json", event.getHeaders().get("content-type"));
-        assertEquals("k", event.getHeaders().get("x-api-key"));
+        assertEquals("Bearer k", event.getHeaders().get("authorization"));
         assertEquals("{\"nota\":8}", event.getBody());
         assertEquals(Map.of("a", "1"), event.getQueryStringParameters());
     }
@@ -92,7 +92,7 @@ class LocalHttpRoutesTest {
 
     @Test
     void handlerReceivesBuiltEventAndNullContext() {
-        request(HttpMethod.POST, "/graphql", MultiMap.caseInsensitiveMultiMap().add("X-Api-Key", "k"), "q");
+        request(HttpMethod.POST, "/graphql", MultiMap.caseInsensitiveMultiMap().add("Authorization", "Bearer k"), "q");
         APIGatewayProxyRequestEvent[] seen = new APIGatewayProxyRequestEvent[1];
         Object[] context = {"unset"};
 
@@ -103,7 +103,7 @@ class LocalHttpRoutesTest {
         });
 
         assertEquals("/graphql", seen[0].getPath());
-        assertEquals("k", seen[0].getHeaders().get("x-api-key"));
+        assertEquals("Bearer k", seen[0].getHeaders().get("authorization"));
         assertNull(context[0]);
     }
 

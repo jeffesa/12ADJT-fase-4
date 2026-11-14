@@ -12,7 +12,7 @@ import com.fiap.feedback.domain.gateway.FeedbackGateway;
  * Use case: List all feedbacks from the gateway.
  * 
  * This use case retrieves all feedbacks from DynamoDB without any filters.
- * No authentication is required for this operation (public endpoint).
+ * Authentication (Bearer token) is enforced by the infra handlers, not by this use case.
  */
 @ApplicationScoped
 public class ListFeedbackUseCase {

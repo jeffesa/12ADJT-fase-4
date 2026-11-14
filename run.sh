@@ -167,10 +167,10 @@ local_up() {
     return 1
   fi
 
-  if [ -z "$GRAPHQL_API_KEY" ]; then
-    export GRAPHQL_API_KEY="minha-chave-local"
-    warn "⚠️  GRAPHQL_API_KEY não definida: usando 'minha-chave-local' (valor só para uso local)."
+  if [ -z "$API_TOKEN" ]; then
+    warn "⚠️  API_TOKEN não definida: usando 'minha-chave-local' (valor só para uso local)."
   fi
+  export API_TOKEN="${API_TOKEN:-minha-chave-local}"
 
   info "\n📦 Instalando receive-feedback (mvn install -pl .,receive-feedback)..."
   if ! mvn "${MVN_FLAGS[@]}" -q -DskipTests install -pl .,receive-feedback; then
@@ -181,7 +181,8 @@ local_up() {
   info "   Rotas em http://localhost:${HTTP_PORT}:"
   info "     POST /avaliacao   cria feedback"
   info "     GET  /avaliacao   lista feedbacks"
-  info "     POST /graphql     consulta GraphQL (header X-API-Key = GRAPHQL_API_KEY)"
+  info "     POST /graphql     consulta GraphQL"
+  info "   Todas as rotas exigem o header Authorization: Bearer <API_TOKEN>."
   info "   Mock Event Server do Lambda na porta ${MOCK_PORT}."
   warn "⚠️  Grava na tabela dev-feedback-table (sa-east-1), nunca em prod."
   info "   Bloqueia o terminal. Use Ctrl+C para parar.\n"
@@ -196,9 +197,9 @@ local_up() {
 
 local_check() {
   require curl || return 1
-  info "\n🩺 Checando módulo local: GET $LOCAL_URL"
+  info "\n🩺 Checando módulo local: GET $LOCAL_URL (com Authorization: Bearer)"
   local code
-  code=$(curl -s -o /dev/null -m 10 -w '%{http_code}' "$LOCAL_URL" 2>/dev/null)
+  code=$(curl -s -o /dev/null -m 10 -w '%{http_code}' -H "Authorization: Bearer ${API_TOKEN:-minha-chave-local}" "$LOCAL_URL" 2>/dev/null)
   if [ "$code" = "200" ]; then
     ok "  ✅ Módulo local no ar (HTTP 200)"
   else
@@ -231,10 +232,31 @@ check_prod() {
   fi
   info "   Endpoint: $endpoint"
   code=$(curl -s -o /dev/null -m 15 -w '%{http_code}' "$endpoint" 2>/dev/null)
-  if [ "$code" = "200" ]; then
-    ok "  ✅ GET $endpoint → HTTP 200"
+  if [ "$code" = "401" ]; then
+    ok "  ✅ GET sem token → HTTP 401 (API protegida)"
+  elif [ "$code" = "200" ]; then
+    err "  ❌ GET sem token → HTTP 200: a API está ABERTA (esperado 401). Faça o deploy da versão com Bearer."
+    return 1
   else
-    err "  ❌ GET $endpoint → HTTP ${code:-000} (esperado 200)"
+    err "  ❌ GET sem token → HTTP ${code:-000} (esperado 401)"
+    return 1
+  fi
+
+  if [ -z "$PROD_API_TOKEN" ]; then
+    warn "  ⚠️  PROD_API_TOKEN não definida; checagem autenticada pulada"
+    return 0
+  fi
+  if ! [[ "$PROD_API_TOKEN" =~ ^[A-Za-z0-9_-]{24,128}$ ]]; then
+    warn "  ⚠️  PROD_API_TOKEN com formato invalido; checagem autenticada pulada"
+    return 0
+  fi
+  # O token vai para o curl por config em stdin, para não aparecer em `ps`.
+  code=$(printf 'header = "Authorization: Bearer %s"\n' "$PROD_API_TOKEN" \
+    | curl -s -o /dev/null -m 15 -w '%{http_code}' -K - "$endpoint" 2>/dev/null)
+  if [ "$code" = "200" ]; then
+    ok "  ✅ GET com token → HTTP 200"
+  else
+    err "  ❌ GET com token → HTTP ${code:-000} (esperado 200)"
     return 1
   fi
 }
@@ -349,9 +371,9 @@ show_help() {
   echo "  ./run.sh compile             Compilar todos os módulos"
   echo "  ./run.sh tests [módulo]      Testes de todos os módulos ou de um (${MODULES// / | })"
   echo "  ./run.sh local-up            Instalar receive-feedback e subir local-http (portas $HTTP_PORT e $MOCK_PORT)"
-  echo "  ./run.sh local-check         Checar módulo local: GET $LOCAL_URL = 200"
+  echo "  ./run.sh local-check         Checar módulo local: GET $LOCAL_URL com Bearer = 200"
   echo "  ./run.sh sam-validate        Validar template SAM (sam validate --lint)"
-  echo "  ./run.sh prod-check          Verificar produção com GET (somente leitura)"
+  echo "  ./run.sh prod-check          Verificar produção com GET (sem token = 401; com PROD_API_TOKEN = 200)"
   echo "  ./run.sh aws-list            Listar recursos AWS (somente leitura)"
   echo "  ./run.sh help                Esta ajuda"
   echo ""

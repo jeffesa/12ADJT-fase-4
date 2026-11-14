@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FIAP Fase 4 - Feedback API",
-    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\nAcesso à API:\n\n1. REST (públicos, sem autenticação):\n   POST /avaliacao → cria um feedback\n   GET /avaliacao → lista os feedbacks\n   Endpoint: https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao\n   Request (POST): {\"descricao\": \"...\", \"nota\": 0-10}\n   Response: 201 Created (POST) / 200 OK (GET)\n   Entradas inválidas (nota ausente, nota não numérica, descrição ausente ou vazia, corpo vazio ou JSON malformado) retornam 400.\n\n2. GraphQL (exige o header X-API-Key):\n   POST /graphql → consulta os feedbacks via GraphQL\n   Endpoint: https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/graphql\n   Header: X-API-Key: {{apiKey}}\n   Sem a chave ou com chave errada: 401.\n\nVariáveis: baseUrl e apiKey vêm do ambiente (fase4-local / fase4-prod). A apiKey nunca é commitada. Pastas 01-03 são o conjunto novo; as pastas local e prod são as requisições originais (localUrl/prodUrl).",
+    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\nTodas as rotas exigem o header `Authorization: Bearer <token>`:\n- POST /avaliacao: cria um feedback.\n- GET /avaliacao: lista os feedbacks.\n- POST /graphql: consulta os feedbacks via GraphQL.\n\nSem token ou com token errado a API responde 401 (`Missing bearer token` ou `Invalid bearer token`).\nEntradas inválidas (nota ausente, nota não numérica, descrição ausente ou vazia, corpo vazio ou JSON malformado) retornam 400.\n\nVariáveis da collection (Bruno: Collection > Variables):\n- `localToken`: token do ambiente local (padrão local não secreto).\n- `prodToken`: token de produção. Fica vazio no arquivo; cole o valor do secret `API_TOKEN` apenas na sua máquina e não faça commit dele.\n- `localUrl` e `prodUrl`: URLs base de cada ambiente.\n\nPara subir o ambiente local: na raiz do repositório, rode `./run.sh local-up`.\n\nAtenção: requests com nota de 0 a 5 disparam SNS/email, e em produção gravam registros reais.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -18,407 +18,8 @@
   ],
   "item": [
     {
-      "name": "01 - Seguro em prod (leituras e erros 400/401)",
-      "description": "Pode rodar em prod: só leituras, erros de validação (nada é gravado) e erros 401. Não usa a apiKey correta.",
-      "item": [
-        {
-          "name": "GET /avaliacao (200)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
-                  "const b = pm.response.json();",
-                  "pm.test('tem avaliacoes (array) e total', () => { pm.expect(b.avaliacoes).to.be.an('array'); pm.expect(b).to.have.property('total'); });"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/avaliacao",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "avaliacao"
-              ]
-            }
-          }
-        },
-        {
-          "name": "POST /avaliacao nota 11 (400)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/avaliacao",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "avaliacao"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"descricao\": \"Nota acima do limite\",\n  \"nota\": 11\n}"
-            }
-          }
-        },
-        {
-          "name": "POST /avaliacao descrição vazia (400)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/avaliacao",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "avaliacao"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"descricao\": \"\",\n  \"nota\": 8\n}"
-            }
-          }
-        },
-        {
-          "name": "POST /avaliacao nota ausente (400)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/avaliacao",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "avaliacao"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
-            }
-          }
-        },
-        {
-          "name": "POST /graphql sem chave (401)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/graphql",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "graphql"
-              ]
-            },
-            "description": "Sem o header X-API-Key.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"query\": \"query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }\"\n}"
-            }
-          }
-        },
-        {
-          "name": "POST /graphql chave errada (401)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-API-Key",
-                "value": "chave-invalida"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/graphql",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "graphql"
-              ]
-            },
-            "description": "Header X-API-Key com valor inválido.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"query\": \"query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }\"\n}"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "02 - Cria registros e usa apiKey (local; NÃO rodar em prod sem intenção)",
-      "description": "POST válido grava item real na tabela do ambiente. /graphql com a chave correta exige a variável apiKey. Use no ambiente local.",
-      "item": [
-        {
-          "name": "POST /avaliacao sucesso LOW nota 8 (201)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
-                  "const f = pm.response.json().receiveFeedback;",
-                  "pm.test('nota é 8', () => pm.expect(f.nota).to.equal(8));",
-                  "pm.test('urgencia é LOW', () => pm.expect(f.urgencia).to.equal('LOW'));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/avaliacao",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "avaliacao"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"descricao\": \"Feedback LOW via collection\",\n  \"nota\": 8\n}"
-            }
-          }
-        },
-        {
-          "name": "POST /avaliacao sucesso MEDIUM nota 6 (201)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
-                  "const f = pm.response.json().receiveFeedback;",
-                  "pm.test('nota é 6', () => pm.expect(f.nota).to.equal(6));",
-                  "pm.test('urgencia é MEDIUM', () => pm.expect(f.urgencia).to.equal('MEDIUM'));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/avaliacao",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "avaliacao"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"descricao\": \"Feedback MEDIUM via collection\",\n  \"nota\": 6\n}"
-            }
-          }
-        },
-        {
-          "name": "POST /graphql listarAvaliacoes com X-API-Key (200)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
-                  "const r = pm.response.json();",
-                  "pm.test('data.listarAvaliacoes é array', () => pm.expect(r.data.listarAvaliacoes).to.be.an('array'));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-API-Key",
-                "value": "{{apiKey}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/graphql",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "graphql"
-              ]
-            },
-            "description": "Requer a variável apiKey (ambiente). Em prod, só rode se for intencional.",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"query\": \"query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }\"\n}"
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "03 - ATENÇÃO HIGH (dispara SNS/email)",
-      "description": "⚠ Nota 0-5 é HIGH: dispara publicação no SNS e email. Não execute em prod sem intenção.",
-      "item": [
-        {
-          "name": "POST /avaliacao sucesso HIGH nota 1 (201) - ATENÇÃO",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
-                  "const f = pm.response.json().receiveFeedback;",
-                  "pm.test('nota é 1', () => pm.expect(f.nota).to.equal(1));",
-                  "pm.test('urgencia é HIGH', () => pm.expect(f.urgencia).to.equal('HIGH'));"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/avaliacao",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "avaliacao"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"descricao\": \"Feedback HIGH via collection\",\n  \"nota\": 1\n}"
-            },
-            "description": "⚠ ATENÇÃO: nota 1 gera urgência HIGH e dispara SNS/email. NÃO execute em prod sem intenção."
-          }
-        }
-      ]
-    },
-    {
       "name": "local",
-      "description": "Ambiente local (LocalStack). Seta baseUrl/notificationUrl/historyUrl para localhost.",
+      "description": "Ambiente local: local-http em {{localUrl}}, com o header Authorization: Bearer {{localToken}} em todos os requests.",
       "item": [
         {
           "name": "Criar Avaliação",
@@ -450,6 +51,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -464,7 +69,8 @@
                   "path": [
                     "avaliacao"
                   ]
-                }
+                },
+                "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro na tabela dev e dispara SNS/email. Execute só com intenção."
               }
             },
             {
@@ -491,6 +97,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -532,6 +142,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -572,6 +186,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -611,6 +229,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -650,6 +272,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -664,7 +290,8 @@
                   "path": [
                     "avaliacao"
                   ]
-                }
+                },
+                "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro na tabela dev e dispara SNS/email. Execute só com intenção."
               }
             },
             {
@@ -686,6 +313,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -700,7 +331,8 @@
                   "path": [
                     "avaliacao"
                   ]
-                }
+                },
+                "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro na tabela dev e dispara SNS/email. Execute só com intenção."
               }
             },
             {
@@ -722,6 +354,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -758,6 +394,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -772,7 +412,8 @@
                   "path": [
                     "avaliacao"
                   ]
-                }
+                },
+                "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro na tabela dev e dispara SNS/email. Execute só com intenção."
               }
             },
             {
@@ -794,6 +435,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -835,6 +480,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -849,7 +498,8 @@
                   "path": [
                     "avaliacao"
                   ]
-                }
+                },
+                "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro na tabela dev e dispara SNS/email. Execute só com intenção."
               }
             },
             {
@@ -876,6 +526,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -892,12 +546,127 @@
                   ]
                 }
               }
+            },
+            {
+              "name": "🔒 401 — POST /avaliacao sem token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Missing bearer token', () => pm.expect(pm.response.json().detail).to.equal('Missing bearer token'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{localUrl}}/avaliacao",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "avaliacao"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Teste sem autenticação\",\n  \"nota\": 8\n}"
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — POST /avaliacao token inválido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Invalid bearer token', () => pm.expect(pm.response.json().detail).to.equal('Invalid bearer token'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer token-invalido-teste"
+                  }
+                ],
+                "url": {
+                  "raw": "{{localUrl}}/avaliacao",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "avaliacao"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Teste sem autenticação\",\n  \"nota\": 8\n}"
+                }
+              }
             }
           ]
         },
         {
           "name": "Listar Avaliações",
           "item": [
+            {
+              "name": "✅ 200 — GET /avaliacao com token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                      "pm.test('Has avaliacoes field', () => pm.expect(pm.response.json()).to.have.property('avaliacoes'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{localUrl}}/avaliacao",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
             {
               "name": "listarAvaliacoes - Query all feedbacks",
               "event": [
@@ -934,8 +703,8 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-API-Key",
-                    "value": "{{apiKey}}"
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
                   }
                 ],
                 "body": {
@@ -954,6 +723,158 @@
                   ]
                 }
               }
+            },
+            {
+              "name": "🔒 401 — GET /avaliacao sem token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Missing bearer token', () => pm.expect(pm.response.json().detail).to.equal('Missing bearer token'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{localUrl}}/avaliacao",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — GET /avaliacao token inválido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Invalid bearer token', () => pm.expect(pm.response.json().detail).to.equal('Invalid bearer token'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer token-invalido-teste"
+                  }
+                ],
+                "url": {
+                  "raw": "{{localUrl}}/avaliacao",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — POST /graphql sem token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Missing bearer token', () => pm.expect(pm.response.json().detail).to.equal('Missing bearer token'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{localUrl}}/graphql",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — POST /graphql token inválido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Invalid bearer token', () => pm.expect(pm.response.json().detail).to.equal('Invalid bearer token'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer token-invalido-teste"
+                  }
+                ],
+                "url": {
+                  "raw": "{{localUrl}}/graphql",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}"
+                  }
+                }
+              }
             }
           ]
         }
@@ -961,7 +882,7 @@
     },
     {
       "name": "prod",
-      "description": "Ambiente produção (AWS API Gateway). Seta baseUrl para a URL do AWS.",
+      "description": "Ambiente de produção: API Gateway em {{prodUrl}}, com o header Authorization: Bearer {{prodToken}} em todos os requests. Os requests de nota 0 a 5 gravam registros reais e disparam SNS/email.",
       "item": [
         {
           "name": "Criar Avaliação",
@@ -993,6 +914,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1007,7 +932,8 @@
                   "path": [
                     "avaliacao"
                   ]
-                }
+                },
+                "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro REAL em produção e dispara SNS/email. Execute só com intenção."
               }
             },
             {
@@ -1034,6 +960,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1075,6 +1005,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1115,6 +1049,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1154,6 +1092,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1193,6 +1135,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1207,7 +1153,8 @@
                   "path": [
                     "avaliacao"
                   ]
-                }
+                },
+                "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro REAL em produção e dispara SNS/email. Execute só com intenção."
               }
             },
             {
@@ -1229,6 +1176,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1243,7 +1194,8 @@
                   "path": [
                     "avaliacao"
                   ]
-                }
+                },
+                "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro REAL em produção e dispara SNS/email. Execute só com intenção."
               }
             },
             {
@@ -1265,6 +1217,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1301,6 +1257,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1315,7 +1275,8 @@
                   "path": [
                     "avaliacao"
                   ]
-                }
+                },
+                "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro REAL em produção e dispara SNS/email. Execute só com intenção."
               }
             },
             {
@@ -1337,6 +1298,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1378,6 +1343,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1392,7 +1361,8 @@
                   "path": [
                     "avaliacao"
                   ]
-                }
+                },
+                "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro REAL em produção e dispara SNS/email. Execute só com intenção."
               }
             },
             {
@@ -1419,6 +1389,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1435,15 +1409,92 @@
                   ]
                 }
               }
+            },
+            {
+              "name": "🔒 401 — POST /avaliacao sem token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Missing bearer token', () => pm.expect(pm.response.json().detail).to.equal('Missing bearer token'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{prodUrl}}/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "avaliacao"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Teste sem autenticação\",\n  \"nota\": 8\n}"
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — POST /avaliacao token inválido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Invalid bearer token', () => pm.expect(pm.response.json().detail).to.equal('Invalid bearer token'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer token-invalido-teste"
+                  }
+                ],
+                "url": {
+                  "raw": "{{prodUrl}}/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "avaliacao"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Teste sem autenticação\",\n  \"nota\": 8\n}"
+                }
+              }
             }
           ]
         },
         {
           "name": "Listar Avaliações",
-          "description": "🔐 INTERNAL ONLY - Requires X-API-Key authentication",
           "item": [
             {
-              "name": "✅ 200 — GET all feedbacks (PUBLIC)",
+              "name": "✅ 200 — GET all feedbacks",
               "event": [
                 {
                   "listen": "test",
@@ -1472,6 +1523,10 @@
                   {
                     "key": "Content-Type",
                     "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "url": {
@@ -1511,8 +1566,8 @@
                     "value": "application/json"
                   },
                   {
-                    "key": "X-API-Key",
-                    "value": "{{apiKey}}"
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
                   }
                 ],
                 "body": {
@@ -1531,6 +1586,158 @@
                   ]
                 }
               }
+            },
+            {
+              "name": "🔒 401 — GET /avaliacao sem token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Missing bearer token', () => pm.expect(pm.response.json().detail).to.equal('Missing bearer token'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{prodUrl}}/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — GET /avaliacao token inválido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Invalid bearer token', () => pm.expect(pm.response.json().detail).to.equal('Invalid bearer token'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer token-invalido-teste"
+                  }
+                ],
+                "url": {
+                  "raw": "{{prodUrl}}/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — POST /graphql sem token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Missing bearer token', () => pm.expect(pm.response.json().detail).to.equal('Missing bearer token'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{prodUrl}}/graphql",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}"
+                  }
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — POST /graphql token inválido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Invalid bearer token', () => pm.expect(pm.response.json().detail).to.equal('Invalid bearer token'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer token-invalido-teste"
+                  }
+                ],
+                "url": {
+                  "raw": "{{prodUrl}}/graphql",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "graphql"
+                  ]
+                },
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}"
+                  }
+                }
+              }
             }
           ]
         }
@@ -1538,16 +1745,6 @@
     }
   ],
   "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:8080",
-      "type": "string"
-    },
-    {
-      "key": "apiKey",
-      "value": "",
-      "type": "secret"
-    },
     {
       "key": "localUrl",
       "value": "http://localhost:8080",
@@ -1559,6 +1756,16 @@
       "type": "string"
     },
     {
+      "key": "localToken",
+      "value": "minha-chave-local",
+      "type": "string"
+    },
+    {
+      "key": "prodToken",
+      "value": "",
+      "type": "string"
+    },
+    {
       "key": "feedbackId",
       "value": "",
       "type": "string"
@@ -1566,11 +1773,6 @@
     {
       "key": "timestamp",
       "value": "",
-      "type": "string"
-    },
-    {
-      "key": "prodGraphqlUrl",
-      "value": "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/graphql",
       "type": "string"
     }
   ]

@@ -4,7 +4,7 @@
 - **Local:** `http://localhost:4566/avaliacao`
 - **Production:** `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao`
 
-**Authentication:** API Key via header `x-api-key` (optional for local, required for prod)
+**Authentication:** Bearer token via header `Authorization: Bearer <token>` (required on every route; token = secret `API_TOKEN`)
 
 ---
 
@@ -179,12 +179,15 @@ cd fase-4/docs/api-collection
 **Bruno:** File → Import → Select `fase4-feedback.postman_collection.json`  
 **Postman:** Import → Select file
 
-### 2. Select Environment
+### 2. Set the tokens
 
-**Local (LocalStack):**
+Open **Collection > Variables** and set `prodToken` (value of the `API_TOKEN` secret, kept only on your machine). `localToken` already has the local default.
+
+**Local (local-http):**
 ```
-POST http://localhost:4566/avaliacao
+POST http://localhost:8080/avaliacao
 Content-Type: application/json
+Authorization: Bearer <localToken>
 
 {
   "descricao": "Test feedback",
@@ -196,7 +199,7 @@ Content-Type: application/json
 ```
 POST https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao
 Content-Type: application/json
-x-api-key: <your-api-key>
+Authorization: Bearer <token>
 
 {
   "descricao": "Test feedback",
@@ -206,7 +209,7 @@ x-api-key: <your-api-key>
 
 ### 3. Execute Requests
 
-The collection contains 12 pre-built test cases per environment:
+The collection contains 20 pre-built requests per environment (`local` and `prod`), including 401 cases for missing and invalid tokens:
 
 - ✅ Success cases (nota 1, 5, 6, 7, 8, 10)
 - ❌ Error cases (nota -1, 11, empty description, null description)
@@ -214,7 +217,7 @@ The collection contains 12 pre-built test cases per environment:
 Each request includes:
 - Pre-request script: Auto-generates timestamp
 - Test script: Validates response status and structure
-- Pre-configured variables: baseUrl, feedbackId, timestamp
+- Pre-configured variables: localUrl, prodUrl, localToken, prodToken, feedbackId, timestamp
 
 ### 4. View Results
 
@@ -311,7 +314,7 @@ export ADMIN_EMAIL=admin@company.com
 
 **URL:** 
 - Local: `http://localhost:4566/graphiql`
-- Prod: Not available (API Key required)
+- Prod: Not available (Bearer token required)
 
 **How to Use GraphiQL:**
 
