@@ -1,0 +1,36 @@
+meta {
+  name: Listar avaliações com chave errada (401)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/graphql
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  X-API-Key: chave-invalida
+}
+
+body:json {
+  {
+    "query": "query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }"
+  }
+}
+
+assert {
+  res.status: eq 401
+}
+
+tests {
+  test("status 401", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+}
+
+docs {
+  Seguro em prod.
+}

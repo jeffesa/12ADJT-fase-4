@@ -1,0 +1,36 @@
+meta {
+  name: Criar avaliação MEDIUM - nota 6 (201)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/avaliacao
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "descricao": "Feedback neutro via Bruno",
+    "nota": 6
+  }
+}
+
+assert {
+  res.status: eq 201
+}
+
+tests {
+  test("status 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+}
+
+docs {
+  Cria registro real (urgência MEDIUM). Em prod grava na prod-feedback-table.
+}

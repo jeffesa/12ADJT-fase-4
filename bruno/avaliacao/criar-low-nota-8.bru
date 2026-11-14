@@ -1,0 +1,36 @@
+meta {
+  name: Criar avaliação LOW - nota 8 (201)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/avaliacao
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "descricao": "Feedback positivo via Bruno",
+    "nota": 8
+  }
+}
+
+assert {
+  res.status: eq 201
+}
+
+tests {
+  test("status 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+}
+
+docs {
+  Cria registro real (urgência LOW). Em prod grava na prod-feedback-table.
+}

@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "FIAP Fase 4 - Feedback API",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

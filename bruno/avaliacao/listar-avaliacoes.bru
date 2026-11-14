@@ -1,0 +1,25 @@
+meta {
+  name: Listar avaliações (200)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/avaliacao
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("status 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
+
+docs {
+  Somente leitura. Seguro em prod.
+}

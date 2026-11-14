@@ -1,0 +1,35 @@
+meta {
+  name: Erro - nota ausente (500)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/avaliacao
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "descricao": "Sem nota informada"
+  }
+}
+
+assert {
+  res.status: eq 500
+}
+
+tests {
+  test("status 500", function() {
+    expect(res.getStatus()).to.equal(500);
+  });
+}
+
+docs {
+  Comportamento atual do handler: nota ausente vira null, o unboxing para int falha e a API devolve 500 (e não 400). Não cria registro. Se o handler passar a devolver 400, atualize o assert.
+}
