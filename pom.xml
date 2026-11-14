@@ -66,6 +66,15 @@
         </dependencies>
     </dependencyManagement>
 
+    <profiles>
+        <!-- Dev only: HTTP front for local calls (Bruno/curl). Never part of the default build/deploy. -->
+        <profile>
+            <id>local-http</id>
+            <modules>
+                <module>local-http</module>
+            </modules>
+        </profile>
+    </profiles>
     <build>
         <pluginManagement>
             <plugins>
