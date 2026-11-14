@@ -693,28 +693,26 @@ Documentar todas as decisões de segurança, configuração de IAM, governança 
 
 **Labels:** `priority: medium`, `épico: tooling`, `pontos: 3`, `type: infra`
 **Milestone:** Sprint 6 - Finalização
-**Status:** ✅ CONCLUÍDA
+**Status:** ✅ CONCLUÍDA (menu refeito para Quarkus Dev Mode + AWS real; todos os itens abaixo testados)
 
-
-## � Descrição
-Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao desenvolvedor executar operações comuns sem memorizar comandos: subir/parar LocalStack, compilar, rodar testes, verificar saúde dos serviços, ver logs, etc.
+## 📝 Descrição
+Menu interativo e comandos diretos no `run.sh` para as operações comuns do projeto atual: validar dependências, compilar, testar, subir o HTTP local (`local-http`), validar o SAM e consultar a AWS em modo somente leitura.
 
 ## ✅ Critérios de Aceitação
-- [ ] Menu interativo com interface visual (cores, bordas ASCII)
-- [ ] Opção 1: Subir LocalStack + compilar (`docker-compose up -d` + compile modules)
-- [ ] Opção 2: Parar LocalStack (`docker-compose down`)
-- [ ] Opção 3: Rodar testes de todos os módulos (`mvn clean verify`)
-- [ ] Opção 4: Limpar volumes/dados (`docker-compose down -v`)
-- [ ] Opção 5: Ver logs do LocalStack (`docker-compose logs -f`)
-- [ ] Opção 6: Health check das 3 Lambdas (curl para endpoints health)
-- [ ] Opção 7: Listar recursos criados no LocalStack (DynamoDB tables, SNS topics, SQS queues)
-- [ ] Opção 8: Rodar collection Postman (Newman) — opcional, se houver
-- [ ] Modo interativo (sem argumentos): exibir menu
-- [ ] Modo direto (com argumentos): executar comando diretamente (`./run.sh docker`, `./run.sh stop`, etc.)
-- [ ] Validação de dependências (Docker, Maven, Java) com mensagens claras
-- [ ] Suporte a Colima (macOS) e Docker Desktop
-- [ ] Saída colorida com status (✅ sucesso, ❌ erro, ⚠️ aviso)
-- [ ] Documentação no README sobre como usar o menu
+- [x] Menu interativo (sem argumentos) com cores e bordas ASCII
+- [x] Modo direto (com argumentos): `./run.sh compile`, `tests`, `local-up`, etc.; `./run.sh help` lista os comandos
+- [x] Validar dependências (JDK 17, Maven, AWS CLI, SAM CLI, curl, profile AWS `fase4`), com mensagens claras; localiza e força JDK 17 sozinho
+- [x] Compilar todos os módulos (`mvn clean package -DskipTests`)
+- [x] Rodar testes de todos os módulos (`mvn clean verify`) ou de um módulo (`-pl`)
+- [x] Instalar o `receive-feedback` e subir o `local-http` (portas 8080 e 18081; se ocupadas, mostra o processo sem encerrá-lo)
+- [x] Checar se o módulo local está no ar (`GET /avaliacao` = HTTP 200)
+- [x] Validar o template SAM (`sam validate --lint`)
+- [x] Verificar produção, somente leitura (`GET` no `ApiEndpoint` da stack `feedback-api-prod` = HTTP 200)
+- [x] Listar recursos AWS, somente leitura (stacks, Lambdas, DynamoDB, SNS); sai com código diferente de zero se uma consulta falhar
+- [x] Saída colorida com status (✅ sucesso, ❌ erro, ⚠ aviso)
+- [x] Documentação no README (seção "Menu de desenvolvimento (run.sh)")
+
+**Removido do escopo:** LocalStack, Docker, Colima, docker-compose, volumes, SQS e Newman. O projeto migrou para Quarkus Dev Mode + AWS real em 10/11/2026 (commit `9a1af29`), então essas opções do menu original deixaram de existir. Os scripts `e2e-test.sh` e `e2e-verify.sh` continuam no repositório, mas o menu não os usa.
 
 ## 🔧 Dependências Técnicas
 - [TASK-003] concluída (docker-compose.yml existente)
