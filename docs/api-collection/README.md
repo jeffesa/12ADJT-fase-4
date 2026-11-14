@@ -22,25 +22,28 @@ This Postman collection covers the Feedback API endpoints for FIAP Fase-4, with 
 ### In Postman
 1. Open Postman
 2. Click **File** → **Import**
-3. Select `/Users/jefferson/Documents/FIAP/fase-4/docs/api-collection/fase4-feedback.postman_collection.json`
+3. Select `docs/api-collection/fase4-feedback.postman_collection.json` (only the collection; there are no environment files)
 4. Collection appears in the left sidebar
 
 ### In Bruno
 1. Open Bruno
 2. Click **+ New** → **Collection**
 3. Import the JSON file
-4. Collection loads with all variables and requests
+4. Collection loads with the `local` and `prod` folders
+5. Open **Collection > Variables** and set `prodToken` (see below)
 
 ---
 
 ## Collection Variables
 
-All variables are embedded in the collection (no separate environment file needed):
+All variables are embedded in the collection (no separate environment file needed). Every request sends `Authorization: Bearer <token>` using `localToken` (folder `local`) or `prodToken` (folder `prod`), except the requests named "sem token", which test the 401 response.
 
 | Variable | Default Value | Purpose |
 |----------|---------------|---------|
-| `localUrl` | `http://localhost:4566` | LocalStack API Gateway base URL |
-| `prodUrl` | `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod` | AWS API Gateway base URL |
+| `localUrl` | `http://localhost:8080` | local-http base URL |
+| `prodUrl` | `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod` | AWS API Gateway base URL |
+| `localToken` | `minha-chave-local` | Local token (not a secret; matches the `./run.sh local-up` default) |
+| `prodToken` | *(empty)* | Production token: paste the value of the `API_TOKEN` secret on your machine only; never commit it |
 | `feedbackId` | *(empty)* | Captured from successful create response |
 | `timestamp` | *(auto-generated per request)* | Ensures unique feedback descriptions |
 
@@ -50,15 +53,15 @@ All variables are embedded in the collection (no separate environment file neede
 
 The collection has two folders: **local** and **prod**. Each contains the same test cases but pointing to different endpoints.
 
-### To test LOCAL (LocalStack):
+### To test LOCAL (local-http):
 1. Expand folder **"local"**
 2. Run any request under **"Criar Avaliação"**
-3. All requests will hit `{{localUrl}}/avaliacao` = `http://localhost:4566/avaliacao`
+3. All requests will hit `{{localUrl}}/avaliacao` = `http://localhost:8080/avaliacao`
 
 ### To test PRODUCTION (AWS):
 1. Expand folder **"prod"**
 2. Run any request under **"Criar Avaliação"**
-3. All requests will hit `{{prodUrl}}/avaliacao` = `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao`
+3. All requests will hit `{{prodUrl}}/avaliacao` = `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao`
 
 ### Test Cases in "Criar Avaliação"
 | Request | Rating | Urgency | Note |
@@ -193,16 +196,14 @@ query {
 ## Running in Local Environment
 
 ### Prerequisites
-1. LocalStack running: `docker-compose up -d`
-2. Application built and deployed to LocalStack: `mvn clean package`
-3. Lambda function accessible at `http://localhost:4566/avaliacao`
+1. AWS credentials with profile `fase4` (the local module writes to `dev-feedback-table`)
+2. Start the module: in the `local-http` folder, run `./run.sh local-up`
+3. Routes available at `http://localhost:8080` (`/avaliacao` and `/graphql`)
 
 ### Steps
-1. Run "Selecionar ambiente local"
-2. Run "Criar Avaliação — nota 1 (urgência HIGH) ✅ 201"
-3. Verify timestamp in description is captured
-4. Run remaining test cases in any order
-5. Check CloudWatch logs in LocalStack for Lambda execution details
+1. Keep the default `localToken` (or export `API_TOKEN` before `./run.sh local-up` and set the same value in `localToken`)
+2. Run "✅ 201 — nota 1 (urgência HIGH)" (a note from 0 to 5 triggers SNS/email)
+3. Run the remaining test cases in any order, including the 401 requests ("sem token" e "token inválido")
 
 ---
 
@@ -210,19 +211,19 @@ query {
 
 ### Prerequisites
 1. AWS Lambda function deployed and accessible
-2. API Gateway endpoint active: `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao`
-3. DynamoDB table `feedback` available in us-east-1
+2. API Gateway endpoint active: `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao`
+3. DynamoDB table `prod-feedback-table` available in sa-east-1
 4. SES verified (if email notifications enabled)
+5. `prodToken` set to the value of the `API_TOKEN` secret
 
 ### Steps
-1. Run "Selecionar ambiente prod"
-2. Run test cases (same structure as local)
+1. Set `prodToken` (Collection > Variables)
+2. Run test cases (same structure as local). Requests with a note from 0 to 5 create real records and send SNS/email in production
 3. Monitor AWS CloudWatch Logs for Lambda execution
 4. Verify DynamoDB items created in the console
 
 ### Known Limitations
-- **No API Key required** (removed from template for public access)
-- **List endpoint not yet deployed** — `listarAvaliacoes` query is a future task
+- **Bearer token required** on every route (`Authorization: Bearer <token>`); to create it, see the secret `API_TOKEN` in `docs/deploy/AWS_DEPLOY_GUIDE.md`
 - **Email notifications** — Currently in development; test with SES sandbox mode
 
 ---
@@ -232,7 +233,8 @@ query {
 ### Endpoint
 ```
 POST /avaliacao
-Host: {{baseUrl}}
+Host: {{localUrl}} or {{prodUrl}}
+Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
@@ -257,6 +259,15 @@ Content-Type: application/json
 }
 ```
 
+### Error Response (401 Unauthorized)
+```json
+{
+  "title": "Unauthorized",
+  "status": 401,
+  "detail": "Missing bearer token | Invalid bearer token"
+}
+```
+
 ### Error Response (400 Bad Request)
 ```json
 {
@@ -272,9 +283,13 @@ Content-Type: application/json
 
 ### Troubleshooting
 
-#### 404 Not Found on {{localUrl}}/avaliacao
-- **Cause:** LocalStack/Lambda not running or deployed
-- **Fix:** Verify `docker-compose up -d` and Lambda function deployed
+#### 401 Unauthorized
+- **Cause:** `localToken`/`prodToken` empty or different from the token configured in the API (`API_TOKEN`)
+- **Fix:** Set the variable in Collection > Variables; locally, use the same value passed to `./run.sh local-up`
+
+#### 404/405 on {{localUrl}}/avaliacao
+- **Cause:** local-http not running, or started from the wrong folder (the `receive-feedback` module has no HTTP routes)
+- **Fix:** Run `./run.sh local-up` in the `local-http` folder and keep it running
 
 ### 500 Internal Server Error
 - **Cause:** Lambda handler initialization failed
@@ -294,10 +309,10 @@ Content-Type: application/json
 
 After importing, verify the collection loads correctly:
 
-1. **Check variables:** Collection dropdown → "Manage variables" shows all 5 variables
-2. **Check requests:** Local folder should have 2 items (selector + Criar Avaliação)
-3. **Run environment selector:** Click "Selecionar ambiente local" → test passes, `baseUrl` now set
-4. **Run one success case:** Click "Criar Avaliação — nota 1 (urgência HIGH)" → HTTP 201, sees `feedbackId`
+1. **Check variables:** Collection > Variables shows `localUrl`, `prodUrl`, `localToken`, `prodToken`, `feedbackId` and `timestamp`
+2. **Check folders:** only `local` and `prod`, with 20 requests each
+3. **Run one 401 case:** "🔒 401 — GET /avaliacao sem token" → HTTP 401
+4. **Run one success case:** "✅ 200 — GET /avaliacao com token" (local) → HTTP 200
 
 ---
 
@@ -305,12 +320,11 @@ After importing, verify the collection loads correctly:
 
 ### Not Yet Implemented
 - **Listar Avaliações endpoint:** Query to retrieve feedback by ID or filter
-- **API Key authentication:** Currently not enforced (template removed x-api-key)
 - **Email notifications:** Infrastructure present but not yet wired in Quarkus handler
 
 ### Deprecated (from Fase-3)
 - **GraphQL endpoint:** Collection no longer tests GraphQL mutations; API is REST-only
-- **x-api-key header:** Removed from all requests (no API Key required in current template)
+- **Legacy GraphQL key header:** no longer accepted; all routes use `Authorization: Bearer <token>`
 
 ---
 
@@ -320,4 +334,4 @@ For issues with the collection:
 1. Verify the API contract in `/Users/jefferson/Documents/FIAP/fase-4/docs/api-collection/plan.md`
 2. Check source code in `/Users/jefferson/Documents/FIAP/fase-4/receive-feedback/src/main/java/com/fiap/feedback/infra/handler/ReceiveFeedbackHandler.java`
 3. Review Lambda logs in AWS CloudWatch for actual error details
-4. Confirm LocalStack is running if testing locally: `docker ps | grep localstack`
+4. Confirm local-http is running if testing locally: `./run.sh local-check`

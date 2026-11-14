@@ -26,21 +26,24 @@ The platform is built on AWS Lambda, DynamoDB, SNS, and SES using Quarkus with G
 
 ## Authentication
 
-### API Key Requirement
+### Bearer token (`API_TOKEN`)
 
-All requests must include the `x-api-key` header with a valid API key.
+All routes (`POST /avaliacao`, `GET /avaliacao` and `POST /graphql`) require the `Authorization` header with a bearer token.
 
 ```
-x-api-key: your-api-key-value
+Authorization: Bearer <token>
 ```
 
-**Response on missing or invalid API key**:
-- Status: `401 Unauthorized` or `403 Forbidden`
-- Implementation: Enforced by API Gateway in production; for local development with LocalStack, the key is validated against configured values.
+**Response on missing or invalid token**:
+- Status: `401 Unauthorized` with `WWW-Authenticate: Bearer`
+- Body: `{"title":"Unauthorized","status":401,"detail":"Missing bearer token"}` (header absent, empty or wrong scheme) or `"detail":"Invalid bearer token"` (token does not match).
+- Implementation: validated inside the Lambda handlers, so the same rule applies locally and in production.
 
-**Obtaining an API Key**:
-1. In production: Generated via AWS API Gateway console or CloudFormation templates.
-2. For local development: Use any value (LocalStack does not enforce validation in dev mode).
+**Obtaining the token**:
+1. In production: it is the GitHub secret `API_TOKEN`. Create it with `openssl rand -hex 24 | tee >(pbcopy) | gh secret set API_TOKEN --repo jeffesa/12ADJT-fase-4`. GitHub does not show the value again, so keep a copy. Rotation means replacing the secret and running a new deploy. For a manual `sam deploy`, pass `ApiToken=<token>` in `--parameter-overrides`.
+2. For local development: `./run.sh local-up` uses `minha-chave-local` unless you export `API_TOKEN` first.
+
+In the examples below, `API_TOKEN` is a shell variable holding the token (`export API_TOKEN=<token>`).
 
 ---
 
@@ -95,7 +98,7 @@ input ReceiveFeedbackInput {
 
 **Error Responses**:
 - `400 Bad Request`: Validation failed (description blank or missing, rating out of range).
-- `401/403 Unauthorized/Forbidden`: Invalid or missing `x-api-key` header.
+- `401 Unauthorized`: Invalid or missing bearer token (`Authorization: Bearer <token>`).
 - `500 Internal Server Error`: Unexpected server error (e.g., DynamoDB unavailable).
 
 **Example Response** (201 Created):
@@ -128,7 +131,7 @@ type Query {
 **Returns**: A list of `Feedback` objects. Empty list if no feedbacks exist.
 
 **Error Responses**:
-- `401/403 Unauthorized/Forbidden`: Invalid or missing `x-api-key` header.
+- `401 Unauthorized`: Invalid or missing bearer token (`Authorization: Bearer <token>`).
 - `500 Internal Server Error`: Unexpected server error (e.g., DynamoDB unavailable).
 
 **Example Response** (200 OK):
@@ -177,7 +180,7 @@ Urgency is automatically calculated when feedback is received based on the ratin
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
-  -H "x-api-key: test-key" \
+  -H "Authorization: Bearer $API_TOKEN" \
   -d '{
     "query": "mutation { receiveFeedback(input: { descricao: \"App crashes on login\", nota: 3 }) { id descricao nota urgencia dataCriacao } }"
   }'
@@ -224,7 +227,7 @@ mutation {
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
-  -H "x-api-key: test-key" \
+  -H "Authorization: Bearer $API_TOKEN" \
   -d '{
     "query": "mutation { receiveFeedback(input: { descricao: \"UI could be more intuitive\", nota: 6 }) { id descricao nota urgencia dataCriacao } }"
   }'
@@ -271,7 +274,7 @@ mutation {
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
-  -H "x-api-key: test-key" \
+  -H "Authorization: Bearer $API_TOKEN" \
   -d '{
     "query": "mutation { receiveFeedback(input: { descricao: \"Excellent support team\", nota: 9 }) { id descricao nota urgencia dataCriacao } }"
   }'
@@ -318,7 +321,7 @@ mutation {
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
-  -H "x-api-key: test-key" \
+  -H "Authorization: Bearer $API_TOKEN" \
   -d '{
     "query": "query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }"
   }'
@@ -378,7 +381,7 @@ The same feedback can be sent via HTTP POST to the Lambda function through API G
 ```bash
 curl -X POST http://localhost:8080/feedback \
   -H "Content-Type: application/json" \
-  -H "x-api-key: test-key" \
+  -H "Authorization: Bearer $API_TOKEN" \
   -d '{
     "descricao": "Fast response times",
     "nota": 8
@@ -426,23 +429,26 @@ curl -X POST http://localhost:8080/feedback \
 
 ---
 
-### Missing or Invalid API Key
+### Missing or Invalid Bearer Token
 
-**Scenario**: Request without `x-api-key` header or with an invalid key.
+**Scenario**: Request without the `Authorization` header, with a scheme other than `Bearer`, or with a wrong token.
 
-**HTTP Status**: `401 Unauthorized` or `403 Forbidden`
+**HTTP Status**: `401 Unauthorized`
 
-**Response** (API Gateway):
+**Response**:
 ```json
 {
-  "message": "Unauthorized"
+  "title": "Unauthorized",
+  "status": 401,
+  "detail": "Missing bearer token"
 }
 ```
+The `detail` is `Invalid bearer token` when the token is sent but does not match.
 
 **Solution**:
-1. Add the `x-api-key` header to all requests.
-2. Verify the key is valid with your administrator.
-3. Ensure the header is spelled correctly (case-sensitive: `x-api-key`).
+1. Add `Authorization: Bearer <token>` to all requests.
+2. Verify the token with your administrator.
+3. The header name and the `Bearer` scheme are case-insensitive, but the token itself is case-sensitive.
 
 ---
 
@@ -624,7 +630,7 @@ Create feedback:
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
-  -H "x-api-key: test" \
+  -H "Authorization: Bearer $API_TOKEN" \
   -d '{"query": "mutation { receiveFeedback(input: { descricao: \"Test\", nota: 5 }) { id urgencia } }"}'
 ```
 
@@ -636,7 +642,7 @@ curl -X POST http://localhost:8080/graphql \
 
 - AWS account with appropriate permissions
 - SAM CLI or CloudFormation for infrastructure deployment
-- API Gateway configured with API key validation
+- `API_TOKEN` configured in the Lambdas (deploy parameter `ApiToken`)
 
 ### Environment Variables
 
@@ -658,7 +664,7 @@ sam deploy --guided
 ```bash
 curl -X POST https://[API-GATEWAY-URL]/graphql \
   -H "Content-Type: application/json" \
-  -H "x-api-key: [YOUR-API-KEY]" \
+  -H "Authorization: Bearer $API_TOKEN" \
   -d '{"query": "query { listarAvaliacoes { id } }"}'
 ```
 
@@ -677,7 +683,7 @@ curl -X POST https://[API-GATEWAY-URL]/graphql \
 
 ### Common Issues
 
-1. **"x-api-key header missing"**: Add header to all requests.
+1. **401 "Missing bearer token" / "Invalid bearer token"**: Add `Authorization: Bearer <token>` to all requests.
 2. **"Rating must be between 0 and 10"**: Ensure `nota` is an integer in range.
 3. **"DynamoDB is unavailable"**: Start LocalStack and verify table exists.
 4. **"GraphQL endpoint returns 404"**: Verify Quarkus is running and the path is `/graphql`.

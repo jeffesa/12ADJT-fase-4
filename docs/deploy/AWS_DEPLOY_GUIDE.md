@@ -155,7 +155,6 @@ Creating CloudFormation changeset for stack 'fiap-feedback-platform-dev'...
 2024-10-27 15:35:10 - CREATE_COMPLETE
 Stack creation succeeded. Outputs:
   - ApiEndpoint: https://abc123.execute-api.us-east-1.amazonaws.com/dev/avaliacao
-  - ApiKey: xyz789
 ```
 
 ### Step 3: Retrieve Deployment Outputs
@@ -170,7 +169,6 @@ aws cloudformation describe-stacks \
 
 Important outputs:
 - **ApiEndpoint**: The HTTP endpoint for submitting feedback
-- **ApiKey**: Required API key for authentication
 - **DynamoDBTableName**: The name of the DynamoDB table
 - **SNSTopicArn**: The SNS topic for urgent feedback notifications
 
@@ -244,58 +242,40 @@ Expected output: `CREATE_COMPLETE` or `UPDATE_COMPLETE`
 - **Email Verification**: Required for SES sendEmail permissions
 - **Reserved Concurrency**: Limited to 10 for receive-feedback and send-notification, 1 for generate-report
 
-### API Key Management
+### Bearer Token (`API_TOKEN`)
 
-An API key is automatically created for each environment:
+All routes (`POST /avaliacao`, `GET /avaliacao` and `POST /graphql`) require `Authorization: Bearer <token>`. The token is a deploy parameter (`ApiToken`, `NoEcho`, 24 to 128 characters: letters, digits, `_` and `-`) exposed to the Lambdas as the `API_TOKEN` environment variable.
 
-#### Retrieve the API Key
+#### Create the secret
 
-```bash
-aws apigateway get-api-keys \
-  --query 'items[?name==`dev-feedback-api-key`].id' \
-  --output text
-```
-
-Then get the actual key value:
+The pipeline reads the token from the GitHub secret `API_TOKEN` and fails early if it is missing:
 
 ```bash
-KEY_ID=<output-from-above>
-aws apigateway get-api-key \
-  --id $KEY_ID \
-  --include-value
+openssl rand -hex 24 | tee >(pbcopy) | gh secret set API_TOKEN --repo jeffesa/12ADJT-fase-4
 ```
 
-#### Using the API Key
+GitHub does not show the value of a secret after it is saved, so keep a copy of the token (the command above also copies it to the clipboard).
 
-Include the API key in requests as a header:
+#### Manual deploy
+
+Pass the token explicitly, because the parameter has no default:
+
+```bash
+sam deploy --parameter-overrides "Environment=dev AdminEmail=<email> SenderEmail=<email> ApiToken=<token> Region=sa-east-1"
+```
+
+#### Using the token
 
 ```bash
 curl -X POST https://<api-endpoint>/avaliacao \
-  -H "x-api-key: <your-api-key>" \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
-  -d '{
-    "userId": "user-123",
-    "rating": 5,
-    "urgency": "HIGH",
-    "comment": "Excellent service"
-  }'
+  -d '{"descricao": "Excelente atendimento", "nota": 8}'
 ```
 
-#### Rotating the API Key
+#### Rotating the token
 
-To disable an old key and create a new one:
-
-```bash
-# Disable the old key
-aws apigateway update-api-key \
-  --id <old-key-id> \
-  --patch-operations op=replace,path=/enabled,value=false
-
-# Create a new API key
-aws apigateway create-api-key \
-  --name dev-feedback-api-key-new \
-  --enabled
-```
+Replace the `API_TOKEN` secret (same command as above) and run a new deploy. The old token stops working after the deploy.
 
 ### API Gateway Usage Plan
 
@@ -328,7 +308,7 @@ aws apigateway get-usage-plans \
 **Example Request**:
 ```bash
 curl -X POST https://<api-endpoint>/avaliacao \
-  -H "x-api-key: <your-api-key>" \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "user-123",
@@ -655,10 +635,10 @@ Example deployment step:
 
 ## Security Best Practices
 
-1. **API Key Management**:
-   - Rotate API keys regularly
-   - Use different keys for dev/prod environments
-   - Store keys securely (use AWS Secrets Manager or environment variables)
+1. **Bearer Token Management**:
+   - Rotate the `API_TOKEN` secret regularly (replace the secret and redeploy)
+   - Use different tokens for dev/prod environments
+   - Never commit the token; keep it in GitHub secrets and a personal copy
 
 2. **IAM Least Privilege**:
    - Each Lambda has its own role with minimal permissions
@@ -684,6 +664,6 @@ Example deployment step:
 
 - [AWS SAM Developer Guide](https://docs.aws.amazon.com/serverless-application-model/)
 - [Lambda Function Best Practices](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html)
-- [API Gateway API Keys and Usage Plans](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-use-lambda-authorizer.html)
+- [API Gateway Usage Plans](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-use-lambda-authorizer.html)
 - [DynamoDB Developer Guide](https://docs.aws.amazon.com/dynamodb/)
 - [CloudWatch Logs Insights Query Syntax](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax.html)
