@@ -693,24 +693,24 @@ Documentar todas as decisões de segurança, configuração de IAM, governança 
 
 **Labels:** `priority: medium`, `épico: tooling`, `pontos: 3`, `type: infra`
 **Milestone:** Sprint 6 - Finalização
-**Status:** 🟡 EM ANDAMENTO (escopo adaptado ao Quarkus Dev Mode; `./run.sh tests` falhou localmente por falta de Docker)
+**Status:** 🟡 EM ANDAMENTO (não concluída: issue #39 segue aberta; `./run.sh tests` falha sem Docker; Quarkus Dev Mode não testado de ponta a ponta)
 
 
 ## Descrição
 Melhorar o `run.sh` com um menu interativo (inspirado na fase-3) que permita ao desenvolvedor executar operações comuns sem memorizar comandos: subir os módulos em Quarkus Dev Mode, compilar, rodar testes, verificar saúde dos serviços e listar recursos AWS.
 
 ## Critérios de Aceitação (escopo atual)
-- [x] Menu interativo com interface visual (cores, bordas)
-- [ ] Subir módulos em Quarkus Dev Mode: receive-feedback (8080) iniciou e respondeu; send-notification (8081) e generate-report (8082) não iniciam sem Docker (DevServices LocalStack)
-- [x] Compilar módulos (`mvn clean compile`)
-- [ ] Rodar testes de todos os módulos (`mvn clean verify`). Parcial: receive-feedback (98) e generate-report (159) passaram; send-notification falhou porque o DevService do LocalStack precisa de Docker
-- [x] Health check via `/q/health`, aceitando somente HTTP 200 com `"UP"`
-- [x] Listar recursos AWS em sa-east-1 (DynamoDB `prod-*` e `dev-*`, SNS, Lambda `prod-*`)
-- [x] Modo interativo (sem argumentos) e direto (com argumentos)
-- [x] Validação de dependências (Maven e Java ≥ 17) com mensagens claras
-- [x] Saída colorida com status (✅ sucesso, ❌ erro, ⚠️ aviso)
-- [ ] Health check passar: os módulos precisam de `quarkus-smallrye-health` (decisão de produto pendente)
-- [ ] Documentação no README sobre como usar o menu
+- [x] Menu interativo com interface visual (cores, bordas) — PASSOU (teste 12)
+- [x] Cabeçalho do menu atualizado (Quarkus Dev Mode · Build · Health · AWS) — PASSOU (teste 12)
+- [x] Validação de dependências (Maven e Java ≥ 17) com mensagens claras — PASSOU (testes 9 e 10)
+- [x] Compilar módulos (`mvn clean compile`) — PASSOU (teste 8)
+- [ ] Rodar testes de todos os módulos (`mvn clean verify`) — FALHOU: send-notification exige Docker (DevServices LocalStack)
+- [ ] Subir módulos em Quarkus Dev Mode: receive-feedback (8080), send-notification (8081), generate-report (8082) — NÃO TESTADO de ponta a ponta: só receive-feedback sobe; send-notification e generate-report falham sem Docker
+- [x] Health check via `/q/health`, aceitando somente HTTP 200 com `"status":"UP"` na raiz — PASSOU com servidores de teste (testes 4 a 6b)
+- [ ] Health check passar nos 3 módulos reais: depende de `quarkus-smallrye-health` (decisão de produto pendente)
+- [x] Listar recursos AWS em sa-east-1 (DynamoDB `prod-*` e `dev-*`, SNS, Lambda `prod-*`) — PASSOU (testes 7 e 7b)
+- [x] Modo interativo (sem argumentos) e direto (com argumentos) — PASSOU (teste 12 e comandos diretos)
+- [x] Saída colorida com status (✅ sucesso, ❌ erro, ⚠️ aviso) — PASSOU (saídas ✅/❌ dos testes 3 a 9)
 
 ## Removidos do escopo (LocalStack removido em `9a1af29`)
 - Subir/parar LocalStack, limpar volumes e ver logs do LocalStack (`docker-compose`)
