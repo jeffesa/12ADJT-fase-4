@@ -4,7 +4,7 @@
 # Script runner: facilita execução do projeto multi-Lambda.
 #
 # Uso interativo:  ./run.sh
-# Uso direto:      ./run.sh [quarkus-receive|quarkus-notify|quarkus-report|tests|compile|health|aws-list|sam-validate|aws-test|e2e-test|e2e-verify]
+# Uso direto:      ./run.sh [quarkus-receive|quarkus-notify|quarkus-report|tests|compile|health|aws-list|sam-validate|aws-test|e2e-verify]
 # ═══════════════════════════════════════════════════════════════
 
 set -o pipefail
@@ -95,11 +95,14 @@ compile_modules() {
 
 check_module_health() {
   local name=$1 port=$2
-  local response code body
+  local response code body root_status
   response=$(curl -s -m 5 -w '\n%{http_code}' "http://localhost:${port}/q/health" 2>/dev/null)
   code=${response##*$'\n'}
   body=${response%$'\n'*}
-  if [ "$code" = "200" ] && [[ "$body" == *'"UP"'* ]]; then
+  # Quarkus publica o status geral na raiz do JSON (primeiro campo "status").
+  # Checks individuais em "checks" não contam.
+  root_status=$(printf '%s' "$body" | grep -o '"status"[[:space:]]*:[[:space:]]*"[A-Z]*"' | head -n1)
+  if [ "$code" = "200" ] && [[ "$root_status" =~ :[[:space:]]*\"UP\"$ ]]; then
     ok "  ✅ ${name}: UP (HTTP $code, porta $port)"
     return 0
   fi
@@ -148,7 +151,7 @@ list_aws_resources() {
     return 1
   fi
 
-  local out
+  local out failed=0
   info "\n📊 Recursos AWS (região $AWS_REGION)..."
 
   info "\n  📦 DynamoDB Tables (prod-* e dev-*):"
@@ -156,6 +159,7 @@ list_aws_resources() {
     print_aws_items "$out" '^(prod|dev)-'
   else
     err "     ❌ Falha ao listar tabelas (verifique AWS_PROFILE e credenciais)"
+    failed=1
   fi
 
   info "\n  📨 SNS Topics:"
@@ -163,6 +167,7 @@ list_aws_resources() {
     print_aws_items "$out" '.'
   else
     err "     ❌ Falha ao listar tópicos (verifique AWS_PROFILE e credenciais)"
+    failed=1
   fi
 
   info "\n  ⚡ Lambda Functions (prod-*):"
@@ -170,7 +175,10 @@ list_aws_resources() {
     print_aws_items "$out" '^prod-'
   else
     err "     ❌ Falha ao listar funções (verifique AWS_PROFILE e credenciais)"
+    failed=1
   fi
+
+  return $failed
 }
 
 validate_sam() {
@@ -202,19 +210,6 @@ test_aws() {
   info ""
   info "   3. Verificar DynamoDB:"
   info "      aws dynamodb scan --table-name prod-feedback-table --region sa-east-1"
-}
-
-e2e_test() {
-  if ! command -v curl &>/dev/null; then
-    err "❌ curl não encontrado"
-    return 1
-  fi
-  if [ ! -f "./e2e-test.sh" ]; then
-    err "❌ e2e-test.sh não encontrado"
-    return 1
-  fi
-  info "\n🧪 E2E Test..."
-  bash ./e2e-test.sh
 }
 
 e2e_verify() {
@@ -252,10 +247,9 @@ show_menu() {
     echo "  8) Validar SAM template"
     echo "  9) Info: Testing no AWS (exemplos curl)"
     echo ""
-    echo "  🧪 End-to-End Tests"
+    echo "  🧪 End-to-End"
     echo "  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "  10) E2E Test"
-    echo "  11) E2E Verify"
+    echo "  10) E2E Verify"
     echo ""
     echo "  0) Sair"
     echo ""
@@ -271,8 +265,7 @@ show_menu() {
       7) list_aws_resources ;;
       8) validate_sam ;;
       9) test_aws ;;
-      10) e2e_test ;;
-      11) e2e_verify ;;
+      10) e2e_verify ;;
       0) echo "👋 Até mais!" && exit 0 ;;
       *) err "❌ Opção inválida." ;;
     esac
@@ -297,7 +290,6 @@ show_help() {
   echo "  ./run.sh aws-list           Listar recursos AWS ($AWS_REGION)"
   echo "  ./run.sh sam-validate       Validar SAM"
   echo "  ./run.sh aws-test           Info: exemplos curl"
-  echo "  ./run.sh e2e-test           E2E test"
   echo "  ./run.sh e2e-verify         E2E verify"
   echo ""
 }
@@ -317,7 +309,6 @@ else
     aws-list)         list_aws_resources ;;
     sam-validate)     validate_sam ;;
     aws-test)         test_aws ;;
-    e2e-test)         e2e_test ;;
     e2e-verify)       e2e_verify ;;
     *)                show_help ;;
   esac
