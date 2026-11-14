@@ -312,6 +312,9 @@ https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/
 
 A coleção Postman está disponível em `docs/api-collection/fase4-feedback.postman_collection.json`. Você pode importá-la e alternar entre ambientes local e produção.
 
+No Bruno: **Collection > Import > Postman Collection** (collection) e **Environments > Import** (`fase4-local.postman_environment.json` e `fase4-prod.postman_environment.json`, na mesma pasta).
+A chave do GraphQL é a variável `apiKey` do ambiente (vazia no arquivo; preencha só na sua máquina). Em prod, rode apenas a pasta `01 - Seguro em prod`.
+
 ### Testando com Quarkus Dev Mode
 
 Uma vez que os módulos estejam rodando via `mvn quarkus:dev`, você pode testar localmente:
