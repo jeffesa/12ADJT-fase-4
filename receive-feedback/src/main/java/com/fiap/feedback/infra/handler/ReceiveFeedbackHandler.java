@@ -89,9 +89,9 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             }
 
             if ("GET".equals(method)) {
-                return handleGetAvaliacoes();
+                return handleGetFeedbacksLegacy();
             } else if ("POST".equals(method)) {
-                return handlePostAvaliacao(event);
+                return handlePostFeedbackLegacy(event);
             } else {
                 return methodNotAllowed();
             }
@@ -108,7 +108,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     /**
      * Handles GET /avaliacao: list all feedbacks.
      */
-    private APIGatewayProxyResponseEvent handleGetAvaliacoes() {
+    private APIGatewayProxyResponseEvent handleGetFeedbacksLegacy() {
         LOGGER.log(Level.INFO, "GET /avaliacao - listing all feedbacks");
         
         if (listFeedbackUseCase == null) {
@@ -145,7 +145,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     /**
      * Handles POST /avaliacao: create feedback.
      */
-    private APIGatewayProxyResponseEvent handlePostAvaliacao(APIGatewayProxyRequestEvent event) {
+    private APIGatewayProxyResponseEvent handlePostFeedbackLegacy(APIGatewayProxyRequestEvent event) {
         LOGGER.log(Level.INFO, "POST /avaliacao - creating feedback");
         
         if (receiveFeedbackUseCase == null) {

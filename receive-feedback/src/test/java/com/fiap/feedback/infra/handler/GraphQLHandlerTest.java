@@ -82,12 +82,12 @@ class GraphQLHandlerTest {
     void withValidTokenReturns200() throws Exception {
         Feedback feedback = new Feedback(UUID.randomUUID().toString(), "Good", 7, Urgency.MEDIUM,
                 LocalDateTime.of(2024, 3, 15, 10, 30), false);
-        when(useCase.listarTodos()).thenReturn(List.of(feedback));
+        when(useCase.listAllFeedbacks()).thenReturn(List.of(feedback));
         APIGatewayProxyResponseEvent response = handle("authorization", "Bearer test-token", QUERY);
         assertEquals(200, response.getStatusCode());
         JsonNode list = objectMapper.readTree(response.getBody()).get("data").get("listarAvaliacoes");
         assertEquals(1, list.size());
-        verify(useCase).listarTodos();
+        verify(useCase).listAllFeedbacks();
     }
 
     @Test

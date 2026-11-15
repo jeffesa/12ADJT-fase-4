@@ -96,7 +96,7 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             
             // English v1 query: listFeedbacks
             if (query.toLowerCase().contains("listfeedbacks")) {
-                List<Feedback> feedbacks = receiveFeedbackUseCase.listarTodos();
+                List<Feedback> feedbacks = receiveFeedbackUseCase.listAllFeedbacks();
                 
                 var feedbacksArray = feedbacks.stream()
                     .map(InputOutputMapper::toFeedbackOutput)
@@ -124,14 +124,14 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             }
             
             // Call use case to list all feedbacks
-            List<Feedback> feedbacks = receiveFeedbackUseCase.listarTodos();
+            List<Feedback> feedbacks = receiveFeedbackUseCase.listAllFeedbacks();
             
             List<ReceiveFeedbackOutput> outputList = feedbacks.stream()
                 .map(InputOutputMapper::toOutput)
                 .toList();
             
             // Build GraphQL response
-            var avaliacoesArray = outputList.stream()
+            var feedbacksArray = outputList.stream()
                 .map(output -> Json.createObjectBuilder()
                     .add("id", output.id().toString())
                     .add("descricao", output.descricao())
@@ -143,7 +143,7 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             
             JsonObject responseBody = Json.createObjectBuilder()
                 .add("data", Json.createObjectBuilder()
-                    .add("listarAvaliacoes", Json.createArrayBuilder(avaliacoesArray).build())
+                    .add("listarAvaliacoes", Json.createArrayBuilder(feedbacksArray).build())
                     .build())
                 .build();
             
