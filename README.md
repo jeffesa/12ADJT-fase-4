@@ -589,7 +589,7 @@ O deploy é automatizado pelo GitHub Actions (`.github/workflows/ci-cd.yml`) usa
 2. O workflow roda build, testes e análise SonarCloud. O quality gate falha o job se reprovar. Para bloquear o merge, o job `Build & Test & SonarCloud` deve ser configurado como status check obrigatório na proteção da branch `main`.
 3. Após o merge em `main`, o job `deploy` executa `sam build` e `sam deploy --config-env prod` automaticamente.
 
-Os secrets `AWS_DEPLOY_ROLE_ARN` e `ADMIN_EMAIL` são configurados no environment `prod` do GitHub.
+O deploy exige os secrets `AWS_DEPLOY_ROLE_ARN`, `ADMIN_EMAIL`, `SENDER_EMAIL` e `API_TOKEN` (o job falha cedo se algum faltar), e o build usa `SONAR_TOKEN`. Eles ficam nos secrets do GitHub (repositório ou environment `prod`). Passo a passo em `docs/deploy/AWS_DEPLOY_GUIDE.md`.
 
 ### Posso usar endpoints REST ao invés de GraphQL?
 
