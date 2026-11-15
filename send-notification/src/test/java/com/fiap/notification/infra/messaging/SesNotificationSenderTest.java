@@ -237,7 +237,7 @@ class SesNotificationSenderTest {
             () -> sender.send(notification)
         );
 
-        assertTrue(exception.getMessage().contains("SES") || exception.getMessage().contains("Failed"));
+        assertTrue(exception.getMessage().contains("SES") || exception.getMessage().contains("Falha"));
     }
 
     @Test
