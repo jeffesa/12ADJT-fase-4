@@ -40,7 +40,7 @@ This document records a sample execution of the feedback platform E2E tests with
 **Reason**: Environment constraint. Docker daemon is not running in this workspace. The following procedures and evidence formats are shown for reference and should be executed in an environment with Docker available.
 
 **What This Means**:
-- The test scripts (e2e-test.sh, e2e-verify.sh) have been updated with pre-flight checks, health probes, and timing validation
+- The (since removed) legacy test scripts had been updated with pre-flight checks, health probes, and timing validation
 - The scripts will correctly identify missing dependencies and refuse to continue with clear error messages
 - A developer running these scripts in an environment with Docker, Docker Compose, and the three Quarkus modules running will execute the full flow and produce actual results in this format
 
@@ -524,8 +524,7 @@ mvn quarkus:dev
 ```bash
 # Terminal 5: Run the E2E tests
 cd /Users/jefferson/Documents/FIAP/fase-4
-./e2e-test.sh    # Execute all flows
-./e2e-verify.sh  # Validate results
+# (legacy e2e scripts removed; run the flows manually)
 ```
 
 ### Collect Results
