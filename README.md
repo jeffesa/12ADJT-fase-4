@@ -16,14 +16,14 @@ Uma plataforma serverless de feedback de nível produção construída em AWS La
                             │   USER/CLIENT   │
                             └────────┬────────┘
                                      │
-                    POST /avaliacao  │  GET /avaliacao
-                    {"descricao":..  │
-                     "nota": 1}      │
+                    POST /v1/feedback │  GET /v1/feedback
+                    {"description":  │
+                     "rating": 1}    │
                                      ▼
                         ┌────────────────────────┐
                         │    API GATEWAY         │
                         │  v32wl8xbtk (prod)     │
-                        │  /prod/avaliacao       │
+                        │  /prod/v1/feedback     │
                         └──────────┬─────────────┘
                                    │ invoke
                                    ▼
@@ -53,10 +53,10 @@ Uma plataforma serverless de feedback de nível produção construída em AWS La
     │                  │          │                        │  │
     │ Stores:          │          │ Message:               │  │
     │ • id (PK)        │          │ {                      │  │
-    │ • descricao      │          │   "id": "uuid",        │  │
-    │ • nota           │          │   "description": "...", │  │
-    │ • urgencia       │          │   "urgency": "HIGH",   │  │
-    │ • dataCriacao    │          │   "rating": 1          │  │
+    │ • description    │          │   "id": "uuid",        │  │
+    │ • rating         │          │   "description": "...", │  │
+    │ • urgency        │          │   "urgency": "HIGH",   │  │
+    │ • createdAt      │          │   "rating": 1          │  │
     └──────┬───────────┘          │ }                      │  │
            │                      └───────┬────────────────┘  │
            │                              │ trigger           │
@@ -132,7 +132,7 @@ Uma plataforma serverless de feedback de nível produção construída em AWS La
 
 | Etapa | Componente | Entrada | Saída | Latência |
 |------|-----------|-------|--------|---------|
-| 1 | API Gateway | POST /avaliacao | → Lambda 1 | ~10ms |
+| 1 | API Gateway | POST /v1/feedback | → Lambda 1 | ~10ms |
 | 2 | Lambda 1 (receive) | JSON payload | → DynamoDB + SNS (se HIGH) | ~50-200ms |
 | 3 | DynamoDB | Entidade Feedback | Persistido | ~20-50ms |
 | 4 | SNS Topic | Mensagem JSON | → Lambda 2 (se HIGH) | ~100-500ms |
@@ -147,7 +147,7 @@ Uma plataforma serverless de feedback de nível produção construída em AWS La
 
 Quando um usuário submete feedback com avaliação baixa (0-5), o sistema dispara uma notificação imediata:
 
-1. **Usuário submete** `POST /avaliacao` com `nota: 1` (feedback crítico)
+1. **Usuário submete** `POST /v1/feedback` com `rating: 1` (feedback crítico)
 2. **Lambda 1 (receive-feedback)**:
    - Valida entrada (avaliação 0-10, descrição não vazia)
    - Calcula urgência: `nota 1 → HIGH`
@@ -207,8 +207,8 @@ Toda segunda-feira às 8h UTC (5h Brasília), o sistema gera um relatório seman
 
 ✅ **TASK-019: Todas as 3 Lambdas Implantadas e Operacionais**
 - Verificado na AWS: Todos os endpoints respondendo corretamente
-- Endpoint: `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao`
-- 100% de testes end-to-end completados (POST /avaliacao, persistência DynamoDB, notificações SNS)
+- Endpoint: `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/feedback`
+- 100% de testes end-to-end completados (POST /v1/feedback, persistência DynamoDB, notificações SNS)
 
 ✅ **TASK-020: JaCoCo + SonarCloud Totalmente Configurados**
 - Gate de cobertura: 80% (imposto)
@@ -322,7 +322,7 @@ Uma vez que os módulos estejam rodando via `mvn quarkus:dev`, você pode testar
 
 Pré-requisito (uma vez): `mvn -B -q -DskipTests -Dquarkus.devservices.enabled=false install -pl .,receive-feedback`
 
-Comando para iniciar (JDK 17, a partir da pasta do módulo `local-http`; rodar `mvn quarkus:dev` na raiz sobe só o receive-feedback, sem rotas HTTP, e `GET /avaliacao` devolve 405):
+Comando para iniciar (JDK 17, a partir da pasta do módulo `local-http`; rodar `mvn quarkus:dev` na raiz sobe só o receive-feedback, sem rotas HTTP, e `GET /v1/feedback` devolve 405):
 
 ```bash
 cd local-http && AWS_PROFILE=fase4 AWS_REGION=sa-east-1 API_TOKEN=<seu-token-local> \
@@ -333,9 +333,9 @@ As portas 8080 (HTTP) e 18081 (Mock Event Server do Lambda) precisam estar livre
 
 Rotas disponíveis em `http://localhost:8080`:
 
-- `POST /avaliacao`: cria um feedback (ex.: `{"descricao":"Teste local","nota":8}`)
-- `GET /avaliacao`: lista os feedbacks
-- `POST /graphql`: consulta GraphQL
+- `POST /v1/feedback`: cria um feedback (ex.: `{"description":"Teste local","rating":8}`)
+- `GET /v1/feedback`: lista os feedbacks
+- `POST /v1/graphql`: consulta GraphQL
 
 Todas as rotas exigem o header `Authorization: Bearer <token>`, com o valor de `API_TOKEN`. Sem token ou com token errado a resposta é 401. Em produção, o token é o secret `API_TOKEN` do GitHub (`openssl rand -hex 24 | tee >(pbcopy) | gh secret set API_TOKEN --repo jeffesa/12ADJT-fase-4`; o GitHub não mostra o valor depois, então guarde uma cópia; trocar o token exige novo deploy). Defina `API_TOKEN` apenas no shell local e nunca faça commit dele.
 
@@ -351,7 +351,7 @@ O `run.sh` reúne as tarefas do dia a dia. Sem argumentos abre um menu interativ
 | `./run.sh compile` | Compila todos os módulos (`mvn clean package -DskipTests`) |
 | `./run.sh tests [módulo]` | Roda os testes de todos os módulos, ou de um (`receive-feedback`, `send-notification`, `generate-report`) |
 | `./run.sh local-up` | Instala o `receive-feedback` e sobe o `local-http` em primeiro plano (Ctrl+C para parar) |
-| `./run.sh local-check` | Confere se o módulo local responde `GET /avaliacao` com HTTP 200 |
+| `./run.sh local-check` | Confere se o módulo local responde `GET /v1/feedback` com HTTP 200 |
 | `./run.sh sam-validate` | Valida o template SAM (`sam validate --lint`) |
 | `./run.sh prod-check` | Faz `GET` no endpoint de produção (somente leitura) |
 | `./run.sh aws-list` | Lista stacks, Lambdas, tabelas DynamoDB e tópicos SNS (somente leitura) |
@@ -578,7 +578,7 @@ JaCoCo instrumenta seu código durante a execução de testes e gera relatórios
 
 A `dev-feedback-table` (ou `prod-feedback-table`) tem:
 - **Partition Key:** `id` (String, UUID)
-- **Atributos:** `descricao`, `nota`, `createdAt`, `urgency`, `ttl`
+- **Atributos:** `description`, `rating`, `createdAt`, `urgency`, `ttl`
 - **TTL:** 90 dias (auto-exclusão de feedbacks antigos)
 
 ### Como fazer deploy em produção?
@@ -607,7 +607,7 @@ Visualize CloudWatch Logs e traces X-Ray no Console AWS, ou configure dashboards
 
 - **Repositório:** https://github.com/jeffesa/12ADJT-fase-4
 - **Dashboard SonarCloud:** https://sonarcloud.io/dashboard?id=jeffesa_12ADJT-fase-4
-- **Endpoint API AWS (Produção):** https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao
+- **Endpoint API AWS (Produção):** https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/feedback
 - **Collection de API (JSON do Postman, importável no Bruno):** [docs/api-collection/fase4-feedback.postman_collection.json](docs/api-collection/fase4-feedback.postman_collection.json)
 - **Documentação Quarkus:** https://quarkus.io
 - **Guia de monitoramento:** [docs/qualidade/MONITORING_GUIDE.md](docs/qualidade/MONITORING_GUIDE.md)
