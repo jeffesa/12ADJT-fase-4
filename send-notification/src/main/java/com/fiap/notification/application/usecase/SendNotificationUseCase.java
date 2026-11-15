@@ -68,7 +68,7 @@ public class SendNotificationUseCase {
         // Log the send attempt
         LOGGER.log(Level.INFO,
             "Enviando notificação para o feedback " + notification.getFeedbackId() +
-            " to " + notification.getAdminEmail()
+            " para " + notification.getAdminEmail()
         );
 
         // Delegate to the gateway

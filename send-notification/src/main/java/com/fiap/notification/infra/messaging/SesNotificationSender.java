@@ -60,7 +60,7 @@ public class SesNotificationSender implements NotificationSender {
         try {
             LOGGER.log(Level.INFO,
                 "Enviando notificação por e-mail para o feedback " + notification.getFeedbackId() +
-                " to " + notification.getAdminEmail()
+                " para " + notification.getAdminEmail()
             );
 
             String subject = renderSubject(notification.getDescription(), notification.getUrgency());
