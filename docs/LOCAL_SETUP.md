@@ -2,13 +2,7 @@
 
 This guide covers setting up the feedback-platform serverless application for local development and testing using LocalStack to simulate AWS services.
 
-**Note**: The `e2e-test.sh` and `e2e-verify.sh` scripts now include pre-flight health checks. They will verify that:
-- Required tools (curl, jq, docker compose) are available
-- receive-feedback service is responding on port 8080
-- generate-report service is responding on port 8282
-- LocalStack is running and accessible
-
-If any check fails, the scripts provide clear error messages with next steps.
+**Note**: the legacy `e2e-test.sh` and `e2e-verify.sh` scripts were removed from the repository root.
 
 ## Overview
 
