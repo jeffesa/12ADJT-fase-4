@@ -160,7 +160,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "", "HIGH", "admin@company.com")
         );
 
-        assertTrue(exception.getMessage().contains("não pode ser vazi"));
+        assertTrue(exception.getMessage().contains("Descrição não pode ser vazia ou nula"));
     }
 
     @Test
@@ -174,7 +174,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, null, "HIGH", "admin@company.com")
         );
 
-        assertTrue(exception.getMessage().contains("não pode ser vazi"));
+        assertTrue(exception.getMessage().contains("Descrição não pode ser vazia ou nula"));
     }
 
     @Test
@@ -188,7 +188,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "   ", "HIGH", "admin@company.com")
         );
 
-        assertTrue(exception.getMessage().contains("não pode ser vazi"));
+        assertTrue(exception.getMessage().contains("Descrição não pode ser vazia ou nula"));
     }
 
     @Test
@@ -229,7 +229,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "Test", null, "admin@company.com")
         );
 
-        assertTrue(exception.getMessage().contains("não pode ser vazi"));
+        assertTrue(exception.getMessage().contains("Urgência não pode ser vazia ou nula"));
     }
 
     @Test
@@ -243,7 +243,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "Test", "", "admin@company.com")
         );
 
-        assertTrue(exception.getMessage().contains("não pode ser vazi"));
+        assertTrue(exception.getMessage().contains("Urgência não pode ser vazia ou nula"));
     }
 
     @Test
@@ -257,7 +257,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "Test", "HIGH", "")
         );
 
-        assertTrue(exception.getMessage().contains("não pode ser vazi"));
+        assertTrue(exception.getMessage().contains("E-mail do administrador não pode ser vazio ou nulo"));
     }
 
     @Test
@@ -271,7 +271,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "Test", "HIGH", null)
         );
 
-        assertTrue(exception.getMessage().contains("não pode ser vazi"));
+        assertTrue(exception.getMessage().contains("E-mail do administrador não pode ser vazio ou nulo"));
     }
 
     @Test
