@@ -40,6 +40,7 @@ public class LocalHttpRoutes {
         router.post("/v1/feedback").order(-900).blockingHandler(ctx -> handle(ctx, receiveFeedbackHandler::handleRequest));
         router.get("/v1/feedback").order(-900).blockingHandler(ctx -> handle(ctx, receiveFeedbackHandler::handleRequest));
         router.post("/graphql").order(-900).blockingHandler(ctx -> handle(ctx, graphQLHandler::handleRequest));
+        router.post("/v1/graphql").order(-900).blockingHandler(ctx -> handle(ctx, graphQLHandler::handleRequest));
     }
 
     static void handle(RoutingContext ctx,
