@@ -294,8 +294,8 @@ Content-Type: application/json
 - **Fix:** Check CloudWatch logs for Arc CDI bootstrap errors; confirm Quarkus handler configured
 
 ### Test Assertion Failures
-- **Cause:** Response structure doesn't match (for example, expecting a `receiveFeedback` wrapper, which v1 no longer returns)
-- **Fix:** Verify the v1 response is a flat object with English fields; check Lambda logs
+- **Cause:** Response structure doesn't match (e.g., missing `receiveFeedback` wrapper)
+- **Fix:** Verify API updated to REST response format (not GraphQL); check Lambda logs
 
 ### Duplicate Description Error (if persisting to external store)
 - **Cause:** Same test run multiple times with fixed descriptions

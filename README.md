@@ -578,8 +578,8 @@ JaCoCo instrumenta seu código durante a execução de testes e gera relatórios
 
 A `dev-feedback-table` (ou `prod-feedback-table`) tem:
 - **Partition Key:** `id` (String, UUID)
-- **Atributos:** `description`, `rating`, `createdAt`, `urgency`, `ttl`
-- **TTL:** 90 dias (auto-exclusão de feedbacks antigos)
+- **Atributos:** `description`, `rating`, `createdAt`, `urgency`
+- **TTL:** desabilitado nas tabelas dev e prod (sem auto-exclusão de feedbacks antigos)
 
 ### Como fazer deploy em produção?
 
