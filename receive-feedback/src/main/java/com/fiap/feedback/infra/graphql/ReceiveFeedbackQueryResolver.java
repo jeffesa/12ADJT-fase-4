@@ -48,7 +48,7 @@ public class ReceiveFeedbackQueryResolver {
      */
     @Query
     public List<FeedbackOutput> listFeedbacks() {
-        LOGGER.log(Level.INFO, "GraphQL query listFeedbacks called");
+        LOGGER.log(Level.INFO, "Consulta GraphQL listFeedbacks chamada");
         
         try {
             List<Feedback> feedbacks = receiveFeedbackUseCase.listAllFeedbacks();
@@ -57,10 +57,10 @@ public class ReceiveFeedbackQueryResolver {
                 .map(InputOutputMapper::toFeedbackOutput)
                 .toList();
             
-            LOGGER.log(Level.INFO, "Retrieved " + output.size() + " feedbacks");
+            LOGGER.log(Level.INFO, "Recuperados " + output.size() + " feedbacks");
             return output;
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Unexpected error in listFeedbacks", e);
+            LOGGER.log(Level.SEVERE, "Erro inesperado na consulta listFeedbacks", e);
             throw e;
         }
     }

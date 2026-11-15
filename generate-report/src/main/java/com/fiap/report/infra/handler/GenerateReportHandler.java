@@ -73,7 +73,7 @@ public class GenerateReportHandler implements RequestHandler<ScheduledEvent, Voi
     @Override
     public Void handleRequest(ScheduledEvent event, Context context) {
         try {
-            LOGGER.log(Level.INFO, "Lambda handler invoked for generating and sending report");
+            LOGGER.log(Level.INFO, "Handler Lambda invocado para geração e envio do relatório");
 
             // Calculate period: endDate = today() - 1 day (previous Friday)
             LocalDate today = LocalDate.now();
@@ -82,7 +82,7 @@ public class GenerateReportHandler implements RequestHandler<ScheduledEvent, Voi
             // startDate = endDate - 6 days (Monday of previous week)
             LocalDate startDate = endDate.minusDays(6);
 
-            LOGGER.log(Level.FINE, "Report period calculated: startDate=" + startDate + ", endDate=" + endDate);
+            LOGGER.log(Level.FINE, "Período do relatório calculado: início=" + startDate + ", fim=" + endDate);
 
             // Read admin email from configuration
             String adminEmail = config.adminEmail();
@@ -90,16 +90,16 @@ public class GenerateReportHandler implements RequestHandler<ScheduledEvent, Voi
             // Invoke use case to generate and send report
             useCase.execute(startDate, endDate, adminEmail);
 
-            LOGGER.log(Level.INFO, "Report generation and sending completed successfully");
+            LOGGER.log(Level.INFO, "Geração e envio do relatório concluídos com sucesso");
 
         } catch (ReportException e) {
             LOGGER.log(Level.SEVERE,
-                "Report generation failed with ReportException: " + e.getMessage(), e
+                "Falha na geração do relatório (ReportException): " + e.getMessage(), e
             );
             // Do not rethrow (resilient behavior)
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,
-                "Unexpected error in Lambda handler: " + e.getMessage(), e
+                "Erro inesperado no handler Lambda: " + e.getMessage(), e
             );
             // Do not rethrow (resilient behavior)
         }

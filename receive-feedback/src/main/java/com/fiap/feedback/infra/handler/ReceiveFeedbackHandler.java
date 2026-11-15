@@ -66,7 +66,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             Context context) {
         
         String method = event.getHttpMethod();
-        LOGGER.log(Level.INFO, "Lambda handler invoked - " + method + " /v1/feedback");
+        LOGGER.log(Level.INFO, "Handler Lambda invocado - " + method + " /v1/feedback");
         
         try {
             var denied = authenticator.authenticate(event);
@@ -82,7 +82,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
                 return methodNotAllowed();
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error: " + e.getMessage(), e);
+            LOGGER.log(Level.SEVERE, "Erro: " + e.getMessage(), e);
             return internalServerError();
         }
     }
@@ -95,7 +95,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
      * Handles GET /v1/feedback: list all feedbacks with English field names.
      */
     private APIGatewayProxyResponseEvent handleGetFeedbacksV1() {
-        LOGGER.log(Level.INFO, "GET /v1/feedback - listing all feedbacks");
+        LOGGER.log(Level.INFO, "GET /v1/feedback - listando todos os feedbacks");
         
         if (listFeedbackUseCase == null) {
             throw new IllegalStateException("ListFeedbackUseCase not injected");
@@ -114,7 +114,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             .add("total", feedbacks.size())
             .build();
         
-        LOGGER.log(Level.INFO, "Returned " + feedbacks.size() + " feedbacks");
+        LOGGER.log(Level.INFO, "Retornados " + feedbacks.size() + " feedbacks");
         
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
         response.setStatusCode(200);
@@ -127,7 +127,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
      * Handles POST /v1/feedback: create feedback from English field names (description, rating).
      */
     private APIGatewayProxyResponseEvent handlePostFeedbackV1(APIGatewayProxyRequestEvent event) {
-        LOGGER.log(Level.INFO, "POST /v1/feedback - creating feedback");
+        LOGGER.log(Level.INFO, "POST /v1/feedback - criando feedback");
         
         if (receiveFeedbackUseCase == null) {
             throw new IllegalStateException("ReceiveFeedbackUseCase not injected");
@@ -145,7 +145,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         try {
             input = OBJECT_MAPPER.readValue(body, FeedbackInput.class);
         } catch (JsonProcessingException e) {
-            LOGGER.log(Level.WARNING, "Invalid request body: " + e.getOriginalMessage());
+            LOGGER.log(Level.WARNING, "Corpo da requisição inválido: " + e.getOriginalMessage());
             return badRequest("O corpo da requisição não é JSON válido ou possui campos com tipo incorreto");
         }
         if (input == null) {
@@ -154,7 +154,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         if (input.rating() == null) {
             return badRequest("Nota é obrigatória");
         }
-        LOGGER.log(Level.FINE, "Request parsed");
+        LOGGER.log(Level.FINE, "Requisição interpretada");
         
         var violations = validator.validate(input);
         if (!violations.isEmpty()) {
@@ -168,7 +168,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         
         FeedbackOutput output = InputOutputMapper.toFeedbackOutput(feedback);
         
-        LOGGER.log(Level.INFO, "Feedback created: " + output.id());
+        LOGGER.log(Level.INFO, "Feedback criado: " + output.id());
         
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
         response.setStatusCode(201);
@@ -204,7 +204,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             detail.append(violation.getMessage());
         }
         
-        LOGGER.log(Level.WARNING, "Constraint violation: " + detail);
+        LOGGER.log(Level.WARNING, "Violação de restrição: " + detail);
         return badRequest(detail.toString());
     }
 

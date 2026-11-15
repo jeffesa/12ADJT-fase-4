@@ -47,7 +47,7 @@ public class FeedbackMessageBuilder {
             return OBJECT_MAPPER.writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
             LOGGER.errorf(
-                    "Error building JSON message for feedback %s: %s",
+                    "Erro ao montar mensagem JSON do feedback %s: %s",
                     feedback.getId(),
                     e.getMessage()
             );
