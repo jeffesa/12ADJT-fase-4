@@ -53,7 +53,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         LOGGER.log(Level.WARNING, "Validation error: " + exception.getMessage(), exception);
         
         JsonObject problemDetail = Json.createObjectBuilder()
-            .add("title", "Validation Error")
+            .add("title", "Erro de validação")
             .add("status", 400)
             .add("detail", exception.getMessage())
             .build();
@@ -80,7 +80,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         }
         
         JsonObject problemDetail = Json.createObjectBuilder()
-            .add("title", "Validation Error")
+            .add("title", "Erro de validação")
             .add("status", 400)
             .add("detail", detail.toString())
             .build();
@@ -98,9 +98,9 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
         LOGGER.log(Level.SEVERE, "Unexpected error: " + exception.getMessage(), exception);
         
         JsonObject problemDetail = Json.createObjectBuilder()
-            .add("title", "Internal Server Error")
+            .add("title", "Erro interno do servidor")
             .add("status", 500)
-            .add("detail", "An unexpected error occurred. Please try again later.")
+            .add("detail", "Ocorreu um erro inesperado. Tente novamente mais tarde.")
             .build();
         
         return Response

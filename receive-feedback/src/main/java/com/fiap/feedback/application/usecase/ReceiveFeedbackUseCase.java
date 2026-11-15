@@ -89,14 +89,14 @@ public class ReceiveFeedbackUseCase {
     public Feedback receiveFeedback(String description, int rating) throws IllegalArgumentException {
         // Validate description: not empty
         if (description == null || description.trim().isEmpty()) {
-            throw new IllegalArgumentException("Description cannot be empty");
+            throw new IllegalArgumentException("Descrição não pode estar vazia");
         }
 
         // Validate description: minimum length
         int minLength = feedbackConfig.validation().descriptionMinLength();
         if (description.length() < minLength) {
             throw new IllegalArgumentException(
-                "Description must be at least " + minLength + " characters"
+                "Descrição deve ter no mínimo " + minLength + " caracteres"
             );
         }
 
@@ -104,7 +104,7 @@ public class ReceiveFeedbackUseCase {
         int ratingMin = feedbackConfig.validation().ratingMin();
         if (rating < ratingMin) {
             throw new IllegalArgumentException(
-                "Rating must be at least " + ratingMin
+                "Nota deve ser no mínimo " + ratingMin
             );
         }
 
@@ -112,7 +112,7 @@ public class ReceiveFeedbackUseCase {
         int ratingMax = feedbackConfig.validation().ratingMax();
         if (rating > ratingMax) {
             throw new IllegalArgumentException(
-                "Rating must be at most " + ratingMax
+                "Nota deve ser no máximo " + ratingMax
             );
         }
 

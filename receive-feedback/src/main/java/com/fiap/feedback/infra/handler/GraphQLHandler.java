@@ -79,7 +79,7 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             
             String body = event.getBody();
             if (body == null || body.isEmpty()) {
-                return badRequest("Request body cannot be empty");
+                return badRequest("O corpo da requisição não pode estar vazio");
             }
             
             // Parse GraphQL request
@@ -88,7 +88,7 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             String query = (String) graphqlRequest.get("query");
             
             if (query == null || query.isEmpty()) {
-                return badRequest("GraphQL query cannot be empty");
+                return badRequest("A consulta GraphQL não pode estar vazia");
             }
             
             LOGGER.log(Level.INFO, "GraphQL query received: " + query.substring(0, Math.min(100, query.length())));
@@ -147,7 +147,7 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
      */
     private APIGatewayProxyResponseEvent badRequest(String detail) {
         JsonObject errorDetail = Json.createObjectBuilder()
-            .add("title", "Bad Request")
+            .add("title", "Requisição inválida")
             .add("status", 400)
             .add("detail", detail)
             .build();
@@ -164,9 +164,9 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
      */
     private APIGatewayProxyResponseEvent internalServerError() {
         JsonObject errorDetail = Json.createObjectBuilder()
-            .add("title", "Internal Server Error")
+            .add("title", "Erro interno do servidor")
             .add("status", 500)
-            .add("detail", "An unexpected error occurred. Please try again later.")
+            .add("detail", "Ocorreu um erro inesperado. Tente novamente mais tarde.")
             .build();
         
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
