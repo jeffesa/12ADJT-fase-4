@@ -50,25 +50,25 @@ class LocalHttpRoutesTest {
 
     @Test
     void mapsMethodPathHeadersAndBodyToEvent() {
-        request(HttpMethod.POST, "/avaliacao",
+        request(HttpMethod.POST, "/v1/feedback",
                 MultiMap.caseInsensitiveMultiMap().add("Content-Type", "application/json").add("Authorization", "Bearer k"),
-                "{\"nota\":8}");
+                "{\"rating\":8}");
         MultiMap q = MultiMap.caseInsensitiveMultiMap().add("a", "1");
         when(ctx.queryParams()).thenReturn(q);
 
         APIGatewayProxyRequestEvent event = LocalHttpRoutes.toEvent(ctx);
 
         assertEquals("POST", event.getHttpMethod());
-        assertEquals("/avaliacao", event.getPath());
+        assertEquals("/v1/feedback", event.getPath());
         assertEquals("application/json", event.getHeaders().get("content-type"));
         assertEquals("Bearer k", event.getHeaders().get("authorization"));
-        assertEquals("{\"nota\":8}", event.getBody());
+        assertEquals("{\"rating\":8}", event.getBody());
         assertEquals(Map.of("a", "1"), event.getQueryStringParameters());
     }
 
     @Test
     void nullBodyStaysNull() {
-        request(HttpMethod.GET, "/avaliacao", MultiMap.caseInsensitiveMultiMap(), null);
+        request(HttpMethod.GET, "/v1/feedback", MultiMap.caseInsensitiveMultiMap(), null);
         when(ctx.body()).thenReturn(null);
 
         APIGatewayProxyRequestEvent event = LocalHttpRoutes.toEvent(ctx);
@@ -79,7 +79,7 @@ class LocalHttpRoutesTest {
 
     @Test
     void passesThroughStatusHeadersAndBody() {
-        request(HttpMethod.POST, "/avaliacao", MultiMap.caseInsensitiveMultiMap(), "{}");
+        request(HttpMethod.POST, "/v1/feedback", MultiMap.caseInsensitiveMultiMap(), "{}");
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent()
                 .withStatusCode(201).withHeaders(Map.of("Content-Type", "application/json")).withBody("{\"ok\":true}");
 
@@ -120,7 +120,7 @@ class LocalHttpRoutesTest {
 
     @Test
     void nullBodyAndHeadersInResponseBecomeEmptyBody() {
-        request(HttpMethod.GET, "/avaliacao", MultiMap.caseInsensitiveMultiMap(), null);
+        request(HttpMethod.GET, "/v1/feedback", MultiMap.caseInsensitiveMultiMap(), null);
 
         LocalHttpRoutes.handle(ctx, (e, c) -> new APIGatewayProxyResponseEvent().withStatusCode(204));
 
