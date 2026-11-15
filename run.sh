@@ -31,7 +31,7 @@ PROD_STACK="feedback-api-prod"
 DEV_STACK="feedback-api-dev"
 HTTP_PORT=8080
 MOCK_PORT=18081
-LOCAL_URL="http://localhost:${HTTP_PORT}/avaliacao"
+LOCAL_URL="http://localhost:${HTTP_PORT}/v1/feedback"
 MODULES="receive-feedback send-notification generate-report"
 MVN_FLAGS=(-B -Dquarkus.devservices.enabled=false)
 
@@ -179,8 +179,8 @@ local_up() {
 
   info "\n🚀 Subindo local-http (AWS_PROFILE=$AWS_PROFILE, região $AWS_REGION)"
   info "   Rotas em http://localhost:${HTTP_PORT}:"
-  info "     POST /avaliacao   cria feedback"
-  info "     GET  /avaliacao   lista feedbacks"
+  info "     POST /v1/feedback   cria feedback"
+  info "     GET  /v1/feedback   lista feedbacks"
   info "     POST /graphql     consulta GraphQL"
   info "   Todas as rotas exigem o header Authorization: Bearer <API_TOKEN>."
   info "   Mock Event Server do Lambda na porta ${MOCK_PORT}."

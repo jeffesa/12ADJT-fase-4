@@ -36,14 +36,12 @@ import com.fiap.feedback.domain.entity.Urgency;
 import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
 
 /**
- * Unit tests for ReceiveFeedbackHandler English v1 routes (POST and GET /v1/feedback)
- * and for the legacy /avaliacao contract staying unchanged.
+ * Unit tests for ReceiveFeedbackHandler English v1 routes (POST and GET /v1/feedback).
  */
 class ReceiveFeedbackHandlerV1Test {
 
     private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
     private static final String V1_PATH = "/v1/feedback";
-    private static final String LEGACY_PATH = "/avaliacao";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -207,7 +205,7 @@ class ReceiveFeedbackHandlerV1Test {
     }
 
     @Test
-    void v1RouteIsDetectedFromResourceWhenPathIsNull() throws Exception {
+    void v1GetWithResourceOnlyEventReturnsList() throws Exception {
         when(listFeedbackUseCase.listAllFeedbacks()).thenReturn(List.of());
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         event.setHttpMethod("GET");
@@ -218,21 +216,6 @@ class ReceiveFeedbackHandlerV1Test {
 
         assertEquals(200, response.getStatusCode());
         assertTrue(objectMapper.readTree(response.getBody()).has("feedbacks"));
-    }
-
-    @Test
-    void legacyPostStillReturnsPortugueseContract() throws Exception {
-        LocalDateTime createdAt = LocalDateTime.of(2024, 3, 15, 10, 30);
-        Feedback saved = new Feedback(UUID.randomUUID().toString(), "Good service", 7, Urgency.MEDIUM, createdAt, false);
-        when(receiveFeedbackUseCase.receiveFeedback("Good service", 7)).thenReturn(saved);
-
-        APIGatewayProxyResponseEvent response = handle("POST", LEGACY_PATH, "{\"descricao\":\"Good service\",\"nota\":7}", "Bearer test-token");
-
-        assertEquals(201, response.getStatusCode());
-        JsonNode feedback = objectMapper.readTree(response.getBody()).get("receiveFeedback");
-        assertEquals("Good service", feedback.get("descricao").asText());
-        assertEquals(7, feedback.get("nota").asInt());
-        assertEquals("MEDIUM", feedback.get("urgencia").asText());
     }
 
     private void assertBadRequest(APIGatewayProxyResponseEvent response, String detail) throws Exception {
