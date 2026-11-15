@@ -25,19 +25,23 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.application.usecase.ListFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
+import com.fiap.feedback.infra.dto.FeedbackInput;
+import com.fiap.feedback.infra.dto.FeedbackOutput;
 import com.fiap.feedback.infra.dto.InputOutputMapper;
 import com.fiap.feedback.infra.dto.ReceiveFeedbackInput;
 import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
 import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
 
 /**
- * AWS Lambda handler for REST API: /avaliacao (routes POST and GET).
+ * AWS Lambda handler for REST API: /avaliacao (routes POST and GET) and /v1/feedback (English, routes POST and GET).
  *
  * Requires "Authorization: Bearer <token>" (token from the API_TOKEN environment variable).
  * Without a valid token the request is rejected with 401 before any other processing.
  * 
  * POST /avaliacao → Create feedback (ReceiveFeedbackUseCase)
  * GET /avaliacao → List all feedbacks (ListFeedbackUseCase)
+ * POST /v1/feedback → Create feedback, English fields (ReceiveFeedbackUseCase)
+ * GET /v1/feedback → List all feedbacks, English fields (ListFeedbackUseCase)
  */
 @Named("receiveFeedback")
 public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -72,6 +76,16 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             var denied = authenticator.authenticate(event);
             if (denied.isPresent()) {
                 return denied.get();
+            }
+
+            if (isV1Feedback(event)) {
+                if ("GET".equals(method)) {
+                    return handleGetFeedbacksV1();
+                } else if ("POST".equals(method)) {
+                    return handlePostFeedbackV1(event);
+                } else {
+                    return methodNotAllowed();
+                }
             }
 
             if ("GET".equals(method)) {
@@ -193,10 +207,117 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     }
 
     /**
+     * True when the request targets the English v1 route (path or resource ends with /v1/feedback).
+     */
+    private static boolean isV1Feedback(APIGatewayProxyRequestEvent event) {
+        String path = event.getPath() != null ? event.getPath() : event.getResource();
+        return path != null && path.endsWith("/v1/feedback");
+    }
+
+    /**
+     * Handles GET /v1/feedback: list all feedbacks with English field names.
+     */
+    private APIGatewayProxyResponseEvent handleGetFeedbacksV1() {
+        LOGGER.log(Level.INFO, "GET /v1/feedback - listing all feedbacks");
+        
+        if (listFeedbackUseCase == null) {
+            throw new IllegalStateException("ListFeedbackUseCase not injected");
+        }
+        
+        List<Feedback> feedbacks = listFeedbackUseCase.listAllFeedbacks();
+        
+        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+        for (Feedback feedback : feedbacks) {
+            FeedbackOutput output = InputOutputMapper.toFeedbackOutput(feedback);
+            arrayBuilder.add(toFeedbackJson(output));
+        }
+        
+        JsonObject responseBody = Json.createObjectBuilder()
+            .add("feedbacks", arrayBuilder.build())
+            .add("total", feedbacks.size())
+            .build();
+        
+        LOGGER.log(Level.INFO, "Returned " + feedbacks.size() + " feedbacks");
+        
+        APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
+        response.setStatusCode(200);
+        response.setBody(responseBody.toString());
+        response.setHeaders(defaultHeaders());
+        return response;
+    }
+
+    /**
+     * Handles POST /v1/feedback: create feedback from English field names (description, rating).
+     */
+    private APIGatewayProxyResponseEvent handlePostFeedbackV1(APIGatewayProxyRequestEvent event) {
+        LOGGER.log(Level.INFO, "POST /v1/feedback - creating feedback");
+        
+        if (receiveFeedbackUseCase == null) {
+            throw new IllegalStateException("ReceiveFeedbackUseCase not injected");
+        }
+        if (validator == null) {
+            throw new IllegalStateException("Validator not injected");
+        }
+        
+        String body = event.getBody();
+        if (body == null || body.isEmpty()) {
+            return badRequest("Request body cannot be empty");
+        }
+        
+        FeedbackInput input;
+        try {
+            input = OBJECT_MAPPER.readValue(body, FeedbackInput.class);
+        } catch (JsonProcessingException e) {
+            LOGGER.log(Level.WARNING, "Invalid request body: " + e.getOriginalMessage());
+            return badRequest("Request body is not valid JSON or has fields of the wrong type");
+        }
+        if (input == null) {
+            return badRequest("Request body cannot be empty");
+        }
+        if (input.rating() == null) {
+            return badRequest("Rating is required");
+        }
+        LOGGER.log(Level.FINE, "Request parsed");
+        
+        var violations = validator.validate(input);
+        if (!violations.isEmpty()) {
+            return handleValidationViolations(violations);
+        }
+        
+        Feedback feedback = receiveFeedbackUseCase.receiveFeedback(
+            input.description(),
+            input.rating()
+        );
+        
+        FeedbackOutput output = InputOutputMapper.toFeedbackOutput(feedback);
+        
+        LOGGER.log(Level.INFO, "Feedback created: " + output.id());
+        
+        APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
+        response.setStatusCode(201);
+        response.setBody(toFeedbackJson(output).toString());
+        response.setHeaders(defaultHeaders());
+        return response;
+    }
+
+    /**
+     * Builds the English v1 JSON object for one feedback.
+     */
+    private static JsonObject toFeedbackJson(FeedbackOutput output) {
+        return Json.createObjectBuilder()
+            .add("id", output.id().toString())
+            .add("description", output.description())
+            .add("rating", output.rating())
+            .add("urgency", output.urgency())
+            .add("createdAt", output.createdAt().toString())
+            .build();
+    }
+
+    /**
      * Handles Bean Validation constraint violations.
      */
     private APIGatewayProxyResponseEvent handleValidationViolations(
-            java.util.Set<ConstraintViolation<ReceiveFeedbackInput>> violations) {
+            java.util.Set<? extends ConstraintViolation<?>> violations) {
         
         StringBuilder detail = new StringBuilder();
         for (ConstraintViolation<?> violation : violations) {

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 
 import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
+import com.fiap.feedback.infra.dto.FeedbackOutput;
 import com.fiap.feedback.infra.dto.InputOutputMapper;
 import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
 import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
@@ -93,6 +94,30 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             
             LOGGER.log(Level.INFO, "GraphQL query received: " + query.substring(0, Math.min(100, query.length())));
             
+            // English v1 query: listFeedbacks
+            if (query.toLowerCase().contains("listfeedbacks")) {
+                List<Feedback> feedbacks = receiveFeedbackUseCase.listarTodos();
+                
+                var feedbacksArray = feedbacks.stream()
+                    .map(InputOutputMapper::toFeedbackOutput)
+                    .map(GraphQLHandler::toFeedbackJson)
+                    .toList();
+                
+                JsonObject feedbacksResponse = Json.createObjectBuilder()
+                    .add("data", Json.createObjectBuilder()
+                        .add("listFeedbacks", Json.createArrayBuilder(feedbacksArray).build())
+                        .build())
+                    .build();
+                
+                LOGGER.log(Level.INFO, "GraphQL query executed successfully, returned " + feedbacks.size() + " feedbacks");
+                
+                APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
+                response.setStatusCode(200);
+                response.setBody(feedbacksResponse.toString());
+                response.setHeaders(defaultHeaders());
+                return response;
+            }
+            
             // For now, we only support listarAvaliacoes query
             if (!query.toLowerCase().contains("listaravali")) {
                 return badRequest("Only listarAvaliacoes query is currently supported");
@@ -138,6 +163,19 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
 
     void setAuthenticator(BearerTokenAuthenticator authenticator) {
         this.authenticator = authenticator;
+    }
+
+    /**
+     * Builds the English JSON object for one feedback (listFeedbacks).
+     */
+    private static JsonObject toFeedbackJson(FeedbackOutput output) {
+        return Json.createObjectBuilder()
+            .add("id", output.id().toString())
+            .add("description", output.description())
+            .add("rating", output.rating())
+            .add("urgency", output.urgency())
+            .add("createdAt", output.createdAt().toString())
+            .build();
     }
 
     /**

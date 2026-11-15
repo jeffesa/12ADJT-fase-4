@@ -39,4 +39,21 @@ public final class InputOutputMapper {
             feedback.getCreatedAt()
         );
     }
+
+    /**
+     * Converts a Feedback domain entity to a FeedbackOutput DTO (English v1 contract).
+     * 
+     * @param feedback the domain entity to convert
+     * @return a new FeedbackOutput DTO with all fields populated
+     * @throws NullPointerException if feedback is null
+     */
+    public static FeedbackOutput toFeedbackOutput(Feedback feedback) {
+        return new FeedbackOutput(
+            UUID.fromString(feedback.getId()),
+            feedback.getDescription(),
+            feedback.getRating(),
+            feedback.getUrgency().name(),
+            feedback.getCreatedAt()
+        );
+    }
 }
