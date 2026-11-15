@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FIAP Fase 4 - Feedback API",
-    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\nTodas as rotas exigem o header `Authorization: Bearer <token>`:\n- POST /v1/feedback: cria um feedback.\n- GET /v1/feedback: lista os feedbacks.\n- POST /graphql: consulta os feedbacks via GraphQL.\n\nSem token ou com token errado a API responde 401 (`Missing bearer token` ou `Invalid bearer token`).\nEntradas inválidas (rating ausente, rating não numérica, descrição ausente ou vazia, corpo vazio ou JSON malformado) retornam 400.\n\nVariáveis da collection (Bruno: Collection > Variables):\n- `localToken`: token do ambiente local (padrão local não secreto).\n- `prodToken`: token de produção. Fica vazio no arquivo; cole o valor do secret `API_TOKEN` apenas na sua máquina e não faça commit dele.\n- `localUrl` e `prodUrl`: URLs base de cada ambiente.\n\nPara subir o ambiente local: na raiz do repositório, rode `./run.sh local-up`.\n\nAtenção: requests com rating de 0 a 5 disparam SNS/email, e em produção gravam registros reais.",
+    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\nTodas as rotas exigem o header `Authorization: Bearer <token>`:\n- POST /v1/feedback: cria um feedback.\n- GET /v1/feedback: lista os feedbacks.\n- POST /v1/graphql: consulta os feedbacks via GraphQL.\n\nSem token ou com token errado a API responde 401 (`Missing bearer token` ou `Invalid bearer token`).\nEntradas inválidas (rating ausente, rating não numérica, descrição ausente ou vazia, corpo vazio ou JSON malformado) retornam 400.\n\nVariáveis da collection (Bruno: Collection > Variables):\n- `localToken`: token do ambiente local (padrão local não secreto).\n- `prodToken`: token de produção. Fica vazio no arquivo; cole o valor do secret `API_TOKEN` apenas na sua máquina e não faça commit dele.\n- `localUrl` e `prodUrl`: URLs base de cada ambiente.\n\nPara subir o ambiente local: na raiz do repositório, rode `./run.sh local-up`.\n\nAtenção: requests com rating de 0 a 5 disparam SNS/email, e em produção gravam registros reais.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -714,7 +714,7 @@
                   }
                 },
                 "url": {
-                  "raw": "{{localUrl}}/graphql",
+                  "raw": "{{localUrl}}/v1/graphql",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -795,7 +795,7 @@
               }
             },
             {
-              "name": "🔒 401 — POST /graphql sem token",
+              "name": "🔒 401 — POST /v1/graphql sem token",
               "event": [
                 {
                   "listen": "test",
@@ -817,7 +817,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{localUrl}}/graphql",
+                  "raw": "{{localUrl}}/v1/graphql",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -834,7 +834,7 @@
               }
             },
             {
-              "name": "🔒 401 — POST /graphql token inválido",
+              "name": "🔒 401 — POST /v1/graphql token inválido",
               "event": [
                 {
                   "listen": "test",
@@ -860,7 +860,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{localUrl}}/graphql",
+                  "raw": "{{localUrl}}/v1/graphql",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -1577,7 +1577,7 @@
                   }
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/graphql",
+                  "raw": "{{prodUrl}}/v1/graphql",
                   "host": [
                     "{{prodUrl}}"
                   ],
@@ -1658,7 +1658,7 @@
               }
             },
             {
-              "name": "🔒 401 — POST /graphql sem token",
+              "name": "🔒 401 — POST /v1/graphql sem token",
               "event": [
                 {
                   "listen": "test",
@@ -1680,7 +1680,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{prodUrl}}/graphql",
+                  "raw": "{{prodUrl}}/v1/graphql",
                   "host": [
                     "{{prodUrl}}"
                   ],
@@ -1697,7 +1697,7 @@
               }
             },
             {
-              "name": "🔒 401 — POST /graphql token inválido",
+              "name": "🔒 401 — POST /v1/graphql token inválido",
               "event": [
                 {
                   "listen": "test",
@@ -1723,7 +1723,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{prodUrl}}/graphql",
+                  "raw": "{{prodUrl}}/v1/graphql",
                   "host": [
                     "{{prodUrl}}"
                   ],
