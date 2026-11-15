@@ -138,7 +138,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         
         String body = event.getBody();
         if (body == null || body.isEmpty()) {
-            return badRequest("Request body cannot be empty");
+            return badRequest("O corpo da requisição não pode estar vazio");
         }
         
         FeedbackInput input;
@@ -146,13 +146,13 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             input = OBJECT_MAPPER.readValue(body, FeedbackInput.class);
         } catch (JsonProcessingException e) {
             LOGGER.log(Level.WARNING, "Invalid request body: " + e.getOriginalMessage());
-            return badRequest("Request body is not valid JSON or has fields of the wrong type");
+            return badRequest("O corpo da requisição não é JSON válido ou possui campos com tipo incorreto");
         }
         if (input == null) {
-            return badRequest("Request body cannot be empty");
+            return badRequest("O corpo da requisição não pode estar vazio");
         }
         if (input.rating() == null) {
-            return badRequest("Rating is required");
+            return badRequest("Nota é obrigatória");
         }
         LOGGER.log(Level.FINE, "Request parsed");
         
@@ -213,7 +213,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
      */
     private APIGatewayProxyResponseEvent badRequest(String detail) {
         JsonObject problemDetail = Json.createObjectBuilder()
-            .add("title", "Validation Error")
+            .add("title", "Erro de validação")
             .add("status", 400)
             .add("detail", detail)
             .build();
@@ -230,9 +230,9 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
      */
     private APIGatewayProxyResponseEvent methodNotAllowed() {
         JsonObject problemDetail = Json.createObjectBuilder()
-            .add("title", "Method Not Allowed")
+            .add("title", "Método não permitido")
             .add("status", 405)
-            .add("detail", "This endpoint supports only GET and POST methods")
+            .add("detail", "Este endpoint aceita apenas os métodos GET e POST")
             .build();
         
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
@@ -247,9 +247,9 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
      */
     private APIGatewayProxyResponseEvent internalServerError() {
         JsonObject problemDetail = Json.createObjectBuilder()
-            .add("title", "Internal Server Error")
+            .add("title", "Erro interno do servidor")
             .add("status", 500)
-            .add("detail", "An unexpected error occurred. Please try again later.")
+            .add("detail", "Ocorreu um erro inesperado. Tente novamente mais tarde.")
             .build();
         
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();

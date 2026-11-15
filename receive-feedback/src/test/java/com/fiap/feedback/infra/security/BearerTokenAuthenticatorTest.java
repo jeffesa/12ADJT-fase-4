@@ -45,38 +45,38 @@ class BearerTokenAuthenticatorTest {
         assertEquals("Bearer", response.getHeaders().get("WWW-Authenticate"));
         assertEquals("application/json", response.getHeaders().get("Content-Type"));
         JsonNode body = objectMapper.readTree(response.getBody());
-        assertEquals("Unauthorized", body.get("title").asText());
+        assertEquals("Não autorizado", body.get("title").asText());
         assertEquals(401, body.get("status").asInt());
         assertEquals(detail, body.get("detail").asText());
     }
 
     @Test
     void nullHeadersMapIsMissing() throws Exception {
-        assertUnauthorized(authenticator.authenticate(new APIGatewayProxyRequestEvent()), "Missing bearer token");
+        assertUnauthorized(authenticator.authenticate(new APIGatewayProxyRequestEvent()), "Token Bearer ausente");
     }
 
     @Test
     void emptyHeadersMapIsMissing() throws Exception {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         event.setHeaders(new HashMap<>());
-        assertUnauthorized(authenticator.authenticate(event), "Missing bearer token");
+        assertUnauthorized(authenticator.authenticate(event), "Token Bearer ausente");
     }
 
     @Test
     void emptyHeaderValueIsMissing() throws Exception {
-        assertUnauthorized(authenticator.authenticate(eventWith("Authorization", "")), "Missing bearer token");
+        assertUnauthorized(authenticator.authenticate(eventWith("Authorization", "")), "Token Bearer ausente");
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"Basic abc123", "Bearer", "Bearer ", "Bearer a b", "Bearerexpected-token-value-123"})
     void malformedSchemeIsMissing(String value) throws Exception {
-        assertUnauthorized(authenticator.authenticate(eventWith("Authorization", value)), "Missing bearer token");
+        assertUnauthorized(authenticator.authenticate(eventWith("Authorization", value)), "Token Bearer ausente");
     }
 
     @Test
     void wrongTokenIsInvalid() throws Exception {
         assertUnauthorized(authenticator.authenticate(eventWith("Authorization", "Bearer " + WRONG)),
-                "Invalid bearer token");
+                "Token Bearer inválido");
     }
 
     @Test
@@ -108,7 +108,7 @@ class BearerTokenAuthenticatorTest {
         headers.put("Authorization", "Bearer " + TOKEN);
         headers.put("authorization", "Bearer " + WRONG);
         event.setHeaders(headers);
-        assertUnauthorized(authenticator.authenticate(event), "Missing bearer token");
+        assertUnauthorized(authenticator.authenticate(event), "Token Bearer ausente");
     }
 
     @Test
@@ -175,7 +175,7 @@ class BearerTokenAuthenticatorTest {
             assertTrue(result.isPresent());
             assertEquals(500, result.get().getStatusCode());
             JsonNode body = objectMapper.readTree(result.get().getBody());
-            assertEquals("Authentication is not configured", body.get("detail").asText());
+            assertEquals("Autenticação não configurada", body.get("detail").asText());
             assertFalse(result.get().getBody().contains(TOKEN));
         }
         assertTrue(closed.authenticate(new APIGatewayProxyRequestEvent()).isPresent());

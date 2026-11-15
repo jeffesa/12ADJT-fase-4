@@ -165,7 +165,7 @@ class ReceiveFeedbackUseCaseTest {
             () -> useCase.receiveFeedback(emptyDescription, rating)
         );
         
-        assertEquals("Description cannot be empty", exception.getMessage());
+        assertEquals("Descrição não pode estar vazia", exception.getMessage());
         assertEquals(0, feedbackGateway.getSaveCallCount());
         assertEquals(0, urgencyPublisher.getPublishCallCount());
     }
@@ -180,7 +180,7 @@ class ReceiveFeedbackUseCaseTest {
             () -> useCase.receiveFeedback(null, rating)
         );
         
-        assertEquals("Description cannot be empty", exception.getMessage());
+        assertEquals("Descrição não pode estar vazia", exception.getMessage());
         assertEquals(0, feedbackGateway.getSaveCallCount());
         assertEquals(0, urgencyPublisher.getPublishCallCount());
     }
@@ -197,7 +197,7 @@ class ReceiveFeedbackUseCaseTest {
             () -> useCase.receiveFeedback(shortDescription, rating)
         );
         
-        assertTrue(exception.getMessage().contains("Description must be at least"));
+        assertTrue(exception.getMessage().contains("Descrição deve ter no mínimo"));
         assertEquals(0, feedbackGateway.getSaveCallCount());
         assertEquals(0, urgencyPublisher.getPublishCallCount());
     }
@@ -213,7 +213,7 @@ class ReceiveFeedbackUseCaseTest {
             () -> useCase.receiveFeedback(description, ratingBelowMin)
         );
         
-        assertTrue(exception.getMessage().contains("Rating must be at least"));
+        assertTrue(exception.getMessage().contains("Nota deve ser no mínimo"));
         assertEquals(0, feedbackGateway.getSaveCallCount());
         assertEquals(0, urgencyPublisher.getPublishCallCount());
     }
@@ -229,7 +229,7 @@ class ReceiveFeedbackUseCaseTest {
             () -> useCase.receiveFeedback(description, ratingAboveMax)
         );
         
-        assertTrue(exception.getMessage().contains("Rating must be at most"));
+        assertTrue(exception.getMessage().contains("Nota deve ser no máximo"));
         assertEquals(0, feedbackGateway.getSaveCallCount());
         assertEquals(0, urgencyPublisher.getPublishCallCount());
     }

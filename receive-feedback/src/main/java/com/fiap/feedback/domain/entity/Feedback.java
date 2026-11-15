@@ -41,11 +41,11 @@ public class Feedback {
             boolean notificationSent) {
         
         if (description == null || description.trim().isEmpty()) {
-            throw new IllegalArgumentException("Description cannot be empty or null");
+            throw new IllegalArgumentException("Descrição não pode estar vazia ou nula");
         }
         
         if (rating < 0 || rating > 10) {
-            throw new IllegalArgumentException("Rating must be between 0 and 10, received: " + rating);
+            throw new IllegalArgumentException("Nota deve estar entre 0 e 10; recebido: " + rating);
         }
         
         this.id = id;

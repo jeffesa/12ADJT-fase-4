@@ -52,8 +52,8 @@ public class UrgencyCalculator {
         
         if (rating < validation.ratingMin() || rating > validation.ratingMax()) {
             throw new IllegalArgumentException(
-                "Rating must be between " + validation.ratingMin() + " and " + validation.ratingMax() 
-                + ", received: " + rating
+                "Nota deve estar entre " + validation.ratingMin() + " e " + validation.ratingMax() 
+                + "; recebido: " + rating
             );
         }
 

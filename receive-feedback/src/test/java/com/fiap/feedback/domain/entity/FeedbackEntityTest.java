@@ -58,7 +58,7 @@ class FeedbackEntityTest {
             () -> new Feedback(id, "", 5, Urgency.HIGH, LocalDateTime.now(), false)
         );
         
-        assertTrue(exception.getMessage().contains("Description cannot be empty"));
+        assertTrue(exception.getMessage().contains("Descrição não pode estar vazia"));
     }
 
     @Test
@@ -71,7 +71,7 @@ class FeedbackEntityTest {
             () -> new Feedback(id, null, 5, Urgency.HIGH, LocalDateTime.now(), false)
         );
         
-        assertTrue(exception.getMessage().contains("Description cannot be empty"));
+        assertTrue(exception.getMessage().contains("Descrição não pode estar vazia"));
     }
 
     @Test
@@ -84,7 +84,7 @@ class FeedbackEntityTest {
             () -> new Feedback(id, "Valid description", -1, Urgency.HIGH, LocalDateTime.now(), false)
         );
         
-        assertTrue(exception.getMessage().contains("Rating must be between 0 and 10"));
+        assertTrue(exception.getMessage().contains("Nota deve estar entre 0 e 10"));
     }
 
     @Test
@@ -97,7 +97,7 @@ class FeedbackEntityTest {
             () -> new Feedback(id, "Valid description", 11, Urgency.LOW, LocalDateTime.now(), false)
         );
         
-        assertTrue(exception.getMessage().contains("Rating must be between 0 and 10"));
+        assertTrue(exception.getMessage().contains("Nota deve estar entre 0 e 10"));
     }
 
     @Test

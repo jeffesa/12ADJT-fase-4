@@ -26,17 +26,17 @@ class FeedbackInputValidationTest {
 
     @Test
     void blankDescriptionIsRejected() {
-        assertEquals(Set.of("Description cannot be empty"), messages(new FeedbackInput("   ", 7)));
+        assertEquals(Set.of("Descrição não pode estar vazia"), messages(new FeedbackInput("   ", 7)));
     }
 
     @Test
     void ratingAboveTenIsRejected() {
-        assertEquals(Set.of("Rating must be at most 10"), messages(new FeedbackInput("Good service", 11)));
+        assertEquals(Set.of("Nota deve ser no máximo 10"), messages(new FeedbackInput("Good service", 11)));
     }
 
     @Test
     void negativeRatingIsRejected() {
-        assertEquals(Set.of("Rating must be at least 0"), messages(new FeedbackInput("Good service", -1)));
+        assertEquals(Set.of("Nota deve ser no mínimo 0"), messages(new FeedbackInput("Good service", -1)));
     }
 
     private static Set<String> messages(FeedbackInput input) {

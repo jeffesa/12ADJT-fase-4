@@ -59,7 +59,7 @@ class GraphQLHandlerTest {
     void withoutTokenReturns401AndTouchesNothing() throws Exception {
         APIGatewayProxyResponseEvent response = handle(null, null, QUERY);
         assertEquals(401, response.getStatusCode());
-        assertEquals("Missing bearer token", objectMapper.readTree(response.getBody()).get("detail").asText());
+        assertEquals("Token Bearer ausente", objectMapper.readTree(response.getBody()).get("detail").asText());
         verifyNoInteractions(useCase);
     }
 
@@ -67,7 +67,7 @@ class GraphQLHandlerTest {
     void withInvalidTokenReturns401AndTouchesNothing() throws Exception {
         APIGatewayProxyResponseEvent response = handle("Authorization", "Bearer nope", QUERY);
         assertEquals(401, response.getStatusCode());
-        assertEquals("Invalid bearer token", objectMapper.readTree(response.getBody()).get("detail").asText());
+        assertEquals("Token Bearer inválido", objectMapper.readTree(response.getBody()).get("detail").asText());
         verifyNoInteractions(useCase);
     }
 
