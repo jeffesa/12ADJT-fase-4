@@ -55,7 +55,7 @@ If services aren't responding, check the module terminal outputs for errors and 
 **Objective**: Test that HIGH-urgency feedback (rating 0-5) triggers SNS publish → send-notification Lambda → SES email
 
 **Expected Behavior**:
-- Feedback saved to DynamoDB with `urgencia: HIGH`
+- Feedback saved to DynamoDB with `urgency: HIGH`
 - SNS message published to `feedback-urgent-topic`
 - Send-notification Lambda triggered
 - Email sent via SES to `admin@feedback-fase-4.com`
@@ -70,7 +70,7 @@ Using curl:
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "mutation { receiveFeedback(input: {descricao: \"Test critical feedback\", nota: 4}) { id descricao nota urgencia dataCriacao } }"
+    "query": "mutation { receiveFeedback(input: {description: \"Test critical feedback\", rating: 4}) { id description rating urgency createdAt } }"
   }'
 ```
 
@@ -81,10 +81,10 @@ curl -X POST http://localhost:8080/graphql \
   "data": {
     "receiveFeedback": {
       "id": "550e8400-e29b-41d4-a716-446655440000",
-      "descricao": "Test critical feedback",
-      "nota": 4,
-      "urgencia": "HIGH",
-      "dataCriacao": "2024-10-26T15:30:45.123Z"
+      "description": "Test critical feedback",
+      "rating": 4,
+      "urgency": "HIGH",
+      "createdAt": "2024-10-26T15:30:45.123Z"
     }
   }
 }
@@ -99,7 +99,7 @@ curl -X POST http://localhost:8080/graphql \
 docker compose exec localstack awslocal dynamodb scan \
   --table-name feedbacks \
   --region us-east-1 \
-  --output json | jq '.Items[] | {id: .feedbackId.S, nota: .nota.N, urgencia: .urgencia.S}'
+  --output json | jq '.Items[] | {id: .id.S, rating: .rating.N, urgency: .urgency.S}'
 ```
 
 **Expected Output**:
@@ -107,15 +107,15 @@ docker compose exec localstack awslocal dynamodb scan \
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
-  "nota": "4",
-  "urgencia": "HIGH"
+  "rating": "4",
+  "urgency": "HIGH"
 }
 ```
 
 **Verification**: 
 - ✅ Feedback found in table
-- ✅ `nota` is 4
-- ✅ `urgencia` is HIGH
+- ✅ `rating` is 4
+- ✅ `urgency` is HIGH
 
 ### Step 3: Verify SNS Message Published
 
@@ -187,7 +187,7 @@ Invocation: 550e8400-e29b-41d4-a716-446655440000 completed in 234ms
 **Objective**: Test that LOW-urgency feedback (rating 8-10) does NOT trigger SNS or email
 
 **Expected Behavior**:
-- Feedback saved to DynamoDB with `urgencia: LOW`
+- Feedback saved to DynamoDB with `urgency: LOW`
 - NO SNS message published
 - NO send-notification Lambda triggered
 - NO email sent
@@ -199,7 +199,7 @@ Invocation: 550e8400-e29b-41d4-a716-446655440000 completed in 234ms
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -d '{
-    "query": "mutation { receiveFeedback(input: {descricao: \"Test normal feedback\", nota: 9}) { id descricao nota urgencia dataCriacao } }"
+    "query": "mutation { receiveFeedback(input: {description: \"Test normal feedback\", rating: 9}) { id description rating urgency createdAt } }"
   }'
 ```
 
@@ -210,10 +210,10 @@ curl -X POST http://localhost:8080/graphql \
   "data": {
     "receiveFeedback": {
       "id": "660e8400-e29b-41d4-a716-446655440001",
-      "descricao": "Test normal feedback",
-      "nota": 9,
-      "urgencia": "LOW",
-      "dataCriacao": "2024-10-26T15:31:45.123Z"
+      "description": "Test normal feedback",
+      "rating": 9,
+      "urgency": "LOW",
+      "createdAt": "2024-10-26T15:31:45.123Z"
     }
   }
 }
@@ -225,7 +225,7 @@ curl -X POST http://localhost:8080/graphql \
 docker compose exec localstack awslocal dynamodb scan \
   --table-name feedbacks \
   --region us-east-1 \
-  --output json | jq '.Items[] | select(.urgencia.S == "LOW") | {id: .feedbackId.S, nota: .nota.N, urgencia: .urgencia.S}'
+  --output json | jq '.Items[] | select(.urgency.S == "LOW") | {id: .id.S, rating: .rating.N, urgency: .urgency.S}'
 ```
 
 **Expected Output**:
@@ -233,8 +233,8 @@ docker compose exec localstack awslocal dynamodb scan \
 ```json
 {
   "id": "660e8400-e29b-41d4-a716-446655440001",
-  "nota": "9",
-  "urgencia": "LOW"
+  "rating": "9",
+  "urgency": "LOW"
 }
 ```
 
@@ -256,8 +256,8 @@ That indicates LOW urgency feedback incorrectly triggered email. This is a bug.
 In the receive-feedback module (Terminal 1), you should see:
 
 ```
-Received feedback: nota=9, urgencia=LOW
-Saved to DynamoDB but NOT publishing to SNS (urgencia is not HIGH)
+Received feedback: rating=9, urgency=LOW
+Saved to DynamoDB but NOT publishing to SNS (urgency is not HIGH)
 ```
 
 **Verification**:
@@ -423,8 +423,8 @@ curl -v http://localhost:8080/q/health
 **Cause**: Schema not updated or field name incorrect
 
 **Solution**:
-1. Verify field names are exactly: `descricao`, `nota`, not English names
-2. Verify urgencia is calculated correctly (0-5=HIGH, 6-7=MEDIUM, 8-10=LOW)
+1. Verify field names are exactly: `description`, `rating`, `urgency`, `createdAt`
+2. Verify urgency is calculated correctly (0-5=HIGH, 6-7=MEDIUM, 8-10=LOW)
 3. Restart the module to reload schema
 
 ### Feedback Not Saved to DynamoDB
@@ -497,7 +497,7 @@ aws ses list-verified-email-addresses \
 
 1. **Test in sequence**: Always test Flow 1 before Flow 2, to have valid test data
 2. **Wait for async processing**: After Flow 1 submission, wait 2-3 seconds before checking SNS/SES
-3. **Check timestamps**: Verify `dataCriacao` is recent (within seconds of your test time)
+3. **Check timestamps**: Verify `createdAt` is recent (within seconds of your test time)
 4. **Reset state**: Use `./run.sh clean` between test cycles to get a fresh database
 5. **Monitor all terminals**: Keep Terminals 1, 2, 3 visible to catch errors immediately
 6. **Save responses**: Copy GraphQL responses to a file for your test results documentation

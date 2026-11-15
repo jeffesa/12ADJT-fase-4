@@ -8,7 +8,7 @@ This guide covers setting up the feedback-platform serverless application for lo
 
 LocalStack is a fully functional local AWS cloud stack that allows you to develop and test serverless applications without connecting to AWS. This platform uses:
 
-- **DynamoDB**: Stores feedback records with primary key (feedbackId, createdAt)
+- **DynamoDB**: Stores feedback records with primary key (id, createdAt)
 - **SNS**: Publishes notifications for high-urgency feedback to `feedback-urgent-topic`
 - **SQS**: Queues for asynchronous message processing
 - **SES**: Simulates email sending (mocked in LocalStack)
@@ -206,14 +206,14 @@ When LocalStack starts, the initialization script (`infra/localstack-init.sh`) a
 ### DynamoDB Table: `feedbacks`
 
 **Primary Key:**
-- Partition Key (HASH): `feedbackId` (String)
+- Partition Key (HASH): `id` (String)
 - Sort Key (RANGE): `createdAt` (String)
 
 **Attributes:**
-- `feedbackId`: UUID of the feedback (auto-generated)
-- `descricao`: Feedback description text
-- `nota`: Numeric rating (0-10)
-- `urgencia`: Urgency level (HIGH, MEDIUM, LOW)
+- `id`: UUID of the feedback (auto-generated)
+- `description`: Feedback description text
+- `rating`: Numeric rating (0-10)
+- `urgency`: Urgency level (HIGH, MEDIUM, LOW)
 - `createdAt`: ISO 8601 timestamp
 
 **Billing Mode**: Pay-per-request (no provisioned capacity needed)

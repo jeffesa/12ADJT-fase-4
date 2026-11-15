@@ -27,7 +27,7 @@ import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
 
 class GraphQLHandlerTest {
 
-    private static final String QUERY = "{\"query\":\"query { listarAvaliacoes { id } }\"}";
+    private static final String QUERY = "{\"query\":\"query { listFeedbacks { id } }\"}";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private GraphQLHandler handler;
@@ -85,7 +85,7 @@ class GraphQLHandlerTest {
         when(useCase.listAllFeedbacks()).thenReturn(List.of(feedback));
         APIGatewayProxyResponseEvent response = handle("authorization", "Bearer test-token", QUERY);
         assertEquals(200, response.getStatusCode());
-        JsonNode list = objectMapper.readTree(response.getBody()).get("data").get("listarAvaliacoes");
+        JsonNode list = objectMapper.readTree(response.getBody()).get("data").get("listFeedbacks");
         assertEquals(1, list.size());
         verify(useCase).listAllFeedbacks();
     }

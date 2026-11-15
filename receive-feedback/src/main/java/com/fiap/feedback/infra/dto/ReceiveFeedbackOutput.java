@@ -14,32 +14,32 @@ import org.eclipse.microprofile.graphql.Name;
  * and the Lambda handler. It is populated from a Feedback domain entity
  * and contains the normalized representation of the feedback data.
  * 
- * The components keep the legacy external names "descricao", "nota", "urgencia"
- * and "dataCriacao" in JSON and in the GraphQL schema through the annotations below.
+ * The components use the English names "description", "rating", "urgency" and "createdAt"
+ * in JSON and in the GraphQL schema through the annotations below, the same format as FeedbackOutput.
  * 
  * @param id the unique feedback identifier as a UUID
- * @param description the feedback description text (JSON and GraphQL name: descricao)
- * @param rating the numeric rating (0-10) (JSON and GraphQL name: nota)
- * @param urgency the urgency level as the enum name (HIGH, MEDIUM, LOW) (JSON and GraphQL name: urgencia)
- * @param createdAt the creation timestamp in ISO 8601 format (JSON and GraphQL name: dataCriacao)
+ * @param description the feedback description text (JSON and GraphQL name: description)
+ * @param rating the numeric rating (0-10) (JSON and GraphQL name: rating)
+ * @param urgency the urgency level as the enum name (HIGH, MEDIUM, LOW) (JSON and GraphQL name: urgency)
+ * @param createdAt the creation timestamp in ISO 8601 format (JSON and GraphQL name: createdAt)
  */
 public record ReceiveFeedbackOutput(
         UUID id,
-        @Name("descricao")
-        @JsonProperty("descricao")
-        @JsonbProperty("descricao")
+        @Name("description")
+        @JsonProperty("description")
+        @JsonbProperty("description")
         String description,
-        @Name("nota")
-        @JsonProperty("nota")
-        @JsonbProperty("nota")
+        @Name("rating")
+        @JsonProperty("rating")
+        @JsonbProperty("rating")
         Integer rating,
-        @Name("urgencia")
-        @JsonProperty("urgencia")
-        @JsonbProperty("urgencia")
+        @Name("urgency")
+        @JsonProperty("urgency")
+        @JsonbProperty("urgency")
         String urgency,
-        @Name("dataCriacao")
-        @JsonProperty("dataCriacao")
-        @JsonbProperty("dataCriacao")
+        @Name("createdAt")
+        @JsonProperty("createdAt")
+        @JsonbProperty("createdAt")
         LocalDateTime createdAt
 ) {
 }
