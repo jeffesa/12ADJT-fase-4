@@ -1,13 +1,13 @@
 version = 0.1
 
-# ATENÇÃO: os e-mails abaixo (example.com) são PLACEHOLDERS e DEVEM ser sobrescritos no deploy manual.
-# Ao usar --parameter-overrides na linha de comando, ele SUBSTITUI a string inteira de
-# parameter_overrides deste arquivo: repita Environment, AdminEmail, SenderEmail, ApiToken e Region.
-# O parâmetro ApiToken fica DE PROPÓSITO fora deste arquivo: é um segredo e nunca deve ser versionado.
-# Exemplo (prod):
+# WARNING: the emails below (example.com) are PLACEHOLDERS and MUST be overridden in the manual deploy.
+# When --parameter-overrides is used on the command line, it REPLACES the entire
+# parameter_overrides string in this file: repeat Environment, AdminEmail, SenderEmail, ApiToken and Region.
+# The ApiToken parameter is intentionally kept out of this file: it is a secret and must never be committed.
+# Example (prod):
 #   sam deploy --config-env prod --parameter-overrides \
 #     "Environment=prod AdminEmail=<email> SenderEmail=<email> ApiToken=<token> Region=sa-east-1"
-# Passo a passo completo: docs/deploy/AWS_DEPLOY_GUIDE.md
+# Full step-by-step guide: docs/deploy/AWS_DEPLOY_GUIDE.md
 
 #========================================
 # DEV ENVIRONMENT PROFILE

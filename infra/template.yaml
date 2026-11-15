@@ -440,7 +440,7 @@ Resources:
         Project: FIAP-Fase-4
 
   #========================================
-  # API GATEWAY USAGE PLAN & API KEY (REMOVIDO - causava Stage not found error)
+  # API GATEWAY USAGE PLAN & API KEY (REMOVED - caused the Stage not found error)
   #========================================
 
   # Grant Lambda permission to be invoked by API Gateway
