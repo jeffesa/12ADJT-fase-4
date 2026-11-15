@@ -52,8 +52,8 @@ public class ReceiveFeedbackQueryResolver {
      * @return the list of ReceiveFeedbackOutput DTOs containing all feedbacks
      * @throws Exception if the use case or gateway encounters an error
      */
-    @Query
-    public List<ReceiveFeedbackOutput> listarAvaliacoes() {
+    @Query("listarAvaliacoes")
+    public List<ReceiveFeedbackOutput> listLegacyFeedbacks() {
         LOGGER.log(Level.INFO, "GraphQL query listarAvaliacoes called");
         
         try {
