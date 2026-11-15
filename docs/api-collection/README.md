@@ -68,17 +68,16 @@ The collection has two folders: **local** and **prod**. Each contains the same t
 ### Test Cases in "Criar Avaliação"
 | Request | Rating | Urgency | Note |
 |---------|--------|---------|------|
-| ✅ 201 — rating 1 (urgência HIGH) | 1 | HIGH | Captures feedback ID for future list queries |
-| ✅ 201 — rating 6 (urgência MEDIUM) | 6 | MEDIUM | Mid-range feedback |
-| ✅ 201 — rating 9 (urgência LOW) | 9 | LOW | High satisfaction |
-| ✅ 201 — rating 0 (boundary, urgência HIGH) | 0 | HIGH | Boundary: minimum valid rating |
-| ✅ 201 — rating 10 (boundary, urgência LOW) | 10 | LOW | Boundary: maximum valid rating |
+| rating 1 | 1 | HIGH | Captures feedback ID for future list queries |
+| rating 6 | 6 | MEDIUM | Mid-range feedback |
+| rating 9 | 9 | LOW | High satisfaction |
+| rating 0 | 0 | HIGH | Boundary: minimum valid rating |
+| rating 10 | 10 | LOW | Boundary: maximum valid rating |
 
 ### Test Cases in "Listar Avaliações"
 | Request | Purpose | Response |
 |---------|---------|----------|
-| ✅ 200 — GET all feedbacks (prod) / ✅ 200 — GET /v1/feedback com token (local) | List all feedbacks stored in DynamoDB | HTTP 200 with `feedbacks` array and `total` |
-| listFeedbacks - Query all feedbacks | Same data through GraphQL | HTTP 200 with `data.listFeedbacks` array |
+| listFeedbacks | Query all feedbacks stored in DynamoDB | HTTP 200 with `data.listFeedbacks` array |
 
 **Test Assertions (listFeedbacks):**
 - ✅ Status code 200
@@ -92,13 +91,13 @@ The collection has two folders: **local** and **prod**. Each contains the same t
 #### Error Cases (HTTP 400 — RFC 7807 Problem Detail)
 | Request | Issue | Error Field |
 |---------|-------|------------|
-| ❌ 400 — rating -1 (inválida) | Rating below minimum | `detail` contains "must be at least 0" |
-| ❌ 400 — rating 11 (inválida) | Rating above maximum | `detail` contains "must be at most 10" |
-| ❌ 400 — descrição vazia | Empty string | `detail` contains "cannot be empty" |
-| ❌ 400 — descrição com espaços apenas | Whitespace only | `detail` contains blank-check violation |
-| ❌ 400 — rating ausente | Missing field | HTTP 400 — field required |
-| ❌ 400 — descrição ausente | Missing field | HTTP 400 — field required |
-| ❌ 400 — rating como string | Type mismatch | HTTP 400 — number expected |
+| rating -1 | Rating below minimum | `detail` contains "must be at least 0" |
+| rating 11 | Rating above maximum | `detail` contains "must be at most 10" |
+| descrição vazia | Empty string | `detail` contains "cannot be empty" |
+| descrição com espaços | Whitespace only | `detail` contains blank-check violation |
+| rating ausente | Missing field | HTTP 400 — field required |
+| descrição ausente | Missing field | HTTP 400 — field required |
+| rating como string | Type mismatch | HTTP 400 — number expected |
 
 ---
 
