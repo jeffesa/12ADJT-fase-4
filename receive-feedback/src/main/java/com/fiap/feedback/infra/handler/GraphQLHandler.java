@@ -134,10 +134,10 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             var feedbacksArray = outputList.stream()
                 .map(output -> Json.createObjectBuilder()
                     .add("id", output.id().toString())
-                    .add("descricao", output.descricao())
-                    .add("nota", output.nota())
-                    .add("urgencia", output.urgencia())
-                    .add("dataCriacao", output.dataCriacao().toString())
+                    .add("descricao", output.description())
+                    .add("nota", output.rating())
+                    .add("urgencia", output.urgency())
+                    .add("dataCriacao", output.createdAt().toString())
                     .build())
                 .toList();
             

@@ -37,10 +37,10 @@ class InputOutputMapperTest {
         // Assert
         assertNotNull(output);
         assertEquals(UUID.fromString(id), output.id());
-        assertEquals(description, output.descricao());
-        assertEquals(rating, output.nota());
-        assertEquals("LOW", output.urgencia());
-        assertEquals(createdAt, output.dataCriacao());
+        assertEquals(description, output.description());
+        assertEquals(rating, output.rating());
+        assertEquals("LOW", output.urgency());
+        assertEquals(createdAt, output.createdAt());
     }
 
     @Test
@@ -58,7 +58,7 @@ class InputOutputMapperTest {
         ReceiveFeedbackOutput output = InputOutputMapper.toOutput(feedback);
         
         // Assert
-        assertEquals("HIGH", output.urgencia());
+        assertEquals("HIGH", output.urgency());
     }
 
     @Test
@@ -76,7 +76,7 @@ class InputOutputMapperTest {
         ReceiveFeedbackOutput output = InputOutputMapper.toOutput(feedback);
         
         // Assert
-        assertEquals("MEDIUM", output.urgencia());
+        assertEquals("MEDIUM", output.urgency());
     }
 
     @Test
@@ -93,8 +93,8 @@ class InputOutputMapperTest {
         ReceiveFeedbackOutput output = InputOutputMapper.toOutput(feedback);
         
         // Assert
-        assertEquals(0, output.nota());
-        assertEquals("HIGH", output.urgencia());
+        assertEquals(0, output.rating());
+        assertEquals("HIGH", output.urgency());
 
         // Test max rating
         id = UUID.randomUUID().toString();
@@ -104,8 +104,8 @@ class InputOutputMapperTest {
         Feedback feedbackMax = new Feedback(id, maxDescription, maxRating, Urgency.LOW, now, false);
         ReceiveFeedbackOutput outputMax = InputOutputMapper.toOutput(feedbackMax);
         
-        assertEquals(10, outputMax.nota());
-        assertEquals("LOW", outputMax.urgencia());
+        assertEquals(10, outputMax.rating());
+        assertEquals("LOW", outputMax.urgency());
     }
 
     @Test
@@ -148,7 +148,7 @@ class InputOutputMapperTest {
         ReceiveFeedbackOutput output = InputOutputMapper.toOutput(feedback);
         
         // Assert: Timestamp is preserved exactly
-        assertEquals(specificTime, output.dataCriacao());
+        assertEquals(specificTime, output.createdAt());
     }
 
     @Test
@@ -179,17 +179,17 @@ class InputOutputMapperTest {
         
         // Assert: All 5 fields are populated
         assertNotNull(output.id(), "ID must be mapped");
-        assertNotNull(output.descricao(), "Description must be mapped");
-        assertNotNull(output.nota(), "Rating must be mapped");
-        assertNotNull(output.urgencia(), "Urgency must be mapped");
-        assertNotNull(output.dataCriacao(), "CreatedAt must be mapped");
+        assertNotNull(output.description(), "Description must be mapped");
+        assertNotNull(output.rating(), "Rating must be mapped");
+        assertNotNull(output.urgency(), "Urgency must be mapped");
+        assertNotNull(output.createdAt(), "CreatedAt must be mapped");
         
         // Verify values
         assertEquals(UUID.fromString(id), output.id());
-        assertEquals(description, output.descricao());
-        assertEquals(rating, output.nota());
-        assertEquals("MEDIUM", output.urgencia());
-        assertEquals(now, output.dataCriacao());
+        assertEquals(description, output.description());
+        assertEquals(rating, output.rating());
+        assertEquals("MEDIUM", output.urgency());
+        assertEquals(now, output.createdAt());
     }
 
     @Test
@@ -211,7 +211,7 @@ class InputOutputMapperTest {
         ReceiveFeedbackOutput output = InputOutputMapper.toOutput(feedback);
         
         // Assert: Description is preserved exactly
-        assertEquals(specialDescription, output.descricao());
+        assertEquals(specialDescription, output.description());
     }
 
     @Test
@@ -234,7 +234,7 @@ class InputOutputMapperTest {
         
         // Assert: Mapping works regardless of notificationSent value
         assertNotNull(output);
-        assertEquals("Processed feedback", output.descricao());
-        assertEquals(Urgency.HIGH.name(), output.urgencia());
+        assertEquals("Processed feedback", output.description());
+        assertEquals(Urgency.HIGH.name(), output.urgency());
     }
 }

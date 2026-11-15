@@ -37,7 +37,7 @@ class ReceiveFeedbackQueryResolverTest {
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         // Act
-        List<ReceiveFeedbackOutput> result = resolver.listarAvaliacoes();
+        List<ReceiveFeedbackOutput> result = resolver.listLegacyFeedbacks();
 
         // Assert
         assertNotNull(result);
@@ -57,7 +57,7 @@ class ReceiveFeedbackQueryResolverTest {
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         // Act
-        List<ReceiveFeedbackOutput> result = resolver.listarAvaliacoes();
+        List<ReceiveFeedbackOutput> result = resolver.listLegacyFeedbacks();
 
         // Assert
         assertNotNull(result);
@@ -65,10 +65,10 @@ class ReceiveFeedbackQueryResolverTest {
         
         ReceiveFeedbackOutput output = result.get(0);
         assertEquals(UUID.fromString(feedbackId), output.id());
-        assertEquals("Good service", output.descricao());
-        assertEquals(7, output.nota());
-        assertEquals("MEDIUM", output.urgencia());
-        assertEquals(now, output.dataCriacao());
+        assertEquals("Good service", output.description());
+        assertEquals(7, output.rating());
+        assertEquals("MEDIUM", output.urgency());
+        assertEquals(now, output.createdAt());
     }
 
     @Test
@@ -110,26 +110,26 @@ class ReceiveFeedbackQueryResolverTest {
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         // Act
-        List<ReceiveFeedbackOutput> result = resolver.listarAvaliacoes();
+        List<ReceiveFeedbackOutput> result = resolver.listLegacyFeedbacks();
 
         // Assert: All three feedbacks are returned
         assertNotNull(result);
         assertEquals(3, result.size());
         
         // Verify HIGH urgency
-        assertEquals("HIGH", result.get(0).urgencia());
-        assertEquals(4, result.get(0).nota());
-        assertEquals("Bad experience", result.get(0).descricao());
+        assertEquals("HIGH", result.get(0).urgency());
+        assertEquals(4, result.get(0).rating());
+        assertEquals("Bad experience", result.get(0).description());
         
         // Verify MEDIUM urgency
-        assertEquals("MEDIUM", result.get(1).urgencia());
-        assertEquals(6, result.get(1).nota());
-        assertEquals("Okay service", result.get(1).descricao());
+        assertEquals("MEDIUM", result.get(1).urgency());
+        assertEquals(6, result.get(1).rating());
+        assertEquals("Okay service", result.get(1).description());
         
         // Verify LOW urgency
-        assertEquals("LOW", result.get(2).urgencia());
-        assertEquals(9, result.get(2).nota());
-        assertEquals("Excellent service", result.get(2).descricao());
+        assertEquals("LOW", result.get(2).urgency());
+        assertEquals(9, result.get(2).rating());
+        assertEquals("Excellent service", result.get(2).description());
     }
 
     @Test
@@ -148,7 +148,7 @@ class ReceiveFeedbackQueryResolverTest {
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         // Act
-        List<ReceiveFeedbackOutput> result = resolver.listarAvaliacoes();
+        List<ReceiveFeedbackOutput> result = resolver.listLegacyFeedbacks();
 
         // Assert: All fields are mapped correctly
         assertNotNull(result);
@@ -156,10 +156,10 @@ class ReceiveFeedbackQueryResolverTest {
         
         ReceiveFeedbackOutput output = result.get(0);
         assertEquals(UUID.fromString(feedbackId), output.id());
-        assertEquals(description, output.descricao());
-        assertEquals(rating, output.nota());
-        assertEquals(urgency.name(), output.urgencia());
-        assertEquals(createdAt, output.dataCriacao());
+        assertEquals(description, output.description());
+        assertEquals(rating, output.rating());
+        assertEquals(urgency.name(), output.urgency());
+        assertEquals(createdAt, output.createdAt());
     }
 
     @Test
@@ -170,7 +170,7 @@ class ReceiveFeedbackQueryResolverTest {
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         // Act
-        List<ReceiveFeedbackOutput> result = resolver.listarAvaliacoes();
+        List<ReceiveFeedbackOutput> result = resolver.listLegacyFeedbacks();
 
         // Assert: Result is never null
         assertNotNull(result);
@@ -184,7 +184,7 @@ class ReceiveFeedbackQueryResolverTest {
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         // Act
-        resolver.listarAvaliacoes();
+        resolver.listLegacyFeedbacks();
 
         // Assert: Gateway's findAll was invoked
         assertTrue(gateway.wasQueryCalled());
@@ -200,15 +200,15 @@ class ReceiveFeedbackQueryResolverTest {
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         // Act
-        List<ReceiveFeedbackOutput> result = resolver.listarAvaliacoes();
+        List<ReceiveFeedbackOutput> result = resolver.listLegacyFeedbacks();
 
         // Assert: All output fields are accessible and non-null
         ReceiveFeedbackOutput output = result.get(0);
         assertNotNull(output.id());
-        assertNotNull(output.descricao());
-        assertNotNull(output.nota());
-        assertNotNull(output.urgencia());
-        assertNotNull(output.dataCriacao());
+        assertNotNull(output.description());
+        assertNotNull(output.rating());
+        assertNotNull(output.urgency());
+        assertNotNull(output.createdAt());
     }
 
     @Test
@@ -225,12 +225,12 @@ class ReceiveFeedbackQueryResolverTest {
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         // Act
-        List<ReceiveFeedbackOutput> result = resolver.listarAvaliacoes();
+        List<ReceiveFeedbackOutput> result = resolver.listLegacyFeedbacks();
 
         // Assert: Order is preserved
-        assertEquals("First", result.get(0).descricao());
-        assertEquals("Second", result.get(1).descricao());
-        assertEquals("Third", result.get(2).descricao());
+        assertEquals("First", result.get(0).description());
+        assertEquals("Second", result.get(1).description());
+        assertEquals("Third", result.get(2).description());
     }
 
     @Test
@@ -246,7 +246,7 @@ class ReceiveFeedbackQueryResolverTest {
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         // Act
-        List<ReceiveFeedbackOutput> result = resolver.listarAvaliacoes();
+        List<ReceiveFeedbackOutput> result = resolver.listLegacyFeedbacks();
 
         // Assert
         assertNotNull(result);
@@ -263,7 +263,7 @@ class ReceiveFeedbackQueryResolverTest {
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         // Act
-        List<ReceiveFeedbackOutput> result = resolver.listarAvaliacoes();
+        List<ReceiveFeedbackOutput> result = resolver.listLegacyFeedbacks();
 
         // Assert: ID is a valid UUID
         UUID id = result.get(0).id();
@@ -285,23 +285,23 @@ class ReceiveFeedbackQueryResolverTest {
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         // Act
-        List<ReceiveFeedbackOutput> result = resolver.listarAvaliacoes();
+        List<ReceiveFeedbackOutput> result = resolver.listLegacyFeedbacks();
 
         // Assert: Urgency is enum name string (HIGH, MEDIUM, LOW)
         assertTrue(
-            result.get(0).urgencia().equals("HIGH") ||
-            result.get(0).urgencia().equals("MEDIUM") ||
-            result.get(0).urgencia().equals("LOW")
+            result.get(0).urgency().equals("HIGH") ||
+            result.get(0).urgency().equals("MEDIUM") ||
+            result.get(0).urgency().equals("LOW")
         );
         assertTrue(
-            result.get(1).urgencia().equals("HIGH") ||
-            result.get(1).urgencia().equals("MEDIUM") ||
-            result.get(1).urgencia().equals("LOW")
+            result.get(1).urgency().equals("HIGH") ||
+            result.get(1).urgency().equals("MEDIUM") ||
+            result.get(1).urgency().equals("LOW")
         );
         assertTrue(
-            result.get(2).urgencia().equals("HIGH") ||
-            result.get(2).urgencia().equals("MEDIUM") ||
-            result.get(2).urgencia().equals("LOW")
+            result.get(2).urgency().equals("HIGH") ||
+            result.get(2).urgency().equals("MEDIUM") ||
+            result.get(2).urgency().equals("LOW")
         );
     }
 
@@ -311,7 +311,7 @@ class ReceiveFeedbackQueryResolverTest {
         when(useCase.listAllFeedbacks()).thenThrow(new IllegalStateException("Scan failed"));
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
-        IllegalStateException error = assertThrows(IllegalStateException.class, resolver::listarAvaliacoes);
+        IllegalStateException error = assertThrows(IllegalStateException.class, resolver::listLegacyFeedbacks);
 
         assertEquals("Scan failed", error.getMessage());
     }
