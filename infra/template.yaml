@@ -294,7 +294,7 @@ Resources:
 
   # GraphQL Handler (Bearer auth)
   # Triggered by: API Gateway POST /graphql
-  # Actions: Query DynamoDB via listarAvaliacoes
+  # Actions: Query DynamoDB via listFeedbacks
   GraphQLFunction:
     Type: AWS::Serverless::Function
     Properties:

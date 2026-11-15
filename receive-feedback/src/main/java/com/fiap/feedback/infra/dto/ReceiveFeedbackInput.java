@@ -14,23 +14,23 @@ import org.eclipse.microprofile.graphql.Name;
  * It carries the user-provided feedback data with validation constraints applied
  * via Jakarta Bean Validation annotations.
  * 
- * The components keep the legacy external names "descricao" and "nota" in JSON
+ * The components use the English names "description" and "rating" in JSON
  * and in the GraphQL schema through the annotations below.
  * 
- * @param description the feedback description text; must not be blank (JSON and GraphQL name: descricao)
- * @param rating the numeric rating; must be between 0 and 10 (inclusive) (JSON and GraphQL name: nota)
+ * @param description the feedback description text; must not be blank (JSON and GraphQL name: description)
+ * @param rating the numeric rating; must be between 0 and 10 (inclusive) (JSON and GraphQL name: rating)
  */
 public record ReceiveFeedbackInput(
         @NotBlank(message = "Description cannot be empty")
-        @Name("descricao")
-        @JsonProperty("descricao")
-        @JsonbProperty("descricao")
+        @Name("description")
+        @JsonProperty("description")
+        @JsonbProperty("description")
         String description,
         @Min(value = 0, message = "Rating must be at least 0")
         @Max(value = 10, message = "Rating must be at most 10")
-        @Name("nota")
-        @JsonProperty("nota")
-        @JsonbProperty("nota")
+        @Name("rating")
+        @JsonProperty("rating")
+        @JsonbProperty("rating")
         Integer rating
 ) {
 }

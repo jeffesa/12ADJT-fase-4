@@ -22,14 +22,13 @@ import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
 import com.fiap.feedback.infra.dto.FeedbackOutput;
 import com.fiap.feedback.infra.dto.InputOutputMapper;
-import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
 import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
 
 /**
  * AWS Lambda handler for GraphQL API: POST /graphql (requires Bearer authentication).
  * 
  * Requires Bearer token authentication via header.
- * It supports GraphQL queries for listing feedbacks.
+ * It supports the GraphQL query listFeedbacks.
  * 
  * Authentication: "Authorization: Bearer <token>" must match environment variable API_TOKEN
  * 
@@ -37,7 +36,7 @@ import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
  * QuarkusStreamHandler. The Quarkus entry point (QuarkusStreamHandler::handleRequest)
  * ensures Arc CDI is fully initialized before delegating to this handler.
  * 
- * Request: POST /graphql with Authorization: Bearer header and {"query": "query { listarAvaliacoes { ... } }"}
+ * Request: POST /graphql with Authorization: Bearer header and {"query": "query { listFeedbacks { ... } }"}
  * 
  * Response codes:
  * - 200 OK: GraphQL query executed successfully
@@ -118,42 +117,7 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
                 return response;
             }
             
-            // For now, we only support listarAvaliacoes query
-            if (!query.toLowerCase().contains("listaravali")) {
-                return badRequest("Only listarAvaliacoes query is currently supported");
-            }
-            
-            // Call use case to list all feedbacks
-            List<Feedback> feedbacks = receiveFeedbackUseCase.listAllFeedbacks();
-            
-            List<ReceiveFeedbackOutput> outputList = feedbacks.stream()
-                .map(InputOutputMapper::toOutput)
-                .toList();
-            
-            // Build GraphQL response
-            var feedbacksArray = outputList.stream()
-                .map(output -> Json.createObjectBuilder()
-                    .add("id", output.id().toString())
-                    .add("descricao", output.description())
-                    .add("nota", output.rating())
-                    .add("urgencia", output.urgency())
-                    .add("dataCriacao", output.createdAt().toString())
-                    .build())
-                .toList();
-            
-            JsonObject responseBody = Json.createObjectBuilder()
-                .add("data", Json.createObjectBuilder()
-                    .add("listarAvaliacoes", Json.createArrayBuilder(feedbacksArray).build())
-                    .build())
-                .build();
-            
-            LOGGER.log(Level.INFO, "GraphQL query executed successfully, returned " + outputList.size() + " feedbacks");
-            
-            APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
-            response.setStatusCode(200);
-            response.setBody(responseBody.toString());
-            response.setHeaders(defaultHeaders());
-            return response;
+            return badRequest("Consulta GraphQL não suportada. Use a consulta listFeedbacks.");
             
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error in GraphQL handler: " + e.getMessage(), e);
