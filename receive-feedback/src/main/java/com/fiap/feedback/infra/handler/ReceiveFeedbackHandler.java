@@ -170,7 +170,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         if (input == null) {
             return badRequest("Request body cannot be empty");
         }
-        if (input.nota() == null) {
+        if (input.rating() == null) {
             return badRequest("Rating is required");
         }
         LOGGER.log(Level.FINE, "Request parsed");
@@ -181,8 +181,8 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         }
         
         Feedback feedback = receiveFeedbackUseCase.receiveFeedback(
-            input.descricao(),
-            input.nota()
+            input.description(),
+            input.rating()
         );
         
         ReceiveFeedbackOutput output = InputOutputMapper.toOutput(feedback);
@@ -190,10 +190,10 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         JsonObject responseBody = Json.createObjectBuilder()
             .add("receiveFeedback", Json.createObjectBuilder()
                 .add("id", output.id().toString())
-                .add("descricao", output.descricao())
-                .add("nota", output.nota())
-                .add("urgencia", output.urgencia())
-                .add("dataCriacao", output.dataCriacao().toString())
+                .add("descricao", output.description())
+                .add("nota", output.rating())
+                .add("urgencia", output.urgency())
+                .add("dataCriacao", output.createdAt().toString())
                 .build())
             .build();
         
