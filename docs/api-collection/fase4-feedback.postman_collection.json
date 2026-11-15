@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "FIAP Fase 4 - Feedback API",
-    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\nTodas as rotas exigem o header `Authorization: Bearer <token>`:\n- POST /avaliacao: cria um feedback.\n- GET /avaliacao: lista os feedbacks.\n- POST /graphql: consulta os feedbacks via GraphQL.\n\nSem token ou com token errado a API responde 401 (`Missing bearer token` ou `Invalid bearer token`).\nEntradas inválidas (nota ausente, nota não numérica, descrição ausente ou vazia, corpo vazio ou JSON malformado) retornam 400.\n\nVariáveis da collection (Bruno: Collection > Variables):\n- `localToken`: token do ambiente local (padrão local não secreto).\n- `prodToken`: token de produção. Fica vazio no arquivo; cole o valor do secret `API_TOKEN` apenas na sua máquina e não faça commit dele.\n- `localUrl` e `prodUrl`: URLs base de cada ambiente.\n\nPara subir o ambiente local: na raiz do repositório, rode `./run.sh local-up`.\n\nAtenção: requests com nota de 0 a 5 disparam SNS/email, e em produção gravam registros reais.",
+    "description": "FIAP Fase-4 Feedback Platform - API Collection\n\nTodas as rotas exigem o header `Authorization: Bearer <token>`:\n- POST /v1/feedback: cria um feedback.\n- GET /v1/feedback: lista os feedbacks.\n- POST /v1/graphql: consulta os feedbacks via GraphQL.\n\nSem token ou com token errado a API responde 401 (`Missing bearer token` ou `Invalid bearer token`).\nEntradas inválidas (rating ausente, rating não numérica, descrição ausente ou vazia, corpo vazio ou JSON malformado) retornam 400.\n\nVariáveis da collection (Bruno: Collection > Variables):\n- `localToken`: token do ambiente local (padrão local não secreto).\n- `prodToken`: token de produção. Fica vazio no arquivo; cole o valor do secret `API_TOKEN` apenas na sua máquina e não faça commit dele.\n- `localUrl` e `prodUrl`: URLs base de cada ambiente.\n\nPara subir o ambiente local: na raiz do repositório, rode `./run.sh local-up`.\n\nAtenção: requests com rating de 0 a 5 disparam SNS/email, e em produção gravam registros reais.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -25,7 +25,7 @@
           "name": "Criar Avaliação",
           "item": [
             {
-              "name": "✅ 201 — nota 1 (urgência HIGH)",
+              "name": "✅ 201 — rating 1 (urgência HIGH)",
               "event": [
                 {
                   "listen": "test",
@@ -34,12 +34,12 @@
                     "exec": [
                       "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
                       "const b = pm.response.json();",
-                      "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
-                      "const feedback = b.receiveFeedback;",
+                      "pm.test('has feedback body', () => pm.expect(b).to.have.property('id'));",
+                      "const feedback = b;",
                       "pm.test('id é UUID', () => pm.expect(feedback.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
-                      "pm.test('nota é 1', () => pm.expect(feedback.nota).to.equal(1));",
-                      "pm.test('urgencia é HIGH', () => pm.expect(feedback.urgencia).to.equal('HIGH'));",
-                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(feedback.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
+                      "pm.test('rating is 1', () => pm.expect(feedback.rating).to.equal(1));",
+                      "pm.test('urgency is HIGH', () => pm.expect(feedback.urgency).to.equal('HIGH'));",
+                      "pm.test('createdAt is ISO 8601', () => pm.expect(feedback.createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
                       "pm.collectionVariables.set('feedbackId', feedback.id);"
                     ]
                   }
@@ -59,22 +59,22 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback crítico - teste teste\",\n  \"nota\": 1\n}"
+                  "raw": "{\n  \"description\": \"Feedback crítico - teste teste\",\n  \"rating\": 1\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro na tabela dev e dispara SNS/email. Execute só com intenção."
               }
             },
             {
-              "name": "✅ 201 — nota 6 (urgência MEDIUM)",
+              "name": "✅ 201 — rating 6 (urgência MEDIUM)",
               "event": [
                 {
                   "listen": "test",
@@ -83,10 +83,10 @@
                     "exec": [
                       "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
                       "const b = pm.response.json();",
-                      "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
-                      "const feedback = b.receiveFeedback;",
-                      "pm.test('nota é 6', () => pm.expect(feedback.nota).to.equal(6));",
-                      "pm.test('urgencia é MEDIUM', () => pm.expect(feedback.urgencia).to.equal('MEDIUM'));"
+                      "pm.test('has feedback body', () => pm.expect(b).to.have.property('id'));",
+                      "const feedback = b;",
+                      "pm.test('rating is 6', () => pm.expect(feedback.rating).to.equal(6));",
+                      "pm.test('urgency is MEDIUM', () => pm.expect(feedback.urgency).to.equal('MEDIUM'));"
                     ]
                   }
                 }
@@ -105,21 +105,21 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback moderado - teste teste\",\n  \"nota\": 6\n}"
+                  "raw": "{\n  \"description\": \"Feedback moderado - teste teste\",\n  \"rating\": 6\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "✅ 201 — nota 9 (urgência LOW)",
+              "name": "✅ 201 — rating 9 (urgência LOW)",
               "event": [
                 {
                   "listen": "test",
@@ -128,10 +128,10 @@
                     "exec": [
                       "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
                       "const b = pm.response.json();",
-                      "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
-                      "const feedback = b.receiveFeedback;",
-                      "pm.test('nota é 9', () => pm.expect(feedback.nota).to.equal(9));",
-                      "pm.test('urgencia é LOW', () => pm.expect(feedback.urgencia).to.equal('LOW'));"
+                      "pm.test('has feedback body', () => pm.expect(b).to.have.property('id'));",
+                      "const feedback = b;",
+                      "pm.test('rating is 9', () => pm.expect(feedback.rating).to.equal(9));",
+                      "pm.test('urgency is LOW', () => pm.expect(feedback.urgency).to.equal('LOW'));"
                     ]
                   }
                 }
@@ -150,21 +150,21 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback positivo - teste teste\",\n  \"nota\": 9\n}"
+                  "raw": "{\n  \"description\": \"Feedback positivo - teste teste\",\n  \"rating\": 9\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "❌ 400 — nota -1 (inválida)",
+              "name": "❌ 400 — rating -1 (inválida)",
               "event": [
                 {
                   "listen": "test",
@@ -194,21 +194,21 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": -1\n}"
+                  "raw": "{\n  \"description\": \"Feedback inválido\",\n  \"rating\": -1\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "❌ 400 — nota 11 (inválida)",
+              "name": "❌ 400 — rating 11 (inválida)",
               "event": [
                 {
                   "listen": "test",
@@ -237,15 +237,15 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": 11\n}"
+                  "raw": "{\n  \"description\": \"Feedback inválido\",\n  \"rating\": 11\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -280,15 +280,15 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"\",\n  \"nota\": 5\n}"
+                  "raw": "{\n  \"description\": \"\",\n  \"rating\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro na tabela dev e dispara SNS/email. Execute só com intenção."
@@ -321,22 +321,22 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"   \",\n  \"nota\": 5\n}"
+                  "raw": "{\n  \"description\": \"   \",\n  \"rating\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro na tabela dev e dispara SNS/email. Execute só com intenção."
               }
             },
             {
-              "name": "❌ 400 — nota ausente",
+              "name": "❌ 400 — rating ausente",
               "event": [
                 {
                   "listen": "test",
@@ -362,15 +362,15 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
+                  "raw": "{\n  \"description\": \"Feedback sem rating\"\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -402,22 +402,22 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nota\": 5\n}"
+                  "raw": "{\n  \"rating\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro na tabela dev e dispara SNS/email. Execute só com intenção."
               }
             },
             {
-              "name": "❌ 400 — nota como string",
+              "name": "❌ 400 — rating como string",
               "event": [
                 {
                   "listen": "test",
@@ -443,21 +443,21 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback\",\n  \"nota\": \"cinco\"\n}"
+                  "raw": "{\n  \"description\": \"Feedback\",\n  \"rating\": \"cinco\"\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "✅ 201 — nota 0 (boundary, urgência HIGH)",
+              "name": "✅ 201 — rating 0 (boundary, urgência HIGH)",
               "event": [
                 {
                   "listen": "test",
@@ -466,10 +466,10 @@
                     "exec": [
                       "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
                       "const b = pm.response.json();",
-                      "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
-                      "const feedback = b.receiveFeedback;",
-                      "pm.test('nota é 0', () => pm.expect(feedback.nota).to.equal(0));",
-                      "pm.test('urgencia é HIGH', () => pm.expect(feedback.urgencia).to.equal('HIGH'));"
+                      "pm.test('has feedback body', () => pm.expect(b).to.have.property('id'));",
+                      "const feedback = b;",
+                      "pm.test('rating is 0', () => pm.expect(feedback.rating).to.equal(0));",
+                      "pm.test('urgency is HIGH', () => pm.expect(feedback.urgency).to.equal('HIGH'));"
                     ]
                   }
                 }
@@ -488,22 +488,22 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback no mínimo teste\",\n  \"nota\": 0\n}"
+                  "raw": "{\n  \"description\": \"Feedback no mínimo teste\",\n  \"rating\": 0\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro na tabela dev e dispara SNS/email. Execute só com intenção."
               }
             },
             {
-              "name": "✅ 201 — nota 10 (boundary, urgência LOW)",
+              "name": "✅ 201 — rating 10 (boundary, urgência LOW)",
               "event": [
                 {
                   "listen": "test",
@@ -512,10 +512,10 @@
                     "exec": [
                       "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
                       "const b = pm.response.json();",
-                      "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
-                      "const feedback = b.receiveFeedback;",
-                      "pm.test('nota é 10', () => pm.expect(feedback.nota).to.equal(10));",
-                      "pm.test('urgencia é LOW', () => pm.expect(feedback.urgencia).to.equal('LOW'));"
+                      "pm.test('has feedback body', () => pm.expect(b).to.have.property('id'));",
+                      "const feedback = b;",
+                      "pm.test('rating is 10', () => pm.expect(feedback.rating).to.equal(10));",
+                      "pm.test('urgency is LOW', () => pm.expect(feedback.urgency).to.equal('LOW'));"
                     ]
                   }
                 }
@@ -534,21 +534,21 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback no máximo teste\",\n  \"nota\": 10\n}"
+                  "raw": "{\n  \"description\": \"Feedback no máximo teste\",\n  \"rating\": 10\n}"
                 },
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "🔒 401 — POST /avaliacao sem token",
+              "name": "🔒 401 — POST /v1/feedback sem token",
               "event": [
                 {
                   "listen": "test",
@@ -570,22 +570,22 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Teste sem autenticação\",\n  \"nota\": 8\n}"
+                  "raw": "{\n  \"description\": \"Teste sem autenticação\",\n  \"rating\": 8\n}"
                 }
               }
             },
             {
-              "name": "🔒 401 — POST /avaliacao token inválido",
+              "name": "🔒 401 — POST /v1/feedback token inválido",
               "event": [
                 {
                   "listen": "test",
@@ -611,17 +611,17 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Teste sem autenticação\",\n  \"nota\": 8\n}"
+                  "raw": "{\n  \"description\": \"Teste sem autenticação\",\n  \"rating\": 8\n}"
                 }
               }
             }
@@ -631,7 +631,7 @@
           "name": "Listar Avaliações",
           "item": [
             {
-              "name": "✅ 200 — GET /avaliacao com token",
+              "name": "✅ 200 — GET /v1/feedback com token",
               "event": [
                 {
                   "listen": "test",
@@ -639,7 +639,7 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
-                      "pm.test('Has avaliacoes field', () => pm.expect(pm.response.json()).to.have.property('avaliacoes'));"
+                      "pm.test('Has feedbacks field', () => pm.expect(pm.response.json()).to.have.property('feedbacks'));"
                     ]
                   }
                 }
@@ -657,18 +657,18 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "listarAvaliacoes - Query all feedbacks",
+              "name": "listFeedbacks - Query all feedbacks",
               "event": [
                 {
                   "listen": "test",
@@ -678,18 +678,18 @@
                       "pm.test(\"Status code is 200\", () => pm.expect(pm.response.code).to.equal(200));",
                       "const response = pm.response.json();",
                       "pm.test(\"Has data field\", () => pm.expect(response).to.have.property(\"data\"));",
-                      "pm.test(\"data has listarAvaliacoes field\", () => pm.expect(response.data).to.have.property(\"listarAvaliacoes\"));",
-                      "const avaliacoes = response.data.listarAvaliacoes;",
-                      "pm.test(\"listarAvaliacoes is an array\", () => pm.expect(avaliacoes).to.be.an(\"array\"));",
-                      "if (avaliacoes.length > 0) {",
-                      "  pm.test(\"each item has id field\", () => pm.expect(avaliacoes[0]).to.have.property(\"id\"));",
-                      "  pm.test(\"each item has descricao field\", () => pm.expect(avaliacoes[0]).to.have.property(\"descricao\"));",
-                      "  pm.test(\"each item has nota field\", () => pm.expect(avaliacoes[0]).to.have.property(\"nota\"));",
-                      "  pm.test(\"each item has urgencia field\", () => pm.expect(avaliacoes[0]).to.have.property(\"urgencia\"));",
-                      "  pm.test(\"each item has dataCriacao field\", () => pm.expect(avaliacoes[0]).to.have.property(\"dataCriacao\"));",
-                      "  pm.test(\"id is valid UUID\", () => pm.expect(avaliacoes[0].id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
-                      "  pm.test(\"urgencia is HIGH, MEDIUM, or LOW\", () => pm.expect([\"HIGH\", \"MEDIUM\", \"LOW\"]).to.include(avaliacoes[0].urgencia));",
-                      "  pm.test(\"dataCriacao is ISO 8601\", () => pm.expect(avaliacoes[0].dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
+                      "pm.test(\"data has listFeedbacks field\", () => pm.expect(response.data).to.have.property(\"listFeedbacks\"));",
+                      "const feedbacks = response.data.listFeedbacks;",
+                      "pm.test(\"listFeedbacks is an array\", () => pm.expect(feedbacks).to.be.an(\"array\"));",
+                      "if (feedbacks.length > 0) {",
+                      "  pm.test(\"each item has id field\", () => pm.expect(feedbacks[0]).to.have.property(\"id\"));",
+                      "  pm.test(\"each item has description field\", () => pm.expect(feedbacks[0]).to.have.property(\"description\"));",
+                      "  pm.test(\"each item has rating field\", () => pm.expect(feedbacks[0]).to.have.property(\"rating\"));",
+                      "  pm.test(\"each item has urgency field\", () => pm.expect(feedbacks[0]).to.have.property(\"urgency\"));",
+                      "  pm.test(\"each item has createdAt field\", () => pm.expect(feedbacks[0]).to.have.property(\"createdAt\"));",
+                      "  pm.test(\"id is valid UUID\", () => pm.expect(feedbacks[0].id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "  pm.test(\"urgency is HIGH, MEDIUM, or LOW\", () => pm.expect([\"HIGH\", \"MEDIUM\", \"LOW\"]).to.include(feedbacks[0].urgency));",
+                      "  pm.test(\"createdAt is ISO 8601\", () => pm.expect(feedbacks[0].createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
                       "}"
                     ]
                   }
@@ -710,11 +710,11 @@
                 "body": {
                   "mode": "graphql",
                   "graphql": {
-                    "query": "query {\\n  listarAvaliacoes {\\n    id\\n    descricao\\n    nota\\n    urgencia\\n    dataCriacao\\n  }\\n}"
+                    "query": "query {\\n  listFeedbacks {\\n    id\\n    description\\n    rating\\n    urgency\\n    createdAt\\n  }\\n}"
                   }
                 },
                 "url": {
-                  "raw": "{{localUrl}}/graphql",
+                  "raw": "{{localUrl}}/v1/graphql",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -725,7 +725,7 @@
               }
             },
             {
-              "name": "🔒 401 — GET /avaliacao sem token",
+              "name": "🔒 401 — GET /v1/feedback sem token",
               "event": [
                 {
                   "listen": "test",
@@ -747,18 +747,18 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "🔒 401 — GET /avaliacao token inválido",
+              "name": "🔒 401 — GET /v1/feedback token inválido",
               "event": [
                 {
                   "listen": "test",
@@ -784,18 +784,18 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{localUrl}}/avaliacao",
+                  "raw": "{{localUrl}}/v1/feedback",
                   "host": [
                     "{{localUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "🔒 401 — POST /graphql sem token",
+              "name": "🔒 401 — POST /v1/graphql sem token",
               "event": [
                 {
                   "listen": "test",
@@ -817,7 +817,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{localUrl}}/graphql",
+                  "raw": "{{localUrl}}/v1/graphql",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -828,13 +828,13 @@
                 "body": {
                   "mode": "graphql",
                   "graphql": {
-                    "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}"
+                    "query": "query {\n  listFeedbacks {\n    id\n    description\n    rating\n    urgency\n    createdAt\n  }\n}"
                   }
                 }
               }
             },
             {
-              "name": "🔒 401 — POST /graphql token inválido",
+              "name": "🔒 401 — POST /v1/graphql token inválido",
               "event": [
                 {
                   "listen": "test",
@@ -860,7 +860,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{localUrl}}/graphql",
+                  "raw": "{{localUrl}}/v1/graphql",
                   "host": [
                     "{{localUrl}}"
                   ],
@@ -871,7 +871,7 @@
                 "body": {
                   "mode": "graphql",
                   "graphql": {
-                    "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}"
+                    "query": "query {\n  listFeedbacks {\n    id\n    description\n    rating\n    urgency\n    createdAt\n  }\n}"
                   }
                 }
               }
@@ -888,7 +888,7 @@
           "name": "Criar Avaliação",
           "item": [
             {
-              "name": "✅ 201 — nota 1 (urgência HIGH)",
+              "name": "✅ 201 — rating 1 (urgência HIGH)",
               "event": [
                 {
                   "listen": "test",
@@ -897,12 +897,12 @@
                     "exec": [
                       "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
                       "const b = pm.response.json();",
-                      "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
-                      "const feedback = b.receiveFeedback;",
+                      "pm.test('has feedback body', () => pm.expect(b).to.have.property('id'));",
+                      "const feedback = b;",
                       "pm.test('id é UUID', () => pm.expect(feedback.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
-                      "pm.test('nota é 1', () => pm.expect(feedback.nota).to.equal(1));",
-                      "pm.test('urgencia é HIGH', () => pm.expect(feedback.urgencia).to.equal('HIGH'));",
-                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(feedback.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
+                      "pm.test('rating is 1', () => pm.expect(feedback.rating).to.equal(1));",
+                      "pm.test('urgency is HIGH', () => pm.expect(feedback.urgency).to.equal('HIGH'));",
+                      "pm.test('createdAt is ISO 8601', () => pm.expect(feedback.createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
                       "pm.collectionVariables.set('feedbackId', feedback.id);"
                     ]
                   }
@@ -922,22 +922,22 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback crítico - teste teste\",\n  \"nota\": 1\n}"
+                  "raw": "{\n  \"description\": \"Feedback crítico - teste teste\",\n  \"rating\": 1\n}"
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro REAL em produção e dispara SNS/email. Execute só com intenção."
               }
             },
             {
-              "name": "✅ 201 — nota 6 (urgência MEDIUM)",
+              "name": "✅ 201 — rating 6 (urgência MEDIUM)",
               "event": [
                 {
                   "listen": "test",
@@ -946,10 +946,10 @@
                     "exec": [
                       "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
                       "const b = pm.response.json();",
-                      "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
-                      "const feedback = b.receiveFeedback;",
-                      "pm.test('nota é 6', () => pm.expect(feedback.nota).to.equal(6));",
-                      "pm.test('urgencia é MEDIUM', () => pm.expect(feedback.urgencia).to.equal('MEDIUM'));"
+                      "pm.test('has feedback body', () => pm.expect(b).to.have.property('id'));",
+                      "const feedback = b;",
+                      "pm.test('rating is 6', () => pm.expect(feedback.rating).to.equal(6));",
+                      "pm.test('urgency is MEDIUM', () => pm.expect(feedback.urgency).to.equal('MEDIUM'));"
                     ]
                   }
                 }
@@ -968,21 +968,21 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback moderado - teste teste\",\n  \"nota\": 6\n}"
+                  "raw": "{\n  \"description\": \"Feedback moderado - teste teste\",\n  \"rating\": 6\n}"
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "✅ 201 — nota 9 (urgência LOW)",
+              "name": "✅ 201 — rating 9 (urgência LOW)",
               "event": [
                 {
                   "listen": "test",
@@ -991,10 +991,10 @@
                     "exec": [
                       "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
                       "const b = pm.response.json();",
-                      "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
-                      "const feedback = b.receiveFeedback;",
-                      "pm.test('nota é 9', () => pm.expect(feedback.nota).to.equal(9));",
-                      "pm.test('urgencia é LOW', () => pm.expect(feedback.urgencia).to.equal('LOW'));"
+                      "pm.test('has feedback body', () => pm.expect(b).to.have.property('id'));",
+                      "const feedback = b;",
+                      "pm.test('rating is 9', () => pm.expect(feedback.rating).to.equal(9));",
+                      "pm.test('urgency is LOW', () => pm.expect(feedback.urgency).to.equal('LOW'));"
                     ]
                   }
                 }
@@ -1013,21 +1013,21 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback positivo - teste teste\",\n  \"nota\": 9\n}"
+                  "raw": "{\n  \"description\": \"Feedback positivo - teste teste\",\n  \"rating\": 9\n}"
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "❌ 400 — nota -1 (inválida)",
+              "name": "❌ 400 — rating -1 (inválida)",
               "event": [
                 {
                   "listen": "test",
@@ -1057,21 +1057,21 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": -1\n}"
+                  "raw": "{\n  \"description\": \"Feedback inválido\",\n  \"rating\": -1\n}"
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "❌ 400 — nota 11 (inválida)",
+              "name": "❌ 400 — rating 11 (inválida)",
               "event": [
                 {
                   "listen": "test",
@@ -1100,15 +1100,15 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": 11\n}"
+                  "raw": "{\n  \"description\": \"Feedback inválido\",\n  \"rating\": 11\n}"
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -1143,15 +1143,15 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"\",\n  \"nota\": 5\n}"
+                  "raw": "{\n  \"description\": \"\",\n  \"rating\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro REAL em produção e dispara SNS/email. Execute só com intenção."
@@ -1184,22 +1184,22 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"   \",\n  \"nota\": 5\n}"
+                  "raw": "{\n  \"description\": \"   \",\n  \"rating\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro REAL em produção e dispara SNS/email. Execute só com intenção."
               }
             },
             {
-              "name": "❌ 400 — nota ausente",
+              "name": "❌ 400 — rating ausente",
               "event": [
                 {
                   "listen": "test",
@@ -1225,15 +1225,15 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
+                  "raw": "{\n  \"description\": \"Feedback sem rating\"\n}"
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
@@ -1265,22 +1265,22 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nota\": 5\n}"
+                  "raw": "{\n  \"rating\": 5\n}"
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro REAL em produção e dispara SNS/email. Execute só com intenção."
               }
             },
             {
-              "name": "❌ 400 — nota como string",
+              "name": "❌ 400 — rating como string",
               "event": [
                 {
                   "listen": "test",
@@ -1306,21 +1306,21 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback\",\n  \"nota\": \"cinco\"\n}"
+                  "raw": "{\n  \"description\": \"Feedback\",\n  \"rating\": \"cinco\"\n}"
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "✅ 201 — nota 0 (boundary, urgência HIGH)",
+              "name": "✅ 201 — rating 0 (boundary, urgência HIGH)",
               "event": [
                 {
                   "listen": "test",
@@ -1329,10 +1329,10 @@
                     "exec": [
                       "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
                       "const b = pm.response.json();",
-                      "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
-                      "const feedback = b.receiveFeedback;",
-                      "pm.test('nota é 0', () => pm.expect(feedback.nota).to.equal(0));",
-                      "pm.test('urgencia é HIGH', () => pm.expect(feedback.urgencia).to.equal('HIGH'));"
+                      "pm.test('has feedback body', () => pm.expect(b).to.have.property('id'));",
+                      "const feedback = b;",
+                      "pm.test('rating is 0', () => pm.expect(feedback.rating).to.equal(0));",
+                      "pm.test('urgency is HIGH', () => pm.expect(feedback.urgency).to.equal('HIGH'));"
                     ]
                   }
                 }
@@ -1351,22 +1351,22 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback no mínimo teste\",\n  \"nota\": 0\n}"
+                  "raw": "{\n  \"description\": \"Feedback no mínimo teste\",\n  \"rating\": 0\n}"
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "description": "ATENÇÃO: nota de 0 a 5 é urgência HIGH. Grava um registro REAL em produção e dispara SNS/email. Execute só com intenção."
               }
             },
             {
-              "name": "✅ 201 — nota 10 (boundary, urgência LOW)",
+              "name": "✅ 201 — rating 10 (boundary, urgência LOW)",
               "event": [
                 {
                   "listen": "test",
@@ -1375,10 +1375,10 @@
                     "exec": [
                       "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
                       "const b = pm.response.json();",
-                      "pm.test('tem receiveFeedback', () => pm.expect(b).to.have.property('receiveFeedback'));",
-                      "const feedback = b.receiveFeedback;",
-                      "pm.test('nota é 10', () => pm.expect(feedback.nota).to.equal(10));",
-                      "pm.test('urgencia é LOW', () => pm.expect(feedback.urgencia).to.equal('LOW'));"
+                      "pm.test('has feedback body', () => pm.expect(b).to.have.property('id'));",
+                      "const feedback = b;",
+                      "pm.test('rating is 10', () => pm.expect(feedback.rating).to.equal(10));",
+                      "pm.test('urgency is LOW', () => pm.expect(feedback.urgency).to.equal('LOW'));"
                     ]
                   }
                 }
@@ -1397,21 +1397,21 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Feedback no máximo teste\",\n  \"nota\": 10\n}"
+                  "raw": "{\n  \"description\": \"Feedback no máximo teste\",\n  \"rating\": 10\n}"
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "🔒 401 — POST /avaliacao sem token",
+              "name": "🔒 401 — POST /v1/feedback sem token",
               "event": [
                 {
                   "listen": "test",
@@ -1433,22 +1433,22 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Teste sem autenticação\",\n  \"nota\": 8\n}"
+                  "raw": "{\n  \"description\": \"Teste sem autenticação\",\n  \"rating\": 8\n}"
                 }
               }
             },
             {
-              "name": "🔒 401 — POST /avaliacao token inválido",
+              "name": "🔒 401 — POST /v1/feedback token inválido",
               "event": [
                 {
                   "listen": "test",
@@ -1474,17 +1474,17 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"descricao\": \"Teste sem autenticação\",\n  \"nota\": 8\n}"
+                  "raw": "{\n  \"description\": \"Teste sem autenticação\",\n  \"rating\": 8\n}"
                 }
               }
             }
@@ -1503,15 +1503,15 @@
                     "exec": [
                       "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
                       "const response = pm.response.json();",
-                      "pm.test('Has avaliacoes field', () => pm.expect(response).to.have.property('avaliacoes'));",
+                      "pm.test('Has feedbacks field', () => pm.expect(response).to.have.property('feedbacks'));",
                       "pm.test('Has total field', () => pm.expect(response).to.have.property('total'));",
-                      "const avaliacoes = response.avaliacoes;",
-                      "pm.test('avaliacoes is an array', () => pm.expect(avaliacoes).to.be.an('array'));",
-                      "if (avaliacoes.length > 0) {",
-                      "  pm.test('each item has id', () => pm.expect(avaliacoes[0]).to.have.property('id'));",
-                      "  pm.test('each item has descricao', () => pm.expect(avaliacoes[0]).to.have.property('descricao'));",
-                      "  pm.test('each item has nota', () => pm.expect(avaliacoes[0]).to.have.property('nota'));",
-                      "  pm.test('each item has urgencia', () => pm.expect(avaliacoes[0]).to.have.property('urgencia'));",
+                      "const feedbacks = response.feedbacks;",
+                      "pm.test('feedbacks is an array', () => pm.expect(feedbacks).to.be.an('array'));",
+                      "if (feedbacks.length > 0) {",
+                      "  pm.test('each item has id', () => pm.expect(feedbacks[0]).to.have.property('id'));",
+                      "  pm.test('each item has description', () => pm.expect(feedbacks[0]).to.have.property('description'));",
+                      "  pm.test('each item has rating', () => pm.expect(feedbacks[0]).to.have.property('rating'));",
+                      "  pm.test('each item has urgency', () => pm.expect(feedbacks[0]).to.have.property('urgency'));",
                       "}"
                     ]
                   }
@@ -1530,18 +1530,18 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "listarAvaliacoes - Query all feedbacks",
+              "name": "listFeedbacks - Query all feedbacks",
               "event": [
                 {
                   "listen": "test",
@@ -1551,9 +1551,9 @@
                       "pm.test(\"Status code is 200\", () => pm.expect(pm.response.code).to.equal(200));",
                       "const response = pm.response.json();",
                       "pm.test(\"Has data field\", () => pm.expect(response).to.have.property(\"data\"));",
-                      "pm.test(\"data has listarAvaliacoes field\", () => pm.expect(response.data).to.have.property(\"listarAvaliacoes\"));",
-                      "const avaliacoes = response.data.listarAvaliacoes;",
-                      "pm.test(\"listarAvaliacoes is an array\", () => pm.expect(avaliacoes).to.be.an(\"array\"));"
+                      "pm.test(\"data has listFeedbacks field\", () => pm.expect(response.data).to.have.property(\"listFeedbacks\"));",
+                      "const feedbacks = response.data.listFeedbacks;",
+                      "pm.test(\"listFeedbacks is an array\", () => pm.expect(feedbacks).to.be.an(\"array\"));"
                     ]
                   }
                 }
@@ -1573,11 +1573,11 @@
                 "body": {
                   "mode": "graphql",
                   "graphql": {
-                    "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}"
+                    "query": "query {\n  listFeedbacks {\n    id\n    description\n    rating\n    urgency\n    createdAt\n  }\n}"
                   }
                 },
                 "url": {
-                  "raw": "{{prodUrl}}/graphql",
+                  "raw": "{{prodUrl}}/v1/graphql",
                   "host": [
                     "{{prodUrl}}"
                   ],
@@ -1588,7 +1588,7 @@
               }
             },
             {
-              "name": "🔒 401 — GET /avaliacao sem token",
+              "name": "🔒 401 — GET /v1/feedback sem token",
               "event": [
                 {
                   "listen": "test",
@@ -1610,18 +1610,18 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "🔒 401 — GET /avaliacao token inválido",
+              "name": "🔒 401 — GET /v1/feedback token inválido",
               "event": [
                 {
                   "listen": "test",
@@ -1647,18 +1647,18 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{prodUrl}}/avaliacao",
+                  "raw": "{{prodUrl}}/v1/feedback",
                   "host": [
                     "{{prodUrl}}"
                   ],
                   "path": [
-                    "avaliacao"
+                    "feedback"
                   ]
                 }
               }
             },
             {
-              "name": "🔒 401 — POST /graphql sem token",
+              "name": "🔒 401 — POST /v1/graphql sem token",
               "event": [
                 {
                   "listen": "test",
@@ -1680,7 +1680,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{prodUrl}}/graphql",
+                  "raw": "{{prodUrl}}/v1/graphql",
                   "host": [
                     "{{prodUrl}}"
                   ],
@@ -1691,13 +1691,13 @@
                 "body": {
                   "mode": "graphql",
                   "graphql": {
-                    "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}"
+                    "query": "query {\n  listFeedbacks {\n    id\n    description\n    rating\n    urgency\n    createdAt\n  }\n}"
                   }
                 }
               }
             },
             {
-              "name": "🔒 401 — POST /graphql token inválido",
+              "name": "🔒 401 — POST /v1/graphql token inválido",
               "event": [
                 {
                   "listen": "test",
@@ -1723,7 +1723,7 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{prodUrl}}/graphql",
+                  "raw": "{{prodUrl}}/v1/graphql",
                   "host": [
                     "{{prodUrl}}"
                   ],
@@ -1734,190 +1734,9 @@
                 "body": {
                   "mode": "graphql",
                   "graphql": {
-                    "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}"
+                    "query": "query {\n  listFeedbacks {\n    id\n    description\n    rating\n    urgency\n    createdAt\n  }\n}"
                   }
                 }
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "v1 (English)",
-      "item": [
-        {
-          "name": "local",
-          "item": [
-            {
-              "name": "Create feedback (v1)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
-                      "const b = pm.response.json();",
-                      "pm.test('returns English fields only', () => pm.expect(b).to.have.all.keys('id', 'description', 'rating', 'urgency', 'createdAt'));",
-                      "pm.test('rating is 7', () => pm.expect(b.rating).to.equal(7));",
-                      "pm.test('urgency is MEDIUM', () => pm.expect(b.urgency).to.equal('MEDIUM'));",
-                      "pm.test('createdAt is ISO 8601', () => pm.expect(b.createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{localToken}}"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"description\": \"Moderate feedback - test\",\n  \"rating\": 7\n}"
-                },
-                "url": {
-                  "raw": "{{localUrl}}/v1/feedback",
-                  "host": [
-                    "{{localUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "feedback"
-                  ]
-                },
-                "description": "Creates a feedback with English fields (v1). Writes a record to the local table. Run only on purpose."
-              }
-            },
-            {
-              "name": "List feedbacks (v1)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
-                      "const b = pm.response.json();",
-                      "pm.test('has feedbacks array and total', () => { pm.expect(b.feedbacks).to.be.an('array'); pm.expect(b.total).to.be.a('number'); });"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{localToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{localUrl}}/v1/feedback",
-                  "host": [
-                    "{{localUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "feedback"
-                  ]
-                },
-                "description": "Lists all feedbacks with English fields (v1)."
-              }
-            }
-          ]
-        },
-        {
-          "name": "prod",
-          "item": [
-            {
-              "name": "Create feedback (v1)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
-                      "const b = pm.response.json();",
-                      "pm.test('returns English fields only', () => pm.expect(b).to.have.all.keys('id', 'description', 'rating', 'urgency', 'createdAt'));",
-                      "pm.test('rating is 7', () => pm.expect(b.rating).to.equal(7));",
-                      "pm.test('urgency is MEDIUM', () => pm.expect(b.urgency).to.equal('MEDIUM'));",
-                      "pm.test('createdAt is ISO 8601', () => pm.expect(b.createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{prodToken}}"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"description\": \"Moderate feedback - test\",\n  \"rating\": 7\n}"
-                },
-                "url": {
-                  "raw": "{{prodUrl}}/v1/feedback",
-                  "host": [
-                    "{{prodUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "feedback"
-                  ]
-                },
-                "description": "Creates a feedback with English fields (v1). Writes a record to the prod table. Run only on purpose."
-              }
-            },
-            {
-              "name": "List feedbacks (v1)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
-                      "const b = pm.response.json();",
-                      "pm.test('has feedbacks array and total', () => { pm.expect(b.feedbacks).to.be.an('array'); pm.expect(b.total).to.be.a('number'); });"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{prodToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{prodUrl}}/v1/feedback",
-                  "host": [
-                    "{{prodUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "feedback"
-                  ]
-                },
-                "description": "Lists all feedbacks with English fields (v1)."
               }
             }
           ]
