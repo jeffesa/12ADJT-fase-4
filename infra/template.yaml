@@ -350,6 +350,12 @@ Resources:
             RestApiId: !Ref FeedbackApi
             Path: /graphql
             Method: POST
+        GraphQLV1ApiEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedbackApi
+            Path: /v1/graphql
+            Method: POST
       LoggingConfig:
         LogGroup: !Ref GraphQLLogGroup
       Tags:
