@@ -97,6 +97,21 @@ Resources:
         - Key: Project
           Value: FIAP-Fase-4
 
+  # Topic for operational alarms (separate from FeedbackUrgentTopic, which triggers SendNotificationFunction)
+  AlarmsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Feedback Monitoring Alarms
+      TopicName: !Sub '${Environment}-monitoring-alarms-topic'
+      Subscription:
+        - Endpoint: !Ref AdminEmail
+          Protocol: email
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: FIAP-Fase-4
+
   #========================================
   # IAM ROLES (ONE PER LAMBDA)
   #========================================
@@ -465,6 +480,107 @@ Resources:
       Targets:
         - Arn: !GetAtt GenerateReportFunction.Arn
           Id: GenerateReportTarget
+
+  #========================================
+  # CLOUDWATCH ALARMS (SEVERE log lines per function)
+  #========================================
+  # Each metric filter counts log lines containing SEVERE in its log group.
+  # Handlers catch exceptions and do not rethrow, so the native Lambda Errors metric stays at 0.
+  SevereErrorsReceiveFeedbackFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref ReceiveFeedbackLogGroup
+      FilterPattern: SEVERE
+      MetricTransformations:
+        - MetricNamespace: !Sub 'FeedbackPlatform/${Environment}'
+          MetricName: SevereErrors-ReceiveFeedback
+          MetricValue: '1'
+          DefaultValue: 0
+
+  SevereErrorsSendNotificationFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref SendNotificationLogGroup
+      FilterPattern: SEVERE
+      MetricTransformations:
+        - MetricNamespace: !Sub 'FeedbackPlatform/${Environment}'
+          MetricName: SevereErrors-SendNotification
+          MetricValue: '1'
+          DefaultValue: 0
+
+  SevereErrorsGenerateReportFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref GenerateReportLogGroup
+      FilterPattern: SEVERE
+      MetricTransformations:
+        - MetricNamespace: !Sub 'FeedbackPlatform/${Environment}'
+          MetricName: SevereErrors-GenerateReport
+          MetricValue: '1'
+          DefaultValue: 0
+
+  SevereErrorsReceiveFeedbackAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${Environment}-severe-errors-receive-feedback'
+      AlarmDescription: !Sub 'Log SEVERE no receive-feedback. Veja o log com: aws logs tail /aws/lambda/${Environment}-receive-feedback --since 1h --region ${Region} --profile fase4. Descrição com menos de 5 caracteres também dispara este alarme (SEVERE e resposta 500). Ver docs/qualidade/MONITORING_GUIDE.md.'
+      Namespace: !Sub 'FeedbackPlatform/${Environment}'
+      MetricName: SevereErrors-ReceiveFeedback
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref AlarmsTopic
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: FIAP-Fase-4
+
+  SevereErrorsSendNotificationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${Environment}-severe-errors-send-notification'
+      AlarmDescription: !Sub 'Log SEVERE no send-notification (falha de envio de e-mail via SES). Veja o log com: aws logs tail /aws/lambda/${Environment}-send-notification --since 1h --region ${Region} --profile fase4. Ver docs/qualidade/MONITORING_GUIDE.md.'
+      Namespace: !Sub 'FeedbackPlatform/${Environment}'
+      MetricName: SevereErrors-SendNotification
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref AlarmsTopic
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: FIAP-Fase-4
+
+  SevereErrorsGenerateReportAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${Environment}-severe-errors-generate-report'
+      AlarmDescription: !Sub 'Log SEVERE no generate-report (falha ao gerar ou enviar o relatório semanal). Veja o log com: aws logs tail /aws/lambda/${Environment}-generate-report --since 1h --region ${Region} --profile fase4. Ver docs/qualidade/MONITORING_GUIDE.md.'
+      Namespace: !Sub 'FeedbackPlatform/${Environment}'
+      MetricName: SevereErrors-GenerateReport
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref AlarmsTopic
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: FIAP-Fase-4
 
 #========================================
 # OUTPUTS
