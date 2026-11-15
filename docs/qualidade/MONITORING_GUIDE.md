@@ -16,9 +16,9 @@ A plataforma tem três fontes de sinal:
 
 | Fonte | O que cobre | Onde fica |
 |---|---|---|
-| Logs | Cada invocação das funções, mensagens INFO, WARNING e SEVERE, e a linha `REPORT` no fim de cada invocação | CloudWatch Logs, um grupo por função, retenção de 30 dias |
+| Logs | Cada invocação das funções, mensagens INFO, WARNING e SEVERE, e a linha `REPORT` no fim de cada invocação | CloudWatch Logs, retenção de 30 dias. Há um grupo por função, exceto `receive-feedback`, que também recebe os logs de `list-feedback` |
 | Métricas nativas do Lambda | Invocações, duração, erros, throttles e concorrência de cada função | Namespace `AWS/Lambda` no CloudWatch |
-| Alarmes | Um alarme por função, disparado quando aparece pelo menos uma linha SEVERE em 5 minutos | CloudWatch Alarms, com notificação por e-mail via SNS |
+| Alarmes | Três alarmes, um para cada grupo com código de erro (receive-feedback, send-notification e generate-report). Disparam quando aparece pelo menos uma linha SEVERE em 5 minutos | CloudWatch Alarms, com notificação por e-mail via SNS |
 
 Não existe dashboard do CloudWatch configurado no projeto. Para ver os números, use o console ou os comandos deste guia.
 
@@ -97,12 +97,12 @@ aws logs filter-log-events --log-group-name /aws/lambda/prod-receive-feedback --
 
 ## 4. Alarmes configurados
 
-O template `infra/template.yaml` cria um tópico SNS de alarmes, três filtros de métrica e três alarmes. Os alarmes só existem depois do deploy. Antes disso, `aws cloudwatch describe-alarms --alarm-name-prefix prod-` retorna lista vazia (verificado, leitura, em 2026-11-15).
+O template `infra/template.yaml` cria um tópico SNS de alarmes, três filtros de métrica e três alarmes. Os alarmes só existem depois do deploy. Antes disso, `aws cloudwatch describe-alarms --alarm-name-prefix prod-` retorna lista vazia (verificado, leitura).
 
 | Alarme | Métrica | O que mede | Quando dispara | O que fazer |
 |---|---|---|---|---|
-| `prod-severe-errors-receive-feedback` | `FeedbackPlatform/prod` / `SevereErrors-ReceiveFeedback` | Linhas SEVERE no grupo `prod-receive-feedback` | Pelo menos 1 linha SEVERE em 5 minutos | Ver o log com `aws logs tail /aws/lambda/prod-receive-feedback --since 1h --region sa-east-1 --profile fase4`. Entrada inválida também gera SEVERE (seção 7). |
-| `prod-severe-errors-send-notification` | `FeedbackPlatform/prod` / `SevereErrors-SendNotification` | Linhas SEVERE no grupo `prod-send-notification` | Pelo menos 1 linha SEVERE em 5 minutos | Ver o log e checar a mensagem `SES error sending email`. Geralmente é identidade de e-mail não verificada no SES ou limite de envio. |
+| `prod-severe-errors-receive-feedback` | `FeedbackPlatform/prod` / `SevereErrors-ReceiveFeedback` | Linhas SEVERE no grupo `prod-receive-feedback` | Pelo menos 1 linha SEVERE em 5 minutos | Ver o log com `aws logs tail /aws/lambda/prod-receive-feedback --since 1h --region sa-east-1 --profile fase4`. Descrição com menos de 5 caracteres também gera SEVERE (seção 7). |
+| `prod-severe-errors-send-notification` | `FeedbackPlatform/prod` / `SevereErrors-SendNotification` | Linhas SEVERE no grupo `prod-send-notification` | Pelo menos 1 linha SEVERE em 5 minutos | Ver o log e checar a mensagem `SES error sending email`. Na produção observada, a causa foi identidade de e-mail não verificada no SES (seção 7). |
 | `prod-severe-errors-generate-report` | `FeedbackPlatform/prod` / `SevereErrors-GenerateReport` | Linhas SEVERE no grupo `prod-generate-report` | Pelo menos 1 linha SEVERE em 5 minutos | Ver o log e checar `Report generation failed` ou `SES error sending report`. |
 
 Configuração comum dos alarmes:
@@ -115,13 +115,13 @@ O tópico `prod-feedback-urgent-topic` é diferente. Ele dispara `prod-send-noti
 
 ### Custo
 
-- Cada alarme padrão custa cerca de US$ 0,10 por mês, cobrado por alarme e proporcional ao tempo em que ele existe. Ele não é cobrado por disparo. Dez erros em um alarme continuam custando um alarme.
-- Cada métrica de filtro é uma métrica personalizada. As três métricas deste projeto ficam dentro do limite gratuito de 10 métricas personalizadas. Depois dele, cada uma custa cerca de US$ 0,30 por mês.
-- Os três alarmes ficam dentro do limite gratuito de 10 alarmes.
-- Os logs cobram por GB ingerido e armazenado. O limite gratuito é de 5 GB por mês.
+- A cobrança de alarme é por alarme, pelas horas em que ele existe. Não é cobrada por disparo. Dez erros em um alarme continuam custando um alarme.
+- Cada métrica de filtro conta como métrica personalizada. Os três alarmes e as três métricas deste projeto ficam dentro do free tier do CloudWatch, que inclui 10 métricas de alarme e 10 métricas personalizadas por mês.
+- Logs: o free tier inclui 5 GB por mês de ingestão, armazenamento e consultas.
+- Fora do free tier, a cobrança unitária de alarme e de métrica personalizada deve ser conferida na calculadora de preços da região `sa-east-1`. Os valores unitários não foram lidos na página oficial nesta revisão.
 - O custo das notificações de e-mail pelo SNS não foi medido neste projeto.
 
-Fontes: [página de preços do CloudWatch](https://aws.amazon.com/cloudwatch/pricing/) e a [pergunta no re:Post sobre cobrança de alarmes](https://www.repost.aws/questions/QUTFU08CTGT6yFiU2VJ5obwg/clarification-on-cloudwatch-alarm-billing-and-sns-notification-costs). Os valores acima vêm de fontes secundárias e do re:Post. A página oficial de preços não foi conferida linha a linha nesta revisão, então confirme os valores da sua região antes de usar em estimativa formal.
+Fonte: [página de preços do CloudWatch](https://aws.amazon.com/cloudwatch/pricing/), que confirma o free tier e a cobrança por hora de alarme. Para os valores unitários, consulte a [calculadora de preços da AWS](https://calculator.aws/).
 
 ---
 
@@ -209,7 +209,10 @@ Falha de envio via SES:
 
 Uma única falha gera as três linhas SEVERE. O alarme conta linhas, não falhas. Por isso uma falha pode ser contada mais de uma vez.
 
-Erro inesperado no handler: `Unexpected error in Lambda handler: ...` (SEVERE).
+Outras linhas SEVERE:
+
+- `Error processing SNS record: ...` (SEVERE), do tratamento de cada registro SNS que lança exceção não prevista.
+- `Unexpected error in Lambda handler: ...` (SEVERE), do tratamento geral do handler.
 
 ### generate-report
 
@@ -238,7 +241,7 @@ O grupo `prod-generate-report` não tem logs em produção até agora (`storedBy
 ### graphql
 
 - `Lambda handler invoked - POST /graphql (internal GraphQL)` (INFO).
-- `Error in GraphQL handler: ...` (SEVERE), com a exceção. Gera linha no grupo, mas não alarme (seção 7).
+- `Error in GraphQL handler: ...` (SEVERE), com a exceção. O código grava esta linha, mas não há alarme para este grupo (seção 7).
 
 ---
 
@@ -248,8 +251,8 @@ O grupo `prod-generate-report` não tem logs em produção até agora (`storedBy
 - **Sem reserved concurrency.** As funções não têm limite de concorrência reservada, então throttling depende do limite da conta.
 - **Sem log estruturado em JSON.** Os logs são texto. Os filtros usam o padrão `SEVERE`, que casa com a linha de texto.
 - **X-API-Key, Usage Plan e Docker foram removidos.** O guia não descreve esses itens. A autenticação é feita por Bearer token.
-- **Entrada inválida gera SEVERE.** O handler de `receive-feedback` registra SEVERE para qualquer exceção, inclusive descrição curta. O alarme `prod-severe-errors-receive-feedback` pode disparar por erro do cliente. Corrigir isso exige mudar `ReceiveFeedbackHandler.java`, o que não faz parte do monitoramento.
-- **Sem alarme para o grupo GraphQL.** O grupo `prod-graphql` tem linhas SEVERE, mas o projeto só configura três alarmes.
+- **Descrição com menos de 5 caracteres gera SEVERE.** O `ReceiveFeedbackUseCase` lança `IllegalArgumentException` (`Description must be at least 5 characters`). O handler registra SEVERE e responde 500. Por isso o alarme `prod-severe-errors-receive-feedback` também dispara por erro do cliente. Campos inválidos pelo Bean Validation, como JSON malformado ou nota fora de 0 a 10, respondem 400 com WARNING e não disparam o alarme. Corrigir o status para 400 exige mudar `ReceiveFeedbackHandler.java`, o que não faz parte do monitoramento.
+- **GraphQL sem alarme.** O código de `prod-graphql` grava SEVERE (`GraphQLHandler.java`, linha 134), mas nenhuma linha SEVERE apareceu na janela consultada. O projeto configura só três alarmes, e este grupo não tem alarme.
+- **Alarme de relatório sem teste real.** O grupo `prod-generate-report` não tem logs em produção. O padrão SEVERE desse grupo nunca foi visto em produção. Depois do deploy, teste com o passo 2 ou 3 da seção 5.
 - **Sem alarme para erros 5xx do API Gateway.** Os alarmes contam logs das funções, não respostas HTTP.
-- **Envio de e-mail depende das identidades do SES.** Em produção, o log mostra `Email address is not verified` para os endereços de envio. Até que as identidades estejam verificadas, o alarme de send-notification dispara no primeiro envio.
-- **Relatório semanal ainda não rodou em produção.** `prod-generate-report` não tem logs. As mensagens da seção 6 vêm do código.
+- **Envio de e-mail depende das identidades do SES.** Em produção, o log mostra `Email address is not verified` para o endereço remetente e para o administrador. Até que as identidades estejam verificadas no SES de `sa-east-1`, o alarme de send-notification dispara no primeiro envio. Verifique as identidades antes do deploy ou aceite esse alarme como ruído.
