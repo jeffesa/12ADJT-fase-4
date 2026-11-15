@@ -278,9 +278,9 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 4. **Show DynamoDB Table**:
    - Billing mode: On-demand (pay per request)
-   - TTL: enabled on `createdAt` field (90 days auto-delete)
+   - TTL: disabled on dev and prod tables (checked with `describe-time-to-live`, no auto-delete)
    - Partition key: `id` (UUID)
-   - **Scalability**: on-demand scaling, automatic cleanup
+   - **Scalability**: on-demand scaling
 
 5. **Show EventBridge Rule** (if visible in SAM template):
    - Name: `feedback-report-rule`
