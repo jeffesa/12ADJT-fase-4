@@ -75,7 +75,7 @@ public class SesReportSender implements ReportSender {
             // Construct subject line
             LocalDate startDate = report.getPeriod().getStartDate();
             LocalDate endDate = report.getPeriod().getEndDate();
-            String subject = "Weekly Feedback Report — " + startDate + " to " + endDate;
+            String subject = "Relatório semanal de feedback — " + startDate + " a " + endDate;
 
             // Build SES request
             SendEmailRequest request = SendEmailRequest.builder()

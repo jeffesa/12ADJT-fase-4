@@ -79,13 +79,13 @@ class ReportConfigurationTest {
     @Test
     void testReportTitle_ReturnsDefaultValue() {
         // Arrange
-        when(config.reportTitle()).thenReturn("Weekly Feedback Report");
+        when(config.reportTitle()).thenReturn("Relatório semanal de feedback");
 
         // Act
         String result = config.reportTitle();
 
         // Assert
-        assertEquals("Weekly Feedback Report", result);
+        assertEquals("Relatório semanal de feedback", result);
         verify(config).reportTitle();
     }
 
