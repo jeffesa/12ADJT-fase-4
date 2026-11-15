@@ -3,14 +3,14 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main, develop]
-  # PRs para develop (feature/fix → develop) e para main (release develop → main).
-  # PRs para main exigem SonarCloud com quality gate bloqueante.
+  # PRs to develop (feature/fix → develop) and to main (release develop → main).
+  # PRs to main require SonarCloud with a blocking quality gate.
   pull_request:
     branches: [develop, main]
   workflow_dispatch:
 
 jobs:
-  # Nome do job usado como status check obrigatório na proteção da branch main:
+  # Job name used as the required status check on the main branch protection:
   # "Build & Test & SonarCloud"
   build:
     name: Build & Test & SonarCloud
@@ -22,13 +22,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Necessário para SonarCloud history
+          fetch-depth: 0  # Required for SonarCloud history
 
-      # Decisão de política do token SonarCloud:
-      # - PR para main: SONAR_TOKEN obrigatório, falha se ausente (gate do PR é o controle de qualidade).
-      # - push para main: não roda Sonar (SonarCloud não analisa a main como branch; a análise
-      #   vem da develop, no mesmo commit, já aprovada pelo quality gate antes do PR).
-      # - develop e PRs para develop: SONAR_TOKEN obrigatório para o gate rodar.
+      # SonarCloud token policy:
+      # - PR to main: SONAR_TOKEN required, fails if missing (the PR gate is the quality control).
+      # - push to main: does not run Sonar (SonarCloud does not analyze main as a branch; the analysis
+      #   comes from develop, same commit, already approved by the quality gate before the PR).
+      # - develop and PRs to develop: SONAR_TOKEN required for the gate to run.
       - name: Check SonarCloud token policy
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -46,8 +46,8 @@ jobs:
           fi
           echo "::notice::SONAR_TOKEN não configurado. Análise SonarCloud ignorada neste evento."
 
-      # Instala Java 21 (scanner SonarCloud) e Java 17 (build do projeto)
-      # O último listado vira JAVA_HOME padrão (Java 17 para o build)
+      # Installs Java 21 (SonarCloud scanner) and Java 17 (project build)
+      # The last listed version becomes the default JAVA_HOME (Java 17 for the build)
       - name: Set up JDKs (21 for Sonar, 17 for build)
         uses: actions/setup-java@v4
         with:
@@ -57,7 +57,7 @@ jobs:
             17
           cache: maven
 
-      # Cache do SonarCloud scanner
+      # SonarCloud scanner cache
       - name: Cache SonarCloud packages
         uses: actions/cache@v4
         with:
@@ -65,11 +65,11 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      # Build + testes + JaCoCo coverage (Java 17)
+      # Build + tests + JaCoCo coverage (Java 17)
       - name: Build and Test with Coverage
         run: mvn -B clean verify
 
-      # Upload de relatórios de cobertura (opcional, para visualização)
+      # Upload coverage reports (optional, for viewing)
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
         with:
@@ -79,9 +79,9 @@ jobs:
           verbose: true
         if: always()
 
-      # Análise SonarCloud (Java 21 necessário para o scanner v4.x+)
-      # -Dsonar.qualitygate.wait=true faz o Maven falhar se o quality gate reprovar.
-      # Não roda em push para main: o SonarCloud não analisa a main como branch no plano atual.
+      # SonarCloud analysis (Java 21 required for scanner v4.x+)
+      # -Dsonar.qualitygate.wait=true makes Maven fail if the quality gate fails.
+      # Does not run on push to main: SonarCloud does not analyze main as a branch on the current plan.
       - name: SonarCloud Scan
         if: ${{ env.SONAR_TOKEN != '' && !(github.event_name == 'push' && github.ref == 'refs/heads/main') }}
         env:
@@ -89,12 +89,12 @@ jobs:
           JAVA_HOME: ${{ env.JAVA_HOME_21_X64 }}
         run: mvn -B sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.qualitygate.wait=true
 
-      # Log de conclusão
+      # Completion log
       - name: Build Status
         if: success()
         run: echo "✅ Build, tests, and SonarCloud analysis completed successfully"
 
-  # Deploy automático somente após merge em main (push), depois do build/Sonar aprovado.
+  # Automatic deploy only after a merge to main (push), after build/Sonar pass.
   deploy:
     name: Deploy to prod (SAM)
     needs: build
@@ -115,7 +115,7 @@ jobs:
       API_TOKEN: ${{ secrets.API_TOKEN }}
 
     steps:
-      # Falha cedo com mensagem clara se os secrets obrigatórios não existirem
+      # Fail early with a clear message if the required secrets do not exist
       - name: Check required deploy secrets
         run: |
           if [ -z "$AWS_DEPLOY_ROLE_ARN" ]; then
@@ -155,7 +155,7 @@ jobs:
       - name: Set up AWS SAM CLI
         uses: aws-actions/setup-sam@v2
 
-      # Gera os function.zip referenciados pelo template (CodeUri)
+      # Builds the function.zip files referenced by the template (CodeUri)
       - name: Package Lambda artifacts
         run: mvn -B package -DskipTests
 

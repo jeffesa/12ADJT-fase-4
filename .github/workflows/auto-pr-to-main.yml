@@ -23,14 +23,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Verifica se há diferenças entre develop e main
+          # Check whether there are differences between develop and main
           DIFF=$(git log origin/main..origin/develop --oneline 2>/dev/null)
           if [ -z "$DIFF" ]; then
             echo "✅ Nenhuma diferença entre develop e main. Nada a fazer."
             exit 0
           fi
 
-          # Verifica se já existe PR aberto de develop para main
+          # Check whether an open PR from develop to main already exists
           EXISTING_PR=$(gh pr list --base main --head develop --state open --json number --jq '.[0].number' 2>/dev/null)
 
           if [ -n "$EXISTING_PR" ]; then

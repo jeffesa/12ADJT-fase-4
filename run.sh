@@ -1,10 +1,10 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-# Tech Challenge Fase 4 — Plataforma de Feedback Serverless
-# Script runner: build, testes, HTTP local (Quarkus Dev Mode) e AWS (somente leitura).
+# Tech Challenge Fase 4 — Serverless Feedback Platform
+# Script runner: build, tests, local HTTP (Quarkus Dev Mode) and AWS (read-only).
 #
-# Uso interativo:  ./run.sh
-# Uso direto:      ./run.sh help   (lista os comandos)
+# Interactive usage: ./run.sh
+# Direct usage:      ./run.sh help   (lists the commands)
 # ═══════════════════════════════════════════════════════════════
 
 set -o pipefail
@@ -31,7 +31,7 @@ PROD_STACK="feedback-api-prod"
 DEV_STACK="feedback-api-dev"
 HTTP_PORT=8080
 MOCK_PORT=18081
-LOCAL_URL="http://localhost:${HTTP_PORT}/avaliacao"
+LOCAL_URL="http://localhost:${HTTP_PORT}/v1/feedback"
 MODULES="receive-feedback send-notification generate-report"
 MVN_FLAGS=(-B -Dquarkus.devservices.enabled=false)
 
@@ -47,7 +47,7 @@ java_major() {
   esac
 }
 
-# Localiza um JDK 17 e exporta JAVA_HOME/PATH. Os testes (Mockito) falham em JDKs mais novos.
+# Finds a JDK 17 and exports JAVA_HOME/PATH. Tests (Mockito) fail on newer JDKs.
 setup_java() {
   local candidate=""
   if [ -n "$JAVA_HOME" ] && [ "$(java_major "$JAVA_HOME")" = "17" ]; then
@@ -71,8 +71,8 @@ setup_java() {
   ok "  ✅ Java 17: $("$JAVA_HOME/bin/java" -version 2>&1 | head -n1) ($JAVA_HOME)"
 }
 
-# ─── Validação de dependências ─────────────────────────────────
-# Uso: require java mvn aws sam curl profile
+# ─── Dependency validation ─────────────────────────────────
+# Usage: require java mvn aws sam curl profile
 
 require() {
   local missing=0 dep
@@ -115,7 +115,7 @@ check_dependencies() {
   fi
 }
 
-# ─── Build e testes ────────────────────────────────────────────
+# ─── Build and tests ────────────────────────────────────────────
 
 compile_modules() {
   require java mvn || return 1
@@ -145,7 +145,7 @@ run_tests() {
   fi
 }
 
-# ─── HTTP local (local-http) ───────────────────────────────────
+# ─── Local HTTP (local-http) ───────────────────────────────────
 
 port_in_use() {
   lsof -nP -iTCP:"$1" -sTCP:LISTEN 2>/dev/null | tail -n +2
@@ -179,14 +179,14 @@ local_up() {
 
   info "\n🚀 Subindo local-http (AWS_PROFILE=$AWS_PROFILE, região $AWS_REGION)"
   info "   Rotas em http://localhost:${HTTP_PORT}:"
-  info "     POST /avaliacao   cria feedback"
-  info "     GET  /avaliacao   lista feedbacks"
+  info "     POST /v1/feedback   cria feedback"
+  info "     GET  /v1/feedback   lista feedbacks"
   info "     POST /graphql     consulta GraphQL"
   info "   Todas as rotas exigem o header Authorization: Bearer <API_TOKEN>."
   info "   Mock Event Server do Lambda na porta ${MOCK_PORT}."
   warn "⚠️  Grava na tabela dev-feedback-table (sa-east-1), nunca em prod."
   info "   Bloqueia o terminal. Use Ctrl+C para parar.\n"
-  # O handler ':' faz o script ignorar o Ctrl+C sem deixar o filho ignorando também.
+  # The ':' handler makes the script ignore Ctrl+C without the child process ignoring it too.
   trap ':' INT
   ( cd "$SCRIPT_DIR/local-http" && AWS_REGION="$AWS_REGION" exec mvn -B quarkus:dev -Ddebug=false -Dquarkus.console.enabled=false )
   local rc=$?
@@ -208,7 +208,7 @@ local_check() {
   fi
 }
 
-# ─── SAM e AWS (somente leitura) ───────────────────────────────
+# ─── SAM and AWS (read-only) ───────────────────────────────
 
 validate_sam() {
   require sam || return 1
@@ -250,7 +250,7 @@ check_prod() {
     warn "  ⚠️  PROD_API_TOKEN com formato invalido; checagem autenticada pulada"
     return 0
   fi
-  # O token vai para o curl por config em stdin, para não aparecer em `ps`.
+  # The token goes to curl via config on stdin, so it does not appear in `ps`.
   code=$(printf 'header = "Authorization: Bearer %s"\n' "$PROD_API_TOKEN" \
     | curl -s -o /dev/null -m 15 -w '%{http_code}' -K - "$endpoint" 2>/dev/null)
   if [ "$code" = "200" ]; then

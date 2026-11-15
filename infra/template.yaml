@@ -255,7 +255,7 @@ Resources:
   #========================================
 
   # Lambda 1: ReceiveFeedbackFunction (Bearer auth - REST)
-  # Triggered by: API Gateway POST /avaliacao, POST /v1/feedback and GET /v1/feedback
+  # Triggered by: API Gateway POST /v1/feedback and GET /v1/feedback
   # Actions: Routes based on HTTP method and path
   ReceiveFeedbackFunction:
     Type: AWS::Serverless::Function
@@ -274,12 +274,6 @@ Resources:
           ADMIN_EMAIL: !Ref AdminEmail
           API_TOKEN: !Ref ApiToken
       Events:
-        ApiEventPost:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedbackApi
-            Path: /avaliacao
-            Method: POST
         ApiEventV1Post:
           Type: Api
           Properties:
@@ -298,38 +292,9 @@ Resources:
         Environment: !Ref Environment
         Project: FIAP-Fase-4
 
-  # Lambda 1b: ListFeedbackFunction (Bearer auth - REST GET)
-  # Triggered by: API Gateway GET /avaliacao
-  # Actions: Returns all feedbacks (requires Bearer token)
-  ListFeedbackFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub '${Environment}-list-feedback'
-      CodeUri: ../receive-feedback/target/function.zip
-      Handler: io.quarkus.amazon.lambda.runtime.QuarkusStreamHandler::handleRequest
-      Role: !GetAtt ReceiveFeedbackRole.Arn
-      Environment:
-        Variables:
-          QUARKUS_PROFILE: prod
-          QUARKUS_LAMBDA_HANDLER: listFeedback
-          TABLE_NAME: !Ref FeedbacksTable
-          API_TOKEN: !Ref ApiToken
-      Events:
-        ApiEventGet:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedbackApi
-            Path: /avaliacao
-            Method: GET
-      LoggingConfig:
-        LogGroup: !Ref ReceiveFeedbackLogGroup
-      Tags:
-        Environment: !Ref Environment
-        Project: FIAP-Fase-4
-
   # GraphQL Handler (Bearer auth)
   # Triggered by: API Gateway POST /graphql
-  # Actions: Query DynamoDB via listarAvaliacoes
+  # Actions: Query DynamoDB via listFeedbacks
   GraphQLFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -440,7 +405,7 @@ Resources:
         Project: FIAP-Fase-4
 
   #========================================
-  # API GATEWAY USAGE PLAN & API KEY (REMOVIDO - causava Stage not found error)
+  # API GATEWAY USAGE PLAN & API KEY (REMOVED - caused the Stage not found error)
   #========================================
 
   # Grant Lambda permission to be invoked by API Gateway
@@ -448,15 +413,6 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !Ref ReceiveFeedbackFunction
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub 'arn:aws:execute-api:${Region}:${AWS::AccountId}:${FeedbackApi}/*'
-
-  # Grant Lambda permission for ListFeedbackFunction
-  ListFeedbackApiPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref ListFeedbackFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub 'arn:aws:execute-api:${Region}:${AWS::AccountId}:${FeedbackApi}/*'
@@ -605,8 +561,8 @@ Resources:
 #========================================
 Outputs:
   ApiEndpoint:
-    Description: 'HTTP API endpoint URL for POST /avaliacao'
-    Value: !Sub 'https://${FeedbackApi}.execute-api.${Region}.amazonaws.com/${Environment}/avaliacao'
+    Description: 'HTTP API endpoint URL for POST and GET /v1/feedback'
+    Value: !Sub 'https://${FeedbackApi}.execute-api.${Region}.amazonaws.com/${Environment}/v1/feedback'
     Export:
       Name: !Sub '${Environment}-FeedbackApiEndpoint'
 
@@ -627,12 +583,6 @@ Outputs:
     Value: !GetAtt ReceiveFeedbackFunction.Arn
     Export:
       Name: !Sub '${Environment}-ReceiveFeedbackFunctionArn'
-
-  ListFeedbackFunctionArn:
-    Description: 'ARN of ListFeedbackFunction Lambda (GET /avaliacao)'
-    Value: !GetAtt ListFeedbackFunction.Arn
-    Export:
-      Name: !Sub '${Environment}-ListFeedbackFunctionArn'
 
   GraphQLFunctionArn:
     Description: 'ARN of GraphQLFunction Lambda (requires Authorization: Bearer header)'

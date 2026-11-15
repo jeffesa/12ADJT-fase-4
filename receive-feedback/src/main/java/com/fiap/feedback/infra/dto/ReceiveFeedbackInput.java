@@ -1,8 +1,11 @@
 package com.fiap.feedback.infra.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import org.eclipse.microprofile.graphql.Name;
 
 /**
  * Data Transfer Object for feedback input.
@@ -11,15 +14,23 @@ import jakarta.validation.constraints.NotBlank;
  * It carries the user-provided feedback data with validation constraints applied
  * via Jakarta Bean Validation annotations.
  * 
- * @param descricao the feedback description text; must not be blank
- * @param nota the numeric rating; must be between 0 and 10 (inclusive)
+ * The components use the English names "description" and "rating" in JSON
+ * and in the GraphQL schema through the annotations below.
+ * 
+ * @param description the feedback description text; must not be blank (JSON and GraphQL name: description)
+ * @param rating the numeric rating; must be between 0 and 10 (inclusive) (JSON and GraphQL name: rating)
  */
 public record ReceiveFeedbackInput(
         @NotBlank(message = "Description cannot be empty")
-        String descricao,
-        
+        @Name("description")
+        @JsonProperty("description")
+        @JsonbProperty("description")
+        String description,
         @Min(value = 0, message = "Rating must be at least 0")
         @Max(value = 10, message = "Rating must be at most 10")
-        Integer nota
+        @Name("rating")
+        @JsonProperty("rating")
+        @JsonbProperty("rating")
+        Integer rating
 ) {
 }

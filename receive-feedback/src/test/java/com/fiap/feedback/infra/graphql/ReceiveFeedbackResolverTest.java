@@ -48,10 +48,10 @@ class ReceiveFeedbackResolverTest {
         ReceiveFeedbackOutput output = resolver.receiveFeedback(new ReceiveFeedbackInput("Terrible experience", 2));
 
         assertEquals(UUID.fromString(id), output.id());
-        assertEquals("Terrible experience", output.descricao());
-        assertEquals(2, output.nota());
-        assertEquals("HIGH", output.urgencia());
-        assertEquals(createdAt, output.dataCriacao());
+        assertEquals("Terrible experience", output.description());
+        assertEquals(2, output.rating());
+        assertEquals("HIGH", output.urgency());
+        assertEquals(createdAt, output.createdAt());
         verify(receiveFeedbackUseCase).receiveFeedback("Terrible experience", 2);
     }
 

@@ -347,7 +347,7 @@ aws cloudformation describe-stacks --stack-name feedback-api-prod --region sa-ea
   --output text
 ```
 
-Os outputs do stack são `ApiEndpoint`, `GraphQLEndpoint`, `DynamoDBTableName` (`prod-feedback-table`), `SNSTopicArn` e o ARN de cada Lambda. As URLs têm o formato `https://<api-id>.execute-api.sa-east-1.amazonaws.com/prod/avaliacao` e `.../prod/graphql`.
+Os outputs do stack são `ApiEndpoint`, `GraphQLEndpoint`, `DynamoDBTableName` (`prod-feedback-table`), `SNSTopicArn` e o ARN de cada Lambda. As URLs têm o formato `https://<api-id>.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback` e `.../prod/v1/graphql`.
 
 Lambdas (cada uma com 512 MB e timeout de 30 s):
 
@@ -365,7 +365,7 @@ PROD_API_TOKEN=<token> ./run.sh prod-check   # sem token espera 401; com PROD_AP
 
 ## 9. Bearer token (`API_TOKEN`)
 
-Todas as rotas (`POST /avaliacao`, `GET /avaliacao`, `POST /graphql`) exigem `Authorization: Bearer <token>`. O token é o valor do secret `API_TOKEN`, que o deploy grava como variável de ambiente `API_TOKEN` nas Lambdas `receive-feedback`, `list-feedback` e `graphql`. A validação acontece dentro das Lambdas.
+Todas as rotas (`POST /v1/feedback`, `GET /v1/feedback`, `POST /v1/graphql`) exigem `Authorization: Bearer <token>`. O token é o valor do secret `API_TOKEN`, que o deploy grava como variável de ambiente `API_TOKEN` nas Lambdas `receive-feedback`, `list-feedback` e `graphql`. A validação acontece dentro das Lambdas.
 
 ### Criar
 
@@ -375,7 +375,7 @@ Ver [seção 5](#5-secrets-do-github). O token precisa ter 24 a 128 caracteres (
 
 ```bash
 export API_TOKEN=<token>
-export API_URL=<valor do output ApiEndpoint>   # termina em /prod/avaliacao
+export API_URL=<valor do output ApiEndpoint>   # termina em /prod/v1/feedback
 
 # Listar feedbacks
 curl -i "$API_URL" -H "Authorization: Bearer $API_TOKEN"
@@ -384,10 +384,10 @@ curl -i "$API_URL" -H "Authorization: Bearer $API_TOKEN"
 curl -i -X POST "$API_URL" \
   -H "Authorization: Bearer $API_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"descricao":"Teste de deploy","nota":8}'
+  -d '{"description":"Teste de deploy","rating":8}'
 ```
 
-Campos do `POST /avaliacao`: `descricao` (texto, não vazio) e `nota` (inteiro de 0 a 10). O contrato completo está em `docs/API.md`. Notas de 0 a 5 geram urgência alta (`HIGH`) e disparam SNS e e-mail; 6 a 7 é média e 8 a 10 é baixa.
+Campos do `POST /v1/feedback`: `description` (texto, não vazio) e `rating` (inteiro de 0 a 10). O contrato completo está em `docs/API.md`. Notas de 0 a 5 geram urgência alta (`HIGH`) e disparam SNS e e-mail; 6 a 7 é média e 8 a 10 é baixa.
 
 Respostas de erro (HTTP 401, header `WWW-Authenticate: Bearer`):
 
@@ -460,7 +460,7 @@ aws logs tail /aws/lambda/prod-send-notification --since 1d --region sa-east-1
 
 O relatório semanal roda toda segunda-feira às 08:00 UTC (EventBridge, `cron(0 8 ? * MON *)`).
 
-Alarmes, dashboards e métricas ficam para a TASK-025 (`docs/qualidade/MONITORING_GUIDE.md`). Observação conhecida: o `MethodSettings` do template aponta para `/feedback`, que não é uma rota real (as rotas são `/avaliacao` e `/graphql`), então as métricas e logs de método do API Gateway não cobrem as rotas reais.
+Alarmes, dashboards e métricas ficam para a TASK-025 (`docs/qualidade/MONITORING_GUIDE.md`). Observação conhecida: o `MethodSettings` do template aponta para `/feedback`, que não é uma rota real (as rotas são `/v1/feedback` e `/v1/graphql`), então as métricas e logs de método do API Gateway não cobrem as rotas reais.
 
 ## 11. Remover o stack
 
@@ -480,13 +480,13 @@ Não use `sam local` nem Docker. O teste local usa o módulo `local-http` em Qua
 
 ```bash
 ./run.sh local-up      # instala o receive-feedback e sobe o local-http (Ctrl+C para parar)
-./run.sh local-check   # em outro terminal: confere GET /avaliacao com HTTP 200
+./run.sh local-check   # em outro terminal: confere GET /v1/feedback com HTTP 200
 ```
 
-- Rotas em `http://localhost:8080` (`POST /avaliacao`, `GET /avaliacao`, `POST /graphql`), todas com `Authorization: Bearer <token>`. Sem `API_TOKEN` exportada, o script usa `minha-chave-local`.
+- Rotas em `http://localhost:8080` (`POST /v1/feedback`, `GET /v1/feedback`, `POST /v1/graphql`), todas com `Authorization: Bearer <token>`. Sem `API_TOKEN` exportada, o script usa `minha-chave-local`.
 - As portas 8080 (HTTP) e 18081 (Mock Event Server do Lambda) precisam estar livres.
 - A execução local **grava na tabela real `dev-feedback-table`** (`sa-east-1`, perfil `fase4`), nunca em `prod`. Apague os itens de teste depois.
-- Subir pela raiz (`mvn quarkus:dev` na raiz) não expõe as rotas HTTP e o `GET /avaliacao` responde 405: o comando precisa rodar em `local-http` (o `run.sh` já faz isso).
+- Subir pela raiz (`mvn quarkus:dev` na raiz) não expõe as rotas HTTP e o `GET /v1/feedback` responde 405: o comando precisa rodar em `local-http` (o `run.sh` já faz isso).
 
 Detalhes em `README.md` (seções de Quarkus Dev Mode e `run.sh`).
 

@@ -14,13 +14,11 @@ import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
 import com.fiap.feedback.infra.dto.FeedbackOutput;
 import com.fiap.feedback.infra.dto.InputOutputMapper;
-import com.fiap.feedback.infra.dto.ReceiveFeedbackOutput;
 
 /**
  * GraphQL API resolver for feedback queries.
  * 
- * This class exposes queries for listing all feedbacks from GraphQL clients
- * (listarAvaliacoes in Portuguese fields, listFeedbacks in English fields).
+ * This class exposes the query for listing all feedbacks from GraphQL clients (listFeedbacks).
  * It orchestrates the request flow: use case execution, response mapping,
  * and error handling. Exceptions are propagated to the global exception handler.
  */
@@ -43,35 +41,6 @@ public class ReceiveFeedbackQueryResolver {
     }
 
     /**
-     * Lists all feedbacks via GraphQL query.
-     * 
-     * The query invokes the use case to retrieve all feedbacks from the gateway.
-     * Each Feedback entity is mapped to a DTO for the response.
-     * Returns an empty list if no feedbacks are found.
-     * 
-     * @return the list of ReceiveFeedbackOutput DTOs containing all feedbacks
-     * @throws Exception if the use case or gateway encounters an error
-     */
-    @Query
-    public List<ReceiveFeedbackOutput> listarAvaliacoes() {
-        LOGGER.log(Level.INFO, "GraphQL query listarAvaliacoes called");
-        
-        try {
-            List<Feedback> feedbacks = receiveFeedbackUseCase.listarTodos();
-            
-            List<ReceiveFeedbackOutput> output = feedbacks.stream()
-                .map(InputOutputMapper::toOutput)
-                .toList();
-            
-            LOGGER.log(Level.INFO, "Retrieved " + output.size() + " feedbacks");
-            return output;
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Unexpected error in listarAvaliacoes", e);
-            throw e;
-        }
-    }
-
-    /**
      * Lists all feedbacks with English field names (English v1 contract).
      * 
      * @return the list of FeedbackOutput DTOs containing all feedbacks
@@ -82,7 +51,7 @@ public class ReceiveFeedbackQueryResolver {
         LOGGER.log(Level.INFO, "GraphQL query listFeedbacks called");
         
         try {
-            List<Feedback> feedbacks = receiveFeedbackUseCase.listarTodos();
+            List<Feedback> feedbacks = receiveFeedbackUseCase.listAllFeedbacks();
             
             List<FeedbackOutput> output = feedbacks.stream()
                 .map(InputOutputMapper::toFeedbackOutput)

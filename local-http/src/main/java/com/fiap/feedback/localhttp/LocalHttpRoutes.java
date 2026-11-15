@@ -3,7 +3,6 @@ package com.fiap.feedback.localhttp;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fiap.feedback.infra.handler.GraphQLHandler;
-import com.fiap.feedback.infra.handler.ListFeedbackHandler;
 import com.fiap.feedback.infra.handler.ReceiveFeedbackHandler;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.Router;
@@ -28,15 +27,10 @@ public class LocalHttpRoutes {
     ReceiveFeedbackHandler receiveFeedbackHandler;
 
     @Inject
-    ListFeedbackHandler listFeedbackHandler;
-
-    @Inject
     GraphQLHandler graphQLHandler;
 
     void init(@Observes Router router) {
         router.route().order(-1000).handler(BodyHandler.create());
-        router.post("/avaliacao").order(-900).blockingHandler(ctx -> handle(ctx, receiveFeedbackHandler::handleRequest));
-        router.get("/avaliacao").order(-900).blockingHandler(ctx -> handle(ctx, listFeedbackHandler::handleRequest));
         router.post("/v1/feedback").order(-900).blockingHandler(ctx -> handle(ctx, receiveFeedbackHandler::handleRequest));
         router.get("/v1/feedback").order(-900).blockingHandler(ctx -> handle(ctx, receiveFeedbackHandler::handleRequest));
         router.post("/graphql").order(-900).blockingHandler(ctx -> handle(ctx, graphQLHandler::handleRequest));

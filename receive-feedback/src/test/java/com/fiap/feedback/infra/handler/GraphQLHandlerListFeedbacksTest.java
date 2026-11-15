@@ -31,7 +31,6 @@ import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
 class GraphQLHandlerListFeedbacksTest {
 
     private static final String LIST_FEEDBACKS = "{\"query\":\"query { listFeedbacks { id description rating urgency createdAt } }\"}";
-    private static final String LIST_AVALIACOES = "{\"query\":\"query { listarAvaliacoes { id } }\"}";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private GraphQLHandler handler;
@@ -63,7 +62,7 @@ class GraphQLHandlerListFeedbacksTest {
     void listFeedbacksWithTokenReturnsEnglishFields() throws Exception {
         LocalDateTime createdAt = LocalDateTime.of(2024, 3, 15, 10, 30);
         Feedback feedback = new Feedback(UUID.randomUUID().toString(), "Good", 7, Urgency.MEDIUM, createdAt, false);
-        when(useCase.listarTodos()).thenReturn(List.of(feedback));
+        when(useCase.listAllFeedbacks()).thenReturn(List.of(feedback));
 
         APIGatewayProxyResponseEvent response = handle("Bearer test-token", LIST_FEEDBACKS);
 
@@ -76,7 +75,7 @@ class GraphQLHandlerListFeedbacksTest {
         assertEquals(7, item.get("rating").asInt());
         assertEquals("MEDIUM", item.get("urgency").asText());
         assertEquals(createdAt.toString(), item.get("createdAt").asText());
-        verify(useCase).listarTodos();
+        verify(useCase).listAllFeedbacks();
     }
 
     @Test
@@ -89,25 +88,11 @@ class GraphQLHandlerListFeedbacksTest {
     }
 
     @Test
-    void legacyListarAvaliacoesStillReturnsPortugueseFields() throws Exception {
-        Feedback feedback = new Feedback(UUID.randomUUID().toString(), "Good", 7, Urgency.MEDIUM,
-                LocalDateTime.of(2024, 3, 15, 10, 30), false);
-        when(useCase.listarTodos()).thenReturn(List.of(feedback));
-
-        APIGatewayProxyResponseEvent response = handle("Bearer test-token", LIST_AVALIACOES);
-
-        assertEquals(200, response.getStatusCode());
-        JsonNode item = objectMapper.readTree(response.getBody()).get("data").get("listarAvaliacoes").get(0);
-        assertEquals("Good", item.get("descricao").asText());
-        assertEquals(7, item.get("nota").asInt());
-    }
-
-    @Test
-    void unsupportedQueryStillReturns400WithLegacyMessage() throws Exception {
+    void unsupportedQueryReturns400() throws Exception {
         APIGatewayProxyResponseEvent response = handle("Bearer test-token", "{\"query\":\"query { somethingElse { id } }\"}");
 
         assertEquals(400, response.getStatusCode());
-        assertEquals("Only listarAvaliacoes query is currently supported",
+        assertEquals("Consulta GraphQL não suportada. Use a consulta listFeedbacks.",
                 objectMapper.readTree(response.getBody()).get("detail").asText());
         verifyNoInteractions(useCase);
     }
