@@ -610,6 +610,7 @@ Visualize CloudWatch Logs e traces X-Ray no Console AWS, ou configure dashboards
 - **Endpoint API AWS (Produção):** https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao
 - **Collection de API (JSON do Postman, importável no Bruno):** [docs/api-collection/fase4-feedback.postman_collection.json](docs/api-collection/fase4-feedback.postman_collection.json)
 - **Documentação Quarkus:** https://quarkus.io
+- **Guia de monitoramento:** [docs/qualidade/MONITORING_GUIDE.md](docs/qualidade/MONITORING_GUIDE.md)
 - **Guia do Desenvolvedor AWS Lambda:** https://docs.aws.amazon.com/lambda
 - **AWS SAM:** https://aws.amazon.com/serverless/sam/
 - **Guia do Desenvolvedor DynamoDB:** https://docs.aws.amazon.com/dynamodb
