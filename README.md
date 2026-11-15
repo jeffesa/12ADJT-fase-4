@@ -424,8 +424,6 @@ fase-4/
 │   └── ci-cd/                     # Documentação do pipeline CI/CD
 │
 ├── run.sh                        # Script de workflow de desenvolvimento (Quarkus dev mode, testes AWS)
-├── e2e-test.sh                    # Script de testes end-to-end
-├── e2e-verify.sh                  # Script de verificação E2E
 └── .github/
     └── workflows/
         ├── ci-cd.yml              # Build, teste e análise SonarCloud

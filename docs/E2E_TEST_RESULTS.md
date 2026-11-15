@@ -4,8 +4,8 @@ This document is a **template** for recording the execution results of the feedb
 
 ## Instructions
 
-1. Run `./e2e-test.sh` to execute all three flows (see LOCAL_SETUP.md for setup details).
-2. Run `./e2e-verify.sh` to validate results and capture LocalStack evidence.
+1. Execute the three flows manually (the legacy `e2e-test.sh`/`e2e-verify.sh` scripts were removed; see LOCAL_SETUP.md for setup details).
+2. Capture the evidence (responses, DynamoDB records, logs).
 3. Copy this template and fill in all [FILL:] placeholders with actual test data.
 4. Save the completed document as `E2E_TEST_RESULTS_YYYY-MM-DD.md` in the docs/ directory.
 5. Commit the result as evidence of successful testing.
