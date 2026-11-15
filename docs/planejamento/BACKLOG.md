@@ -608,17 +608,19 @@ POST /avaliacao {"descricao":"Produto não funciona","nota":1}
 
 ---
 
-### TASK-025: Criar guia de monitoramento (docs/qualidade/MONITORING_GUIDE.md)
+### ✅ TASK-025: Criar guia de monitoramento (docs/qualidade/MONITORING_GUIDE.md) — **CONCLUÍDA**
 
 **Labels:** `priority: medium`, `épico: documentação`, `pontos: 2`, `type: docs`
 **Milestone:** Sprint 6 - Finalização
+**Status:** ✅ CONCLUÍDA
 
 ## ✅ Critérios de Aceitação
-- [ ] Como acessar logs de cada Lambda no CloudWatch
-- [ ] Métricas disponíveis (invocações, erros, duração, cold start)
-- [ ] Como criar alarmes CloudWatch para erros
-- [ ] Explicação dos dashboards configurados no template SAM
-- [ ] Como interpretar logs de notificação e relatório
+- [x] Como acessar logs de cada Lambda no CloudWatch
+- [x] Métricas disponíveis (invocações, erros, duração, cold start)
+- [x] Como criar alarmes CloudWatch para erros (alarmes baseados em linhas SEVERE, pois a métrica `Errors` não captura as falhas tratadas)
+- [x] Como interpretar logs de notificação e relatório
+
+**Fora do escopo:** "Explicação dos dashboards configurados no template SAM". O template não cria dashboard. Removido em 2026-11-15, conforme a regra de revisar critérios obsoletos antes de desenvolver.
 
 ---
 
