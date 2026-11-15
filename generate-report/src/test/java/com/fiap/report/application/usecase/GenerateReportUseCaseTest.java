@@ -270,7 +270,7 @@ class GenerateReportUseCaseTest {
             IllegalArgumentException.class,
             () -> useCase.execute(startDate, endDate, adminEmail)
         );
-        assertTrue(exception.getMessage().contains("Start date must be less than or equal to end date"));
+        assertTrue(exception.getMessage().contains("Data inicial deve ser menor ou igual à data final"));
     }
 
     @Test

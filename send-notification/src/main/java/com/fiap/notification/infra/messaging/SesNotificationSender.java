@@ -89,7 +89,7 @@ public class SesNotificationSender implements NotificationSender {
                 ": " + sesErrorMessage(e)
             );
             throw new NotificationException(
-                "Failed to send email via SES: " + sesErrorMessage(e),
+                "Falha ao enviar e-mail via SES: " + sesErrorMessage(e),
                 e
             );
         } catch (Exception e) {
@@ -97,7 +97,7 @@ public class SesNotificationSender implements NotificationSender {
                 "Erro ao enviar e-mail para o feedback " + notification.getFeedbackId() +
                 ": " + e.getMessage()
             );
-            throw new NotificationException("Failed to send email: " + e.getMessage(), e);
+            throw new NotificationException("Falha ao enviar e-mail: " + e.getMessage(), e);
         }
     }
 

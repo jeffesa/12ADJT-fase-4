@@ -74,7 +74,7 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             }
 
             if (receiveFeedbackUseCase == null) {
-                throw new IllegalStateException("ReceiveFeedbackUseCase not injected");
+                throw new IllegalStateException("ReceiveFeedbackUseCase não injetado");
             }
             
             String body = event.getBody();

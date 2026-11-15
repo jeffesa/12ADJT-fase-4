@@ -52,7 +52,7 @@ class ReportPeriodTest {
             IllegalArgumentException.class,
             () -> new ReportPeriod(startDate, endDate)
         );
-        assertTrue(exception.getMessage().contains("Start date must be less than or equal to end date"));
+        assertTrue(exception.getMessage().contains("Data inicial deve ser menor ou igual à data final"));
         assertTrue(exception.getMessage().contains(startDate.toString()));
         assertTrue(exception.getMessage().contains(endDate.toString()));
     }
@@ -67,7 +67,7 @@ class ReportPeriodTest {
             IllegalArgumentException.class,
             () -> new ReportPeriod(null, endDate)
         );
-        assertTrue(exception.getMessage().contains("must not be null"));
+        assertTrue(exception.getMessage().contains("não podem ser nulas"));
     }
 
     @Test
@@ -80,7 +80,7 @@ class ReportPeriodTest {
             IllegalArgumentException.class,
             () -> new ReportPeriod(startDate, null)
         );
-        assertTrue(exception.getMessage().contains("must not be null"));
+        assertTrue(exception.getMessage().contains("não podem ser nulas"));
     }
 
     @Test
@@ -90,7 +90,7 @@ class ReportPeriodTest {
             IllegalArgumentException.class,
             () -> new ReportPeriod(null, null)
         );
-        assertTrue(exception.getMessage().contains("must not be null"));
+        assertTrue(exception.getMessage().contains("não podem ser nulas"));
     }
 
     @Test

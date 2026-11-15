@@ -75,7 +75,7 @@ public class GenerateReportUseCase {
         // Validate period: startDate <= endDate
         if (startDate.isAfter(endDate)) {
             throw new IllegalArgumentException(
-                "Start date must be less than or equal to end date. Start: " + startDate + ", End: " + endDate
+                "Data inicial deve ser menor ou igual à data final. Início: " + startDate + ", Fim: " + endDate
             );
         }
 

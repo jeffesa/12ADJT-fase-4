@@ -116,7 +116,7 @@ class NotificationTest {
             () -> new Notification(null, feedbackId, "Test", "HIGH", "admin@company.com", createdAt)
         );
 
-        assertTrue(exception.getMessage().contains("id must not be null"));
+        assertTrue(exception.getMessage().contains("id não pode ser nulo"));
     }
 
     @Test
@@ -131,7 +131,7 @@ class NotificationTest {
             () -> new Notification(id, null, "Test", "HIGH", "admin@company.com", createdAt)
         );
 
-        assertTrue(exception.getMessage().contains("feedbackId must not be null"));
+        assertTrue(exception.getMessage().contains("feedbackId não pode ser nulo"));
     }
 
     @Test
@@ -146,7 +146,7 @@ class NotificationTest {
             () -> new Notification(id, feedbackId, "Test", "HIGH", "admin@company.com", null)
         );
 
-        assertTrue(exception.getMessage().contains("createdAt must not be null"));
+        assertTrue(exception.getMessage().contains("createdAt não pode ser nulo"));
     }
 
     @Test
@@ -160,7 +160,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "", "HIGH", "admin@company.com")
         );
 
-        assertTrue(exception.getMessage().contains("cannot be empty"));
+        assertTrue(exception.getMessage().contains("não pode ser vazi"));
     }
 
     @Test
@@ -174,7 +174,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, null, "HIGH", "admin@company.com")
         );
 
-        assertTrue(exception.getMessage().contains("cannot be empty"));
+        assertTrue(exception.getMessage().contains("não pode ser vazi"));
     }
 
     @Test
@@ -188,7 +188,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "   ", "HIGH", "admin@company.com")
         );
 
-        assertTrue(exception.getMessage().contains("cannot be empty"));
+        assertTrue(exception.getMessage().contains("não pode ser vazi"));
     }
 
     @Test
@@ -215,7 +215,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "Test", "INVALID", "admin@company.com")
         );
 
-        assertTrue(exception.getMessage().contains("must be one of HIGH, MEDIUM, or LOW"));
+        assertTrue(exception.getMessage().contains("deve ser HIGH, MEDIUM ou LOW"));
     }
 
     @Test
@@ -229,7 +229,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "Test", null, "admin@company.com")
         );
 
-        assertTrue(exception.getMessage().contains("cannot be empty"));
+        assertTrue(exception.getMessage().contains("não pode ser vazi"));
     }
 
     @Test
@@ -243,7 +243,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "Test", "", "admin@company.com")
         );
 
-        assertTrue(exception.getMessage().contains("cannot be empty"));
+        assertTrue(exception.getMessage().contains("não pode ser vazi"));
     }
 
     @Test
@@ -257,7 +257,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "Test", "HIGH", "")
         );
 
-        assertTrue(exception.getMessage().contains("cannot be empty"));
+        assertTrue(exception.getMessage().contains("não pode ser vazi"));
     }
 
     @Test
@@ -271,7 +271,7 @@ class NotificationTest {
             () -> new Notification(feedbackId, "Test", "HIGH", null)
         );
 
-        assertTrue(exception.getMessage().contains("cannot be empty"));
+        assertTrue(exception.getMessage().contains("não pode ser vazi"));
     }
 
     @Test

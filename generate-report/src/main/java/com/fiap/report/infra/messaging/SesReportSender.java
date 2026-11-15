@@ -105,7 +105,7 @@ public class SesReportSender implements ReportSender {
                     ": " + errorMsg);
 
             throw new ReportException(
-                    "Failed to send report via SES: " + errorMsg,
+                    "Falha ao enviar relatório via SES: " + errorMsg,
                     e
             );
         } catch (Exception e) {
@@ -114,7 +114,7 @@ public class SesReportSender implements ReportSender {
                     ": " + e.getMessage());
 
             throw new ReportException(
-                    "Failed to send report: " + e.getMessage(),
+                    "Falha ao enviar relatório: " + e.getMessage(),
                     e
             );
         }

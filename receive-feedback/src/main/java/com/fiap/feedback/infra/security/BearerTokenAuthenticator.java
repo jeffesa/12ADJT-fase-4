@@ -102,7 +102,7 @@ public final class BearerTokenAuthenticator {
         try {
             return MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8));
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 not available");
+            throw new IllegalStateException("SHA-256 não disponível");
         }
     }
 
