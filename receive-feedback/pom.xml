@@ -37,7 +37,7 @@
             <artifactId>quarkus-amazon-sns</artifactId>
         </dependency>
 
-        <!-- Jackson para serialização JSON -->
+        <!-- Jackson for JSON serialization -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jackson</artifactId>

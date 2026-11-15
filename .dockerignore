@@ -1,5 +1,5 @@
 # ==========================================
-# .dockerignore — Arquivos excluídos do build Docker
+# .dockerignore — Files excluded from the Docker build
 # ==========================================
 
 # Git
@@ -30,7 +30,7 @@ target/
 .project
 .settings/
 
-# Node (se usado em futuro)
+# Node (if used in the future)
 node_modules/
 package-lock.json
 

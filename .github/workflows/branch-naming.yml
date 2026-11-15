@@ -3,7 +3,7 @@ name: Branch Naming Convention
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    # Só valida nome em PRs com base develop
+    # Only validates the name of PRs targeting develop
     branches: [develop]
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
           BRANCH_NAME="${{ github.head_ref }}"
           PATTERN="^(feature|bugfix|hotfix|release|chore|docs|test|refactor|perf|ci|style)/.+"
 
-          # Branches protegidas não precisam seguir o padrão
+          # Protected branches do not need to follow the naming pattern
           if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "develop" ]]; then
             echo "✅ Branch protegida: $BRANCH_NAME (skip validation)"
             exit 0
