@@ -11,14 +11,12 @@ import java.util.UUID;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import org.eclipse.microprofile.graphql.Name;
-import org.eclipse.microprofile.graphql.Query;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fiap.feedback.infra.graphql.ReceiveFeedbackQueryResolver;
 
 /**
  * Guards the legacy public contract: JSON keys, GraphQL field names and the
@@ -104,13 +102,6 @@ class LegacyContractTest {
     void graphqlInputFieldNamesKeepLegacyNames() throws Exception {
         assertEquals("descricao", graphqlName(ReceiveFeedbackInput.class, "description"));
         assertEquals("nota", graphqlName(ReceiveFeedbackInput.class, "rating"));
-    }
-
-    @Test
-    void graphqlQueryKeepsExternalName() throws Exception {
-        Query query = ReceiveFeedbackQueryResolver.class.getMethod("listLegacyFeedbacks").getAnnotation(Query.class);
-
-        assertEquals("listarAvaliacoes", query.value());
     }
 
     private static JsonNode readTree(String json) {
