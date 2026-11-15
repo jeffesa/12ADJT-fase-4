@@ -74,20 +74,20 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 1. Open a terminal and create a HIGH-urgency feedback using GraphQL:
    ```bash
-   curl -X POST http://localhost:8080/graphql \
+   curl -X POST http://localhost:8080/v1/graphql \
      -H "Content-Type: application/json" \
      -d '{
-       "query": "mutation { receiveFeedback(input: {descricao: \"Critical issue: System crashes on login\", nota: 2}) { id descricao nota urgencia dataCriacao } }"
+       "query": "mutation { receiveFeedback(input: {description: \"Critical issue: System crashes on login\", rating: 2}) { id description rating urgency createdAt } }"
      }'
    ```
 
 2. Show the response:
    - Highlight the returned fields:
      - `id`: unique identifier (UUID)
-     - `descricao`: feedback description
-     - `nota`: rating (2 in this case)
-     - `urgencia`: "HIGH" (automatically calculated)
-     - `dataCriacao`: timestamp
+     - `description`: feedback description
+     - `rating`: rating (2 in this case)
+     - `urgency`: "HIGH" (automatically calculated)
+     - `createdAt`: timestamp
 
 3. Record the feedback ID for later verification (copy and paste to a notepad).
 
@@ -101,8 +101,8 @@ This demo showcases a production-grade serverless feedback platform built on AWS
    - Navigate to the `feedbacks` table
    - Show the feedback just created:
      - Query by ID or scan the table
-     - Highlight fields: `id`, `nota`, `urgencia`, `descricao`, `dataCriacao`
-     - Point out: "Notice the urgencia is HIGH because the rating is 2"
+     - Highlight fields: `id`, `rating`, `urgency`, `description`, `createdAt`
+     - Point out: "Notice the urgency is HIGH because the rating is 2"
 
 **Narration Close:**
 - "Within seconds, the feedback was stored in DynamoDB and an email notification was sent."
@@ -121,15 +121,15 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 1. Create a LOW-urgency feedback using GraphQL:
    ```bash
-   curl -X POST http://localhost:8080/graphql \
+   curl -X POST http://localhost:8080/v1/graphql \
      -H "Content-Type: application/json" \
      -d '{
-       "query": "mutation { receiveFeedback(input: {descricao: \"Great service! Very satisfied with the experience.\", nota: 9}) { id descricao nota urgencia dataCriacao } }"
+       "query": "mutation { receiveFeedback(input: {description: \"Great service! Very satisfied with the experience.\", rating: 9}) { id description rating urgency createdAt } }"
      }'
    ```
 
 2. Show the response:
-   - Highlight: `urgencia: "LOW"` (automatically calculated from rating 9)
+   - Highlight: `urgency: "LOW"` (automatically calculated from rating 9)
 
 3. Switch back to the email client:
    - Show that NO new email was received for this feedback
@@ -138,15 +138,15 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 4. Switch to DynamoDB:
    - Scan the feedbacks table again
    - Show both feedbacks now exist:
-     - First: rating 2, urgencia HIGH
-     - Second: rating 9, urgencia LOW
+     - First: rating 2, urgency HIGH
+     - Second: rating 9, urgency LOW
 
 5. Optional: Create one MEDIUM-urgency feedback (rating 6-7) to show all three states:
    ```bash
-   curl -X POST http://localhost:8080/graphql \
+   curl -X POST http://localhost:8080/v1/graphql \
      -H "Content-Type: application/json" \
      -d '{
-       "query": "mutation { receiveFeedback(input: {descricao: \"Average experience, room for improvement.\", nota: 6}) { id descricao nota urgencia dataCriacao } }"
+       "query": "mutation { receiveFeedback(input: {description: \"Average experience, room for improvement.\", rating: 6}) { id description rating urgency createdAt } }"
      }'
    ```
 
@@ -166,10 +166,10 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 1. Execute the GraphQL query to list all feedbacks:
    ```bash
-   curl -X POST http://localhost:8080/graphql \
+   curl -X POST http://localhost:8080/v1/graphql \
      -H "Content-Type: application/json" \
      -d '{
-       "query": "{ listarAvaliacoes { id descricao nota urgencia dataCriacao } }"
+       "query": "{ listFeedbacks { id description rating urgency createdAt } }"
      }'
    ```
 
@@ -177,9 +177,9 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 3. Format the output using `jq` for clarity:
    ```bash
-   curl -X POST http://localhost:8080/graphql \
+   curl -X POST http://localhost:8080/v1/graphql \
      -H "Content-Type: application/json" \
-     -d '{"query": "{ listarAvaliacoes { id descricao nota urgencia dataCriacao } }"}' | jq '.data.listarAvaliacoes[]'
+     -d '{"query": "{ listFeedbacks { id description rating urgency createdAt } }"}' | jq '.data.listFeedbacks[]'
    ```
 
 **Narration Close:**
@@ -208,7 +208,7 @@ This demo showcases a production-grade serverless feedback platform built on AWS
    - Show log stream for the HIGH-urgency feedback creation
    - Highlight key events:
      - "Received GraphQL mutation receiveFeedback"
-     - "Validating input: descricao, nota (0-10)"
+     - "Validating input: description, rating (0-10)"
      - "Calculating urgency from rating 2 → HIGH"
      - "Persisting feedback to DynamoDB"
      - "Publishing message to SNS topic: feedback-urgent-topic"
@@ -278,7 +278,7 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 4. **Show DynamoDB Table**:
    - Billing mode: On-demand (pay per request)
-   - TTL: enabled on `dataCriacao` field (90 days auto-delete)
+   - TTL: enabled on `createdAt` field (90 days auto-delete)
    - Partition key: `id` (UUID)
    - **Scalability**: on-demand scaling, automatic cleanup
 
@@ -359,23 +359,23 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 **Create Feedback (HIGH):**
 ```bash
-curl -X POST http://localhost:8080/graphql \
+curl -X POST http://localhost:8080/v1/graphql \
   -H "Content-Type: application/json" \
-  -d '{"query": "mutation { receiveFeedback(input: {descricao: \"Critical issue: System crashes on login\", nota: 2}) { id descricao nota urgencia dataCriacao } }"}'
+  -d '{"query": "mutation { receiveFeedback(input: {description: \"Critical issue: System crashes on login\", rating: 2}) { id description rating urgency createdAt } }"}'
 ```
 
 **Create Feedback (LOW):**
 ```bash
-curl -X POST http://localhost:8080/graphql \
+curl -X POST http://localhost:8080/v1/graphql \
   -H "Content-Type: application/json" \
-  -d '{"query": "mutation { receiveFeedback(input: {descricao: \"Great service! Very satisfied with the experience.\", nota: 9}) { id descricao nota urgencia dataCriacao } }"}'
+  -d '{"query": "mutation { receiveFeedback(input: {description: \"Great service! Very satisfied with the experience.\", rating: 9}) { id description rating urgency createdAt } }"}'
 ```
 
 **Query All Feedbacks:**
 ```bash
-curl -X POST http://localhost:8080/graphql \
+curl -X POST http://localhost:8080/v1/graphql \
   -H "Content-Type: application/json" \
-  -d '{"query": "{ listarAvaliacoes { id descricao nota urgencia dataCriacao } }"}'
+  -d '{"query": "{ listFeedbacks { id description rating urgency createdAt } }"}'
 ```
 
 **View DynamoDB Table:**
@@ -383,7 +383,7 @@ curl -X POST http://localhost:8080/graphql \
 docker compose exec localstack awslocal dynamodb scan \
   --table-name feedbacks \
   --region us-east-1 \
-  --output json | jq '.Items[] | {id: .feedbackId.S, nota: .nota.N, urgencia: .urgencia.S}'
+  --output json | jq '.Items[] | {id: .feedbackId.S, rating: .rating.N, urgency: .urgency.S}'
 ```
 
 **View CloudWatch Logs:**
