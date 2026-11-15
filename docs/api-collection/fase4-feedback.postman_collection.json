@@ -624,6 +624,53 @@
                   "raw": "{\n  \"descricao\": \"Teste sem autenticação\",\n  \"nota\": 8\n}"
                 }
               }
+            },
+            {
+              "name": "v1 — POST /v1/feedback (criar feedback)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('returns English fields only', () => pm.expect(b).to.have.all.keys('id', 'description', 'rating', 'urgency', 'createdAt'));",
+                      "pm.test('rating is 7', () => pm.expect(b.rating).to.equal(7));",
+                      "pm.test('urgency is MEDIUM', () => pm.expect(b.urgency).to.equal('MEDIUM'));",
+                      "pm.test('createdAt is ISO 8601', () => pm.expect(b.createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"description\": \"Moderate feedback - test\",\n  \"rating\": 7\n}"
+                },
+                "url": {
+                  "raw": "{{localUrl}}/v1/feedback",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "feedback"
+                  ]
+                },
+                "description": "Creates a feedback with English fields (v1). Writes a record to the local table. Run only on purpose."
+              }
             }
           ]
         },
@@ -874,6 +921,42 @@
                     "query": "query {\n  listarAvaliacoes {\n    id\n    descricao\n    nota\n    urgencia\n    dataCriacao\n  }\n}"
                   }
                 }
+              }
+            },
+            {
+              "name": "v1 — GET /v1/feedback (listar feedbacks)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('has feedbacks array and total', () => { pm.expect(b.feedbacks).to.be.an('array'); pm.expect(b.total).to.be.a('number'); });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{localUrl}}/v1/feedback",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "feedback"
+                  ]
+                },
+                "description": "Lists all feedbacks with English fields (v1)."
               }
             }
           ]
@@ -1487,6 +1570,53 @@
                   "raw": "{\n  \"descricao\": \"Teste sem autenticação\",\n  \"nota\": 8\n}"
                 }
               }
+            },
+            {
+              "name": "v1 — POST /v1/feedback (criar feedback)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('returns English fields only', () => pm.expect(b).to.have.all.keys('id', 'description', 'rating', 'urgency', 'createdAt'));",
+                      "pm.test('rating is 7', () => pm.expect(b.rating).to.equal(7));",
+                      "pm.test('urgency is MEDIUM', () => pm.expect(b.urgency).to.equal('MEDIUM'));",
+                      "pm.test('createdAt is ISO 8601', () => pm.expect(b.createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"description\": \"Moderate feedback - test\",\n  \"rating\": 7\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/feedback",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "feedback"
+                  ]
+                },
+                "description": "Creates a feedback with English fields (v1). Writes a record to the prod table. Run only on purpose."
+              }
             }
           ]
         },
@@ -1738,154 +1868,9 @@
                   }
                 }
               }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "v1 (English)",
-      "item": [
-        {
-          "name": "local",
-          "item": [
-            {
-              "name": "Create feedback (v1)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
-                      "const b = pm.response.json();",
-                      "pm.test('returns English fields only', () => pm.expect(b).to.have.all.keys('id', 'description', 'rating', 'urgency', 'createdAt'));",
-                      "pm.test('rating is 7', () => pm.expect(b.rating).to.equal(7));",
-                      "pm.test('urgency is MEDIUM', () => pm.expect(b.urgency).to.equal('MEDIUM'));",
-                      "pm.test('createdAt is ISO 8601', () => pm.expect(b.createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{localToken}}"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"description\": \"Moderate feedback - test\",\n  \"rating\": 7\n}"
-                },
-                "url": {
-                  "raw": "{{localUrl}}/v1/feedback",
-                  "host": [
-                    "{{localUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "feedback"
-                  ]
-                },
-                "description": "Creates a feedback with English fields (v1). Writes a record to the local table. Run only on purpose."
-              }
             },
             {
-              "name": "List feedbacks (v1)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
-                      "const b = pm.response.json();",
-                      "pm.test('has feedbacks array and total', () => { pm.expect(b.feedbacks).to.be.an('array'); pm.expect(b.total).to.be.a('number'); });"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{localToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{localUrl}}/v1/feedback",
-                  "host": [
-                    "{{localUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "feedback"
-                  ]
-                },
-                "description": "Lists all feedbacks with English fields (v1)."
-              }
-            }
-          ]
-        },
-        {
-          "name": "prod",
-          "item": [
-            {
-              "name": "Create feedback (v1)",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
-                      "const b = pm.response.json();",
-                      "pm.test('returns English fields only', () => pm.expect(b).to.have.all.keys('id', 'description', 'rating', 'urgency', 'createdAt'));",
-                      "pm.test('rating is 7', () => pm.expect(b.rating).to.equal(7));",
-                      "pm.test('urgency is MEDIUM', () => pm.expect(b.urgency).to.equal('MEDIUM'));",
-                      "pm.test('createdAt is ISO 8601', () => pm.expect(b.createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{prodToken}}"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"description\": \"Moderate feedback - test\",\n  \"rating\": 7\n}"
-                },
-                "url": {
-                  "raw": "{{prodUrl}}/v1/feedback",
-                  "host": [
-                    "{{prodUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "feedback"
-                  ]
-                },
-                "description": "Creates a feedback with English fields (v1). Writes a record to the prod table. Run only on purpose."
-              }
-            },
-            {
-              "name": "List feedbacks (v1)",
+              "name": "v1 — GET /v1/feedback (listar feedbacks)",
               "event": [
                 {
                   "listen": "test",
