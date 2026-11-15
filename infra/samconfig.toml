@@ -1,5 +1,14 @@
 version = 0.1
 
+# ATENÇÃO: os e-mails abaixo (example.com) são PLACEHOLDERS e DEVEM ser sobrescritos no deploy manual.
+# Ao usar --parameter-overrides na linha de comando, ele SUBSTITUI a string inteira de
+# parameter_overrides deste arquivo: repita Environment, AdminEmail, SenderEmail, ApiToken e Region.
+# O parâmetro ApiToken fica DE PROPÓSITO fora deste arquivo: é um segredo e nunca deve ser versionado.
+# Exemplo (prod):
+#   sam deploy --config-env prod --parameter-overrides \
+#     "Environment=prod AdminEmail=<email> SenderEmail=<email> ApiToken=<token> Region=sa-east-1"
+# Passo a passo completo: docs/deploy/AWS_DEPLOY_GUIDE.md
+
 #========================================
 # DEV ENVIRONMENT PROFILE
 #========================================
@@ -10,7 +19,7 @@ s3_bucket = "sam-artifacts-sa-east-1-dev"
 region = "sa-east-1"
 capabilities = ["CAPABILITY_AUTO_EXPAND", "CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"]
 confirm_changeset = false
-parameter_overrides = "Environment=dev AdminEmail=dev-admin@example.com Region=sa-east-1"
+parameter_overrides = "Environment=dev AdminEmail=dev-admin@example.com SenderEmail=dev-sender@example.com Region=sa-east-1"
 
 #========================================
 # PROD ENVIRONMENT PROFILE
@@ -22,5 +31,4 @@ s3_bucket = "sam-artifacts-sa-east-1-prod"
 region = "sa-east-1"
 capabilities = ["CAPABILITY_AUTO_EXPAND", "CAPABILITY_IAM", "CAPABILITY_NAMED_IAM"]
 confirm_changeset = false
-parameter_overrides = "Environment=prod AdminEmail=admin@production.example.com Region=sa-east-1"
-
+parameter_overrides = "Environment=prod AdminEmail=admin@production.example.com SenderEmail=sender@production.example.com Region=sa-east-1"

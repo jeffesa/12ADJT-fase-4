@@ -590,19 +590,21 @@ POST /avaliacao {"descricao":"Produto não funciona","nota":1}
 
 ---
 
-### TASK-024: Criar guia de deploy AWS (docs/deploy/AWS_DEPLOY_GUIDE.md)
+### ✅ TASK-024: Criar guia de deploy AWS (docs/deploy/AWS_DEPLOY_GUIDE.md) — **CONCLUÍDA**
 
 **Labels:** `priority: high`, `épico: documentação`, `pontos: 3`, `type: docs`
 **Milestone:** Sprint 6 - Finalização
+**Status:** ✅ CONCLUÍDA
 
 ## ✅ Critérios de Aceitação
-- [ ] Pré-requisitos: conta AWS, AWS CLI, SAM CLI, Java 17, Maven
-- [ ] Passo a passo: configurar AWS CLI, verificar e-mail no SES, build, deploy
-- [ ] Como configurar `infra/samconfig.toml` com e-mail e ambiente
-- [ ] Como obter a API Key após deploy
-- [ ] Como monitorar via CloudWatch
-- [ ] Como remover o stack (`sam delete`)
-- [ ] Troubleshooting de problemas comuns
+- [x] Pré-requisitos: conta AWS, AWS CLI, SAM CLI, JDK 17 (aviso sobre JDK 25), Maven, gh CLI e perfil `fase4`
+- [x] Passo a passo: configurar AWS CLI, verificar e-mail no SES (CLI `sesv2`), buckets de artefatos, build (`mvn package` antes de `sam build`) e deploy
+- [x] Como configurar `infra/samconfig.toml` (perfis `dev`/`prod`, `SenderEmail` placeholder, `ApiToken` fora do arquivo) e usar `--parameter-overrides`
+- [x] Como obter, definir e trocar o Bearer token (`API_TOKEN`) após o deploy
+- [x] Pipeline de deploy e OIDC: role `github-actions-deploy-prod`, trust policy (`sub` com IDs), secrets exigidos e re-run do deploy
+- [x] Como monitorar via CloudWatch (`aws logs tail`, log groups reais)
+- [x] Como remover o stack (`sam delete`) e o que permanece na conta
+- [x] Troubleshooting de problemas reais (JDK, OIDC, SES, 401, 405, parâmetros do CloudFormation)
 
 ---
 
