@@ -79,20 +79,20 @@ public class GenerateReportUseCase {
             );
         }
 
-        LOGGER.log(Level.INFO, "Generating report for period " + startDate + " to " + endDate);
+        LOGGER.log(Level.INFO, "Gerando relatório para o período " + startDate + " a " + endDate);
 
         // Retrieve feedbacks for the period
         List<Feedback> feedbacks = reportGateway.findByPeriod(startDate, endDate);
 
-        LOGGER.log(Level.FINE, "Found " + feedbacks.size() + " feedbacks for period");
+        LOGGER.log(Level.FINE, "Encontrados " + feedbacks.size() + " feedbacks para o período");
 
         // Aggregate statistics
         FeedbackStatistics statistics = aggregateStatistics(feedbacks);
 
-        LOGGER.log(Level.FINE, "Aggregated statistics: total=" + statistics.getTotalFeedback() +
-                ", average rating=" + statistics.getAverageRating() +
-                ", by day=" + statistics.getFeedbackByDay() +
-                ", by urgency=" + statistics.getFeedbackByUrgency());
+        LOGGER.log(Level.FINE, "Estatísticas agregadas: total=" + statistics.getTotalFeedback() +
+                ", média de nota=" + statistics.getAverageRating() +
+                ", por dia=" + statistics.getFeedbackByDay() +
+                ", por urgência=" + statistics.getFeedbackByUrgency());
 
         // Create WeeklyReport
         WeeklyReport report = new WeeklyReport(startDate, endDate, statistics, adminEmail);
@@ -100,9 +100,9 @@ public class GenerateReportUseCase {
         // Send report
         try {
             reportSender.send(report, adminEmail);
-            LOGGER.log(Level.INFO, "Report generated and sent successfully");
+            LOGGER.log(Level.INFO, "Relatório gerado e enviado com sucesso");
         } catch (ReportException e) {
-            LOGGER.log(Level.SEVERE, "Error generating report: " + e.getMessage(), e);
+            LOGGER.log(Level.SEVERE, "Erro ao gerar relatório: " + e.getMessage(), e);
             throw e;
         }
 

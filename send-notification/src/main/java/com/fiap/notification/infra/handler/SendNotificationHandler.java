@@ -75,10 +75,10 @@ public class SendNotificationHandler implements RequestHandler<SNSEvent, Void> {
     @Override
     public Void handleRequest(SNSEvent event, Context context) {
         try {
-            LOGGER.log(Level.INFO, "Lambda handler invoked for sending notifications");
+            LOGGER.log(Level.INFO, "Handler Lambda invocado para envio de notificações");
 
             if (event == null || event.getRecords() == null) {
-                LOGGER.log(Level.WARNING, "Received null or empty SNS event");
+                LOGGER.log(Level.WARNING, "Evento SNS nulo ou vazio recebido");
                 return null;
             }
 
@@ -86,11 +86,11 @@ public class SendNotificationHandler implements RequestHandler<SNSEvent, Void> {
                 processRecord(record);
             }
 
-            LOGGER.log(Level.INFO, "Lambda handler completed");
+            LOGGER.log(Level.INFO, "Handler Lambda concluído");
 
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,
-                "Unexpected error in Lambda handler: " + e.getMessage()
+                "Erro inesperado no handler Lambda: " + e.getMessage()
             );
         }
 
@@ -110,7 +110,7 @@ public class SendNotificationHandler implements RequestHandler<SNSEvent, Void> {
             SNSEvent.SNS sns = record.getSNS();
             String messageJson = sns.getMessage();
 
-            LOGGER.log(Level.FINE, "Processing SNS message: " + messageJson);
+            LOGGER.log(Level.FINE, "Processando mensagem SNS: " + messageJson);
 
             // Deserialize JSON to extract feedback fields
             JsonNode messageNode = OBJECT_MAPPER.readTree(messageJson);
@@ -122,7 +122,7 @@ public class SendNotificationHandler implements RequestHandler<SNSEvent, Void> {
             // createdAt is optional in notifications
             
             if (feedbackIdStr == null || feedbackIdStr.isEmpty()) {
-                LOGGER.log(Level.WARNING, "SNS message does not contain 'id' field");
+                LOGGER.log(Level.WARNING, "Mensagem SNS não contém o campo 'id'");
                 return;
             }
 
@@ -141,12 +141,12 @@ public class SendNotificationHandler implements RequestHandler<SNSEvent, Void> {
 
         } catch (NotificationException e) {
             LOGGER.log(Level.SEVERE,
-                "Notification sending failed: " + e.getMessage()
+                "Falha no envio da notificação: " + e.getMessage()
             );
             // Continue to next message
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,
-                "Error processing SNS record: " + e.getMessage(), e
+                "Erro ao processar registro SNS: " + e.getMessage(), e
             );
             // Continue to next message
         }

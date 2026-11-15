@@ -40,7 +40,7 @@ public final class BearerTokenAuthenticator {
      */
     public Optional<APIGatewayProxyResponseEvent> authenticate(APIGatewayProxyRequestEvent event) {
         if (expectedToken == null || expectedToken.isBlank()) {
-            LOGGER.log(Level.SEVERE, "API_TOKEN is not configured; rejecting all requests");
+            LOGGER.log(Level.SEVERE, "API_TOKEN não configurado; rejeitando todas as requisições");
             return Optional.of(error(500, "Erro interno do servidor", "Autenticação não configurada", false));
         }
 
@@ -60,7 +60,7 @@ public final class BearerTokenAuthenticator {
         }
 
         if (!MessageDigest.isEqual(sha256(token), sha256(expectedToken))) {
-            LOGGER.log(Level.WARNING, "Unauthorized request: invalid bearer token");
+            LOGGER.log(Level.WARNING, "Requisição não autorizada: token Bearer inválido");
             return Optional.of(error(401, "Não autorizado", "Token Bearer inválido", true));
         }
         return Optional.empty();
@@ -107,7 +107,7 @@ public final class BearerTokenAuthenticator {
     }
 
     private static APIGatewayProxyResponseEvent missing() {
-        LOGGER.log(Level.WARNING, "Unauthorized request: missing bearer token");
+        LOGGER.log(Level.WARNING, "Requisição não autorizada: token Bearer ausente");
         return error(401, "Não autorizado", "Token Bearer ausente", true);
     }
 

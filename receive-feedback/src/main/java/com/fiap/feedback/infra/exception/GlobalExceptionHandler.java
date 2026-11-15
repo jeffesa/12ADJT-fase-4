@@ -50,7 +50,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
      * Handles IllegalArgumentException (validation failures in use case).
      */
     private Response handleIllegalArgumentException(IllegalArgumentException exception) {
-        LOGGER.log(Level.WARNING, "Validation error: " + exception.getMessage(), exception);
+        LOGGER.log(Level.WARNING, "Erro de validação: " + exception.getMessage(), exception);
         
         JsonObject problemDetail = Json.createObjectBuilder()
             .add("title", "Erro de validação")
@@ -68,7 +68,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
      * Handles ConstraintViolationException (bean validation failures).
      */
     private Response handleConstraintViolationException(ConstraintViolationException exception) {
-        LOGGER.log(Level.WARNING, "Constraint violation: " + exception.getMessage(), exception);
+        LOGGER.log(Level.WARNING, "Violação de restrição: " + exception.getMessage(), exception);
         
         // Concatenate all violation messages
         StringBuilder detail = new StringBuilder();
@@ -95,7 +95,7 @@ public class GlobalExceptionHandler implements ExceptionMapper<Exception> {
      * Handles any other exception type (generic server error).
      */
     private Response handleGenericException(Exception exception) {
-        LOGGER.log(Level.SEVERE, "Unexpected error: " + exception.getMessage(), exception);
+        LOGGER.log(Level.SEVERE, "Erro inesperado: " + exception.getMessage(), exception);
         
         JsonObject problemDetail = Json.createObjectBuilder()
             .add("title", "Erro interno do servidor")

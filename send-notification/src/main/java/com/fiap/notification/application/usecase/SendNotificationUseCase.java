@@ -67,8 +67,8 @@ public class SendNotificationUseCase {
 
         // Log the send attempt
         LOGGER.log(Level.INFO,
-            "Sending notification for feedback " + notification.getFeedbackId() +
-            " to " + notification.getAdminEmail()
+            "Enviando notificação para o feedback " + notification.getFeedbackId() +
+            " para " + notification.getAdminEmail()
         );
 
         // Delegate to the gateway
@@ -77,12 +77,12 @@ public class SendNotificationUseCase {
             
             // Log success
             LOGGER.log(Level.INFO,
-                "Notification sent successfully for feedback " + notification.getFeedbackId()
+                "Notificação enviada com sucesso para o feedback " + notification.getFeedbackId()
             );
         } catch (NotificationException e) {
             // Log the failure
             LOGGER.log(Level.SEVERE,
-                "Failed to send notification for feedback " + notification.getFeedbackId() +
+                "Falha ao enviar notificação para o feedback " + notification.getFeedbackId() +
                 ": " + e.getMessage()
             );
             // Propagate the exception

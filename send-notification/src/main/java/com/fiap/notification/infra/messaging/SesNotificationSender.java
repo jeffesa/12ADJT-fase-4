@@ -59,8 +59,8 @@ public class SesNotificationSender implements NotificationSender {
     public void send(Notification notification) throws NotificationException {
         try {
             LOGGER.log(Level.INFO,
-                "Sending email notification for feedback " + notification.getFeedbackId() +
-                " to " + notification.getAdminEmail()
+                "Enviando notificação por e-mail para o feedback " + notification.getFeedbackId() +
+                " para " + notification.getAdminEmail()
             );
 
             String subject = renderSubject(notification.getDescription(), notification.getUrgency());
@@ -80,12 +80,12 @@ public class SesNotificationSender implements NotificationSender {
             sesClient.sendEmail(request);
 
             LOGGER.log(Level.INFO,
-                "Email sent successfully for feedback " + notification.getFeedbackId()
+                "E-mail enviado com sucesso para o feedback " + notification.getFeedbackId()
             );
 
         } catch (SesException e) {
             LOGGER.log(Level.SEVERE,
-                "SES error sending email for feedback " + notification.getFeedbackId() +
+                "Erro do SES ao enviar e-mail para o feedback " + notification.getFeedbackId() +
                 ": " + sesErrorMessage(e)
             );
             throw new NotificationException(
@@ -94,7 +94,7 @@ public class SesNotificationSender implements NotificationSender {
             );
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,
-                "Error sending email for feedback " + notification.getFeedbackId() +
+                "Erro ao enviar e-mail para o feedback " + notification.getFeedbackId() +
                 ": " + e.getMessage()
             );
             throw new NotificationException("Failed to send email: " + e.getMessage(), e);

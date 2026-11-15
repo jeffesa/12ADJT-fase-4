@@ -78,10 +78,10 @@ public class DynamoFeedbackGateway implements FeedbackGateway {
 
             dynamoDbClient.putItem(putItemRequest);
             
-            LOGGER.infof("Feedback saved with id: %s", feedback.getId());
+            LOGGER.infof("Feedback salvo com id: %s", feedback.getId());
             return feedback;
         } catch (DynamoDbException e) {
-            LOGGER.errorf("Error saving feedback to DynamoDB: %s", e.getMessage());
+            LOGGER.errorf("Erro ao salvar feedback no DynamoDB: %s", e.getMessage());
             throw e;
         }
     }
@@ -102,10 +102,10 @@ public class DynamoFeedbackGateway implements FeedbackGateway {
                     .map(FeedbackDynamoMapper::toDomain)
                     .collect(Collectors.toList());
 
-            LOGGER.infof("Found %d feedbacks in DynamoDB", feedbacks.size());
+            LOGGER.infof("Encontrados %d feedbacks no DynamoDB", feedbacks.size());
             return feedbacks;
         } catch (DynamoDbException e) {
-            LOGGER.errorf("Error scanning feedbacks from DynamoDB: %s", e.getMessage());
+            LOGGER.errorf("Erro ao consultar feedbacks no DynamoDB: %s", e.getMessage());
             throw e;
         }
     }
@@ -140,11 +140,11 @@ public class DynamoFeedbackGateway implements FeedbackGateway {
                     .map(FeedbackDynamoMapper::toDomain)
                     .collect(Collectors.toList());
 
-            LOGGER.infof("Found %d feedbacks between %s and %s", 
+            LOGGER.infof("Encontrados %d feedbacks entre %s e %s", 
                     feedbacks.size(), startDate, endDate);
             return feedbacks;
         } catch (DynamoDbException e) {
-            LOGGER.errorf("Error scanning feedbacks by period from DynamoDB: %s", e.getMessage());
+            LOGGER.errorf("Erro ao consultar feedbacks por período no DynamoDB: %s", e.getMessage());
             throw e;
         }
     }

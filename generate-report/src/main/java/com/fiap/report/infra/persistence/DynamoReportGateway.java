@@ -65,7 +65,7 @@ public class DynamoReportGateway implements ReportGateway {
     public List<Feedback> findByPeriod(LocalDate startDate, LocalDate endDate) throws ReportException {
         try {
             LOGGER.log(Level.INFO,
-                    "Retrieving feedbacks from DynamoDB for period: " + startDate + " to " + endDate);
+                    "Buscando feedbacks no DynamoDB para o período: " + startDate + " a " + endDate);
 
             String tableName = config.tableName();
 
@@ -95,13 +95,13 @@ public class DynamoReportGateway implements ReportGateway {
                     .collect(Collectors.toList());
 
             LOGGER.log(Level.FINE,
-                    "Retrieved " + feedbacks.size() + " feedbacks for period: " + startDate + " to " + endDate);
+                    "Recuperados " + feedbacks.size() + " feedbacks para o período: " + startDate + " a " + endDate);
 
             return feedbacks;
         } catch (DynamoDbException e) {
             LOGGER.log(Level.SEVERE,
-                    "DynamoDB error retrieving feedbacks for period: " + startDate + " to " + endDate +
-                    ", Error: " + e.getMessage());
+                    "Erro do DynamoDB ao buscar feedbacks para o período: " + startDate + " a " + endDate +
+                    ", erro: " + e.getMessage());
             throw e;
         }
     }
