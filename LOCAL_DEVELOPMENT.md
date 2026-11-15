@@ -60,9 +60,9 @@ https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/
 Use Postman or curl to test:
 
 ```bash
-curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback \
+curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback \
   -H "Content-Type: application/json" \
-  -d '{"descricao": "Test feedback", "nota": 5}'
+  -d '{"description": "Test feedback", "rating": 5}'
 ```
 
 ## Hot Reload Workflow
@@ -188,22 +188,20 @@ Common causes:
 
 ```bash
 # Create feedback
-curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/feedback \
+curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback \
   -H "Content-Type: application/json" \
   -d '{
-    "descricao": "Testing integration",
-    "nota": 7
+    "description": "Testing integration",
+    "rating": 7
   }'
 
 # Expected response (201 Created):
 # {
-#   "receiveFeedback": {
-#     "id": "uuid-here",
-#     "descricao": "Testing integration",
-#     "nota": 7,
-#     "urgencia": "MEDIUM",
-#     "dataCriacao": "2024-11-09T..."
-#   }
+#   "id": "uuid-here",
+#   "description": "Testing integration",
+#   "rating": 7,
+#   "urgency": "MEDIUM",
+#   "createdAt": "2024-11-09T..."
 # }
 ```
 
@@ -278,7 +276,7 @@ open target/site/jacoco/index.html
 
 ### receive-feedback (port 8080)
 
-- **Handler**: REST endpoint for POST /feedback (create)
+- **Handler**: REST endpoint for POST /v1/feedback (create)
 - **Role**: Validates feedback, calculates urgency, stores in DynamoDB, publishes to SNS
 - **Dependencies**: DynamoDB, SNS
 - **Test**: `curl -X POST http://localhost:8080/...`

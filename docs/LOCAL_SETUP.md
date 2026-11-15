@@ -211,9 +211,9 @@ When LocalStack starts, the initialization script (`infra/localstack-init.sh`) a
 
 **Attributes:**
 - `feedbackId`: UUID of the feedback (auto-generated)
-- `descricao`: Feedback description text
-- `nota`: Numeric rating (0-10)
-- `urgencia`: Urgency level (HIGH, MEDIUM, LOW)
+- `description`: Feedback description text
+- `rating`: Numeric rating (0-10)
+- `urgency`: Urgency level (HIGH, MEDIUM, LOW)
 - `createdAt`: ISO 8601 timestamp
 
 **Billing Mode**: Pay-per-request (no provisioned capacity needed)
@@ -240,7 +240,7 @@ Each module runs in Quarkus dev mode, which provides:
 ### Quarkus Module Ports
 
 By default:
-- **receive-feedback**: http://localhost:8080/graphql
+- **receive-feedback**: http://localhost:8080/v1/graphql
 - **send-notification**: http://localhost:8081/graphql (or background Lambda)
 - **generate-report**: http://localhost:8282/graphql
 
@@ -393,7 +393,7 @@ docker compose exec localstack /docker-entrypoint-initaws.d/init-aws.sh
 1. Verify modules are running: Check Terminals 1, 2, 3
 2. Test endpoint manually:
 ```bash
-curl -X POST http://localhost:8080/graphql \
+curl -X POST http://localhost:8080/v1/graphql \
   -H "Content-Type: application/json" \
   -d '{"query": "{ __typename }"}'
 ```

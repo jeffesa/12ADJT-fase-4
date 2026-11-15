@@ -30,8 +30,8 @@ Não existe dashboard do CloudWatch configurado no projeto. Para ver os números
 
 | Grupo de log | Função que grava | Observação |
 |---|---|---|
-| `/aws/lambda/prod-receive-feedback` | `prod-receive-feedback` (POST /avaliacao) e `prod-list-feedback` (GET /avaliacao) | As duas funções gravam no mesmo grupo |
-| `/aws/lambda/prod-graphql` | `prod-graphql` (POST /graphql) | Sem alarme (ver seção 7) |
+| `/aws/lambda/prod-receive-feedback` | `prod-receive-feedback` (POST /v1/feedback) e `prod-list-feedback` (GET /v1/feedback) | As duas funções gravam no mesmo grupo |
+| `/aws/lambda/prod-graphql` | `prod-graphql` (POST /v1/graphql) | Sem alarme (ver seção 7) |
 | `/aws/lambda/prod-send-notification` | `prod-send-notification` (disparada pelo tópico SNS de urgência) | |
 | `/aws/lambda/prod-generate-report` | `prod-generate-report` (agendada, segunda-feira 8h UTC) | Não tem registros em produção até agora |
 
@@ -166,7 +166,7 @@ O alarme volta ao estado calculado na próxima avaliação, em até 5 minutos. P
 Uma requisição com JSON inválido não serve para este teste. O JSON inválido gera WARNING (`Invalid request body`), e o alarme conta só SEVERE. Para gerar SEVERE, use uma descrição com menos de 5 caracteres e um corpo JSON válido. A validação recusa a descrição e o handler registra SEVERE com status 500.
 
 ```bash
-curl -X POST "<ApiEndpoint>" -H "Authorization: Bearer $API_TOKEN" -H "Content-Type: application/json" -d '{"descricao":"abc","nota":5}'
+curl -X POST "<ApiEndpoint>" -H "Authorization: Bearer $API_TOKEN" -H "Content-Type: application/json" -d '{"description":"abc","rating":5}'
 ```
 
 **Sintaxe verificada, não executado.** Guarde o token em variável de ambiente, sem colar o valor em logs, histórico compartilhado ou documentação. Substitua `<ApiEndpoint>` pela URL do output `ApiEndpoint` do stack (`aws cloudformation describe-stacks`). Não use a URL do README: ela aponta para `us-east-1`, e os logs de produção estão em `sa-east-1`.
@@ -233,7 +233,7 @@ O grupo `prod-generate-report` não tem logs em produção até agora (`storedBy
 
 ### receive-feedback (POST e GET)
 
-- `Lambda handler invoked - POST /avaliacao` (INFO) ou `Lambda handler invoked - GET /avaliacao` (INFO).
+- `Lambda handler invoked - POST /v1/feedback` (INFO) ou `Lambda handler invoked - GET /v1/feedback` (INFO).
 - `Invalid request body: ...` (WARNING). Não gera alarme.
 - `Error: <mensagem>` (SEVERE), com a exceção. Gera alarme e resposta 500.
 - `API_TOKEN is not configured; rejecting all requests` (SEVERE). Indica que a variável `API_TOKEN` está vazia no deploy.
