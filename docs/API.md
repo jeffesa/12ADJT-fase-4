@@ -12,14 +12,14 @@ The platform is built on AWS Lambda, DynamoDB, SNS, and SES using Quarkus with G
 
 ### Local Development (LocalStack)
 
-- **GraphQL Endpoint**: `http://localhost:8080/graphql`
-- **HTTP REST Endpoint**: `http://localhost:8080/feedback`
+- **GraphQL Endpoint**: `http://localhost:8080/v1/graphql`
+- **HTTP REST Endpoint**: `http://localhost:8080/v1/feedback`
 - **Quarkus Dev Mode**: `mvn quarkus:dev` (runs on port 8080)
 
 ### Production (AWS)
 
-- **GraphQL Endpoint**: `https://[API-GATEWAY-URL]/graphql`
-- **HTTP REST Endpoint**: `https://[API-GATEWAY-URL]/feedback`
+- **GraphQL Endpoint**: `https://[API-GATEWAY-URL]/v1/graphql`
+- **HTTP REST Endpoint**: `https://[API-GATEWAY-URL]/v1/feedback`
 - **Region**: Configurable via `AWS_REGION` environment variable (default: `us-east-1`)
 
 ---
@@ -28,7 +28,7 @@ The platform is built on AWS Lambda, DynamoDB, SNS, and SES using Quarkus with G
 
 ### Bearer token (`API_TOKEN`)
 
-All routes (`POST /avaliacao`, `GET /avaliacao` and `POST /graphql`) require the `Authorization` header with a bearer token.
+All routes (`POST /v1/feedback`, `GET /v1/feedback` and `POST /v1/graphql`) require the `Authorization` header with a bearer token.
 
 ```
 Authorization: Bearer <token>
@@ -57,19 +57,19 @@ Represents a single feedback entry with automatically calculated urgency.
 ```graphql
 type Feedback {
   id: UUID!
-  descricao: String!
-  nota: Int!
-  urgencia: String!
-  dataCriacao: DateTime!
+  description: String!
+  rating: Int!
+  urgency: String!
+  createdAt: DateTime!
 }
 ```
 
 **Fields**:
 - `id` (UUID): Unique identifier (generated server-side).
-- `descricao` (String): Description of the feedback. Must not be blank.
-- `nota` (Int): Rating from 0 to 10 (inclusive). Determines urgency.
-- `urgencia` (String): Urgency level calculated from rating: `HIGH`, `MEDIUM`, or `LOW`.
-- `dataCriacao` (DateTime): ISO 8601 timestamp when feedback was created.
+- `description` (String): Description of the feedback. Must not be blank.
+- `rating` (Int): Rating from 0 to 10 (inclusive). Determines urgency.
+- `urgency` (String): Urgency level calculated from rating: `HIGH`, `MEDIUM`, or `LOW`.
+- `createdAt` (DateTime): ISO 8601 timestamp when feedback was created.
 
 ---
 
@@ -85,14 +85,14 @@ type Mutation {
 }
 
 input ReceiveFeedbackInput {
-  descricao: String!
-  nota: Int!
+  description: String!
+  rating: Int!
 }
 ```
 
 **Input Fields**:
-- `descricao` (String): Feedback description. Constraints: not blank, trimmed on storage.
-- `nota` (Int): Rating 0–10. Constraints: `@Min(0)`, `@Max(10)`.
+- `description` (String): Feedback description. Constraints: not blank, trimmed on storage.
+- `rating` (Int): Rating 0–10. Constraints: `@Min(0)`, `@Max(10)`.
 
 **Returns**: A `Feedback` object with generated ID, urgency, and timestamp.
 
@@ -106,10 +106,10 @@ input ReceiveFeedbackInput {
 {
   "receiveFeedback": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
-    "descricao": "The application crashed on startup",
-    "nota": 2,
-    "urgencia": "HIGH",
-    "dataCriacao": "2026-10-22T10:30:45.123456"
+    "description": "The application crashed on startup",
+    "rating": 2,
+    "urgency": "HIGH",
+    "createdAt": "2026-10-22T10:30:45.123456"
   }
 }
 ```
@@ -118,13 +118,13 @@ input ReceiveFeedbackInput {
 
 ### Queries
 
-#### `listarAvaliacoes`
+#### `listFeedbacks`
 
 Lists all feedback entries stored in the system, ordered by creation date.
 
 ```graphql
 type Query {
-  listarAvaliacoes: [Feedback!]!
+  listFeedbacks: [Feedback!]!
 }
 ```
 
@@ -137,20 +137,20 @@ type Query {
 **Example Response** (200 OK):
 ```json
 {
-  "listarAvaliacoes": [
+  "listFeedbacks": [
     {
       "id": "550e8400-e29b-41d4-a716-446655440000",
-      "descricao": "The application crashed on startup",
-      "nota": 2,
-      "urgencia": "HIGH",
-      "dataCriacao": "2026-10-22T10:30:45.123456"
+      "description": "The application crashed on startup",
+      "rating": 2,
+      "urgency": "HIGH",
+      "createdAt": "2026-10-22T10:30:45.123456"
     },
     {
       "id": "660e8400-e29b-41d4-a716-446655440001",
-      "descricao": "Good performance overall",
-      "nota": 8,
-      "urgencia": "LOW",
-      "dataCriacao": "2026-10-22T11:15:22.654321"
+      "description": "Good performance overall",
+      "rating": 8,
+      "urgency": "LOW",
+      "createdAt": "2026-10-22T11:15:22.654321"
     }
   ]
 }
@@ -178,11 +178,11 @@ Urgency is automatically calculated when feedback is received based on the ratin
 
 **Request**:
 ```bash
-curl -X POST http://localhost:8080/graphql \
+curl -X POST http://localhost:8080/v1/graphql \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
   -d '{
-    "query": "mutation { receiveFeedback(input: { descricao: \"App crashes on login\", nota: 3 }) { id descricao nota urgencia dataCriacao } }"
+    "query": "mutation { receiveFeedback(input: { description: \"App crashes on login\", rating: 3 }) { id description rating urgency createdAt } }"
   }'
 ```
 
@@ -191,15 +191,15 @@ curl -X POST http://localhost:8080/graphql \
 mutation {
   receiveFeedback(
     input: {
-      descricao: "App crashes on login"
-      nota: 3
+      description: "App crashes on login"
+      rating: 3
     }
   ) {
     id
-    descricao
-    nota
-    urgencia
-    dataCriacao
+    description
+    rating
+    urgency
+    createdAt
   }
 }
 ```
@@ -210,10 +210,10 @@ mutation {
   "data": {
     "receiveFeedback": {
       "id": "123e4567-e89b-12d3-a456-426614174000",
-      "descricao": "App crashes on login",
-      "nota": 3,
-      "urgencia": "HIGH",
-      "dataCriacao": "2026-10-22T10:30:00"
+      "description": "App crashes on login",
+      "rating": 3,
+      "urgency": "HIGH",
+      "createdAt": "2026-10-22T10:30:00"
     }
   }
 }
@@ -225,11 +225,11 @@ mutation {
 
 **Request**:
 ```bash
-curl -X POST http://localhost:8080/graphql \
+curl -X POST http://localhost:8080/v1/graphql \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
   -d '{
-    "query": "mutation { receiveFeedback(input: { descricao: \"UI could be more intuitive\", nota: 6 }) { id descricao nota urgencia dataCriacao } }"
+    "query": "mutation { receiveFeedback(input: { description: \"UI could be more intuitive\", rating: 6 }) { id description rating urgency createdAt } }"
   }'
 ```
 
@@ -238,15 +238,15 @@ curl -X POST http://localhost:8080/graphql \
 mutation {
   receiveFeedback(
     input: {
-      descricao: "UI could be more intuitive"
-      nota: 6
+      description: "UI could be more intuitive"
+      rating: 6
     }
   ) {
     id
-    descricao
-    nota
-    urgencia
-    dataCriacao
+    description
+    rating
+    urgency
+    createdAt
   }
 }
 ```
@@ -257,10 +257,10 @@ mutation {
   "data": {
     "receiveFeedback": {
       "id": "123e4567-e89b-12d3-a456-426614174001",
-      "descricao": "UI could be more intuitive",
-      "nota": 6,
-      "urgencia": "MEDIUM",
-      "dataCriacao": "2026-10-22T10:31:00"
+      "description": "UI could be more intuitive",
+      "rating": 6,
+      "urgency": "MEDIUM",
+      "createdAt": "2026-10-22T10:31:00"
     }
   }
 }
@@ -272,11 +272,11 @@ mutation {
 
 **Request**:
 ```bash
-curl -X POST http://localhost:8080/graphql \
+curl -X POST http://localhost:8080/v1/graphql \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
   -d '{
-    "query": "mutation { receiveFeedback(input: { descricao: \"Excellent support team\", nota: 9 }) { id descricao nota urgencia dataCriacao } }"
+    "query": "mutation { receiveFeedback(input: { description: \"Excellent support team\", rating: 9 }) { id description rating urgency createdAt } }"
   }'
 ```
 
@@ -285,15 +285,15 @@ curl -X POST http://localhost:8080/graphql \
 mutation {
   receiveFeedback(
     input: {
-      descricao: "Excellent support team"
-      nota: 9
+      description: "Excellent support team"
+      rating: 9
     }
   ) {
     id
-    descricao
-    nota
-    urgencia
-    dataCriacao
+    description
+    rating
+    urgency
+    createdAt
   }
 }
 ```
@@ -304,10 +304,10 @@ mutation {
   "data": {
     "receiveFeedback": {
       "id": "123e4567-e89b-12d3-a456-426614174002",
-      "descricao": "Excellent support team",
-      "nota": 9,
-      "urgencia": "LOW",
-      "dataCriacao": "2026-10-22T10:32:00"
+      "description": "Excellent support team",
+      "rating": 9,
+      "urgency": "LOW",
+      "createdAt": "2026-10-22T10:32:00"
     }
   }
 }
@@ -319,23 +319,23 @@ mutation {
 
 **Request**:
 ```bash
-curl -X POST http://localhost:8080/graphql \
+curl -X POST http://localhost:8080/v1/graphql \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
   -d '{
-    "query": "query { listarAvaliacoes { id descricao nota urgencia dataCriacao } }"
+    "query": "query { listFeedbacks { id description rating urgency createdAt } }"
   }'
 ```
 
 **GraphQL Body** (raw):
 ```graphql
 query {
-  listarAvaliacoes {
+  listFeedbacks {
     id
-    descricao
-    nota
-    urgencia
-    dataCriacao
+    description
+    rating
+    urgency
+    createdAt
   }
 }
 ```
@@ -344,27 +344,27 @@ query {
 ```json
 {
   "data": {
-    "listarAvaliacoes": [
+    "listFeedbacks": [
       {
         "id": "123e4567-e89b-12d3-a456-426614174000",
-        "descricao": "App crashes on login",
-        "nota": 3,
-        "urgencia": "HIGH",
-        "dataCriacao": "2026-10-22T10:30:00"
+        "description": "App crashes on login",
+        "rating": 3,
+        "urgency": "HIGH",
+        "createdAt": "2026-10-22T10:30:00"
       },
       {
         "id": "123e4567-e89b-12d3-a456-426614174001",
-        "descricao": "UI could be more intuitive",
-        "nota": 6,
-        "urgencia": "MEDIUM",
-        "dataCriacao": "2026-10-22T10:31:00"
+        "description": "UI could be more intuitive",
+        "rating": 6,
+        "urgency": "MEDIUM",
+        "createdAt": "2026-10-22T10:31:00"
       },
       {
         "id": "123e4567-e89b-12d3-a456-426614174002",
-        "descricao": "Excellent support team",
-        "nota": 9,
-        "urgencia": "LOW",
-        "dataCriacao": "2026-10-22T10:32:00"
+        "description": "Excellent support team",
+        "rating": 9,
+        "urgency": "LOW",
+        "createdAt": "2026-10-22T10:32:00"
       }
     ]
   }
@@ -379,25 +379,23 @@ The same feedback can be sent via HTTP POST to the Lambda function through API G
 
 **Request**:
 ```bash
-curl -X POST http://localhost:8080/feedback \
+curl -X POST http://localhost:8080/v1/feedback \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
   -d '{
-    "descricao": "Fast response times",
-    "nota": 8
+    "description": "Fast response times",
+    "rating": 8
   }'
 ```
 
 **Response** (201 Created):
 ```json
 {
-  "receiveFeedback": {
-    "id": "123e4567-e89b-12d3-a456-426614174003",
-    "descricao": "Fast response times",
-    "nota": 8,
-    "urgencia": "LOW",
-    "dataCriacao": "2026-10-22T10:33:00"
-  }
+  "id": "123e4567-e89b-12d3-a456-426614174003",
+  "description": "Fast response times",
+  "rating": 8,
+  "urgency": "LOW",
+  "createdAt": "2026-10-22T10:33:00"
 }
 ```
 
@@ -421,11 +419,11 @@ curl -X POST http://localhost:8080/feedback \
 ```
 
 **Common Validation Errors**:
-- Missing `descricao`: "Description cannot be empty"
-- Missing or null `nota`: "Rating is required"
-- `nota < 0`: "Rating must be at least 0"
-- `nota > 10`: "Rating must be at most 10"
-- `descricao` is blank: "Description cannot be empty"
+- Missing `description`: "Description cannot be empty"
+- Missing or null `rating`: "Rating is required"
+- `rating < 0`: "Rating must be at least 0"
+- `rating > 10`: "Rating must be at most 10"
+- `description` is blank: "Description cannot be empty"
 
 ---
 
@@ -473,7 +471,7 @@ The `detail` is `Invalid bearer token` when the token is sent but does not match
 **Common Issues**:
 - Missing closing braces or quotes in the query.
 - Typo in mutation/query name (e.g., `recieveFeedback` instead of `receiveFeedback`).
-- Using a field that does not exist in the type (e.g., `rating` instead of `nota`).
+- Using a field that does not exist in the type (e.g., `score` instead of `rating`).
 
 ---
 
@@ -628,10 +626,10 @@ GraphQL UI is available at: `http://localhost:8080/q/graphql-ui`
 Create feedback:
 
 ```bash
-curl -X POST http://localhost:8080/graphql \
+curl -X POST http://localhost:8080/v1/graphql \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
-  -d '{"query": "mutation { receiveFeedback(input: { descricao: \"Test\", nota: 5 }) { id urgencia } }"}'
+  -d '{"query": "mutation { receiveFeedback(input: { description: \"Test\", rating: 5 }) { id urgency } }"}'
 ```
 
 ---
@@ -662,10 +660,10 @@ sam deploy --guided
 ### Verify
 
 ```bash
-curl -X POST https://[API-GATEWAY-URL]/graphql \
+curl -X POST https://[API-GATEWAY-URL]/v1/graphql \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
-  -d '{"query": "query { listarAvaliacoes { id } }"}'
+  -d '{"query": "query { listFeedbacks { id } }"}'
 ```
 
 ---
@@ -684,9 +682,9 @@ curl -X POST https://[API-GATEWAY-URL]/graphql \
 ### Common Issues
 
 1. **401 "Missing bearer token" / "Invalid bearer token"**: Add `Authorization: Bearer <token>` to all requests.
-2. **"Rating must be between 0 and 10"**: Ensure `nota` is an integer in range.
+2. **"Rating must be between 0 and 10"**: Ensure `rating` is an integer in range.
 3. **"DynamoDB is unavailable"**: Start LocalStack and verify table exists.
-4. **"GraphQL endpoint returns 404"**: Verify Quarkus is running and the path is `/graphql`.
+4. **"GraphQL endpoint returns 404"**: Verify Quarkus is running and the path is `/v1/graphql`.
 
 ### Enable Debug Logging
 
