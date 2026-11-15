@@ -41,7 +41,7 @@ curl -v http://localhost:4566
 # Expected response: 200 OK with metadata
 
 # Test GraphQL endpoint for receive-feedback module
-curl -X POST http://localhost:8080/v1/graphql \
+curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -d '{"query": "{ __typename }"}'
 
@@ -67,7 +67,7 @@ If services aren't responding, check the module terminal outputs for errors and 
 Using curl:
 
 ```bash
-curl -X POST http://localhost:8080/v1/graphql \
+curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -d '{
     "query": "mutation { receiveFeedback(input: {description: \"Test critical feedback\", rating: 4}) { id description rating urgency createdAt } }"
@@ -99,7 +99,7 @@ curl -X POST http://localhost:8080/v1/graphql \
 docker compose exec localstack awslocal dynamodb scan \
   --table-name feedbacks \
   --region us-east-1 \
-  --output json | jq '.Items[] | {id: .feedbackId.S, rating: .rating.N, urgency: .urgency.S}'
+  --output json | jq '.Items[] | {id: .id.S, rating: .rating.N, urgency: .urgency.S}'
 ```
 
 **Expected Output**:
@@ -196,7 +196,7 @@ Invocation: 550e8400-e29b-41d4-a716-446655440000 completed in 234ms
 ### Step 1: Submit LOW Urgency Feedback
 
 ```bash
-curl -X POST http://localhost:8080/v1/graphql \
+curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -d '{
     "query": "mutation { receiveFeedback(input: {description: \"Test normal feedback\", rating: 9}) { id description rating urgency createdAt } }"
@@ -225,7 +225,7 @@ curl -X POST http://localhost:8080/v1/graphql \
 docker compose exec localstack awslocal dynamodb scan \
   --table-name feedbacks \
   --region us-east-1 \
-  --output json | jq '.Items[] | select(.urgency.S == "LOW") | {id: .feedbackId.S, rating: .rating.N, urgency: .urgency.S}'
+  --output json | jq '.Items[] | select(.urgency.S == "LOW") | {id: .id.S, rating: .rating.N, urgency: .urgency.S}'
 ```
 
 **Expected Output**:

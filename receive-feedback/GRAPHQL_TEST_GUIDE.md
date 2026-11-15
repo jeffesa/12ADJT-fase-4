@@ -4,7 +4,7 @@
 
 Before testing, ensure:
 - The receive-feedback application is running (port 8080 by default)
-- GraphQL endpoint is available at `http://localhost:8080/v1/graphql`
+- GraphQL endpoint is available at `http://localhost:8080/graphql`
 - DynamoDB (LocalStack or AWS) is accessible with configured credentials
 - Bruno or Postman is installed for testing
 - The build was successful: `mvn clean verify -pl receive-feedback` ✓
@@ -173,7 +173,7 @@ After running the query, verify:
 
 1. Create a new request in Bruno/Postman
 2. Set method to POST
-3. Set URL to `http://localhost:8080/v1/graphql`
+3. Set URL to `http://localhost:8080/graphql`
 4. Add header: `Content-Type: application/json`
 
 ### Test Flow

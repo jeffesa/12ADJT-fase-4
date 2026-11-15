@@ -8,7 +8,7 @@ This guide covers setting up the feedback-platform serverless application for lo
 
 LocalStack is a fully functional local AWS cloud stack that allows you to develop and test serverless applications without connecting to AWS. This platform uses:
 
-- **DynamoDB**: Stores feedback records with primary key (feedbackId, createdAt)
+- **DynamoDB**: Stores feedback records with primary key (id, createdAt)
 - **SNS**: Publishes notifications for high-urgency feedback to `feedback-urgent-topic`
 - **SQS**: Queues for asynchronous message processing
 - **SES**: Simulates email sending (mocked in LocalStack)
@@ -206,11 +206,11 @@ When LocalStack starts, the initialization script (`infra/localstack-init.sh`) a
 ### DynamoDB Table: `feedbacks`
 
 **Primary Key:**
-- Partition Key (HASH): `feedbackId` (String)
+- Partition Key (HASH): `id` (String)
 - Sort Key (RANGE): `createdAt` (String)
 
 **Attributes:**
-- `feedbackId`: UUID of the feedback (auto-generated)
+- `id`: UUID of the feedback (auto-generated)
 - `description`: Feedback description text
 - `rating`: Numeric rating (0-10)
 - `urgency`: Urgency level (HIGH, MEDIUM, LOW)
@@ -240,7 +240,7 @@ Each module runs in Quarkus dev mode, which provides:
 ### Quarkus Module Ports
 
 By default:
-- **receive-feedback**: http://localhost:8080/v1/graphql
+- **receive-feedback**: http://localhost:8080/graphql
 - **send-notification**: http://localhost:8081/graphql (or background Lambda)
 - **generate-report**: http://localhost:8282/graphql
 
@@ -393,7 +393,7 @@ docker compose exec localstack /docker-entrypoint-initaws.d/init-aws.sh
 1. Verify modules are running: Check Terminals 1, 2, 3
 2. Test endpoint manually:
 ```bash
-curl -X POST http://localhost:8080/v1/graphql \
+curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -d '{"query": "{ __typename }"}'
 ```

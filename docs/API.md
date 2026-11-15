@@ -12,7 +12,7 @@ The platform is built on AWS Lambda, DynamoDB, SNS, and SES using Quarkus with G
 
 ### Local Development (LocalStack)
 
-- **GraphQL Endpoint**: `http://localhost:8080/v1/graphql`
+- **GraphQL Endpoint**: `http://localhost:8080/graphql`
 - **HTTP REST Endpoint**: `http://localhost:8080/v1/feedback`
 - **Quarkus Dev Mode**: `mvn quarkus:dev` (runs on port 8080)
 
@@ -178,7 +178,7 @@ Urgency is automatically calculated when feedback is received based on the ratin
 
 **Request**:
 ```bash
-curl -X POST http://localhost:8080/v1/graphql \
+curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
   -d '{
@@ -225,7 +225,7 @@ mutation {
 
 **Request**:
 ```bash
-curl -X POST http://localhost:8080/v1/graphql \
+curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
   -d '{
@@ -272,7 +272,7 @@ mutation {
 
 **Request**:
 ```bash
-curl -X POST http://localhost:8080/v1/graphql \
+curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
   -d '{
@@ -319,7 +319,7 @@ mutation {
 
 **Request**:
 ```bash
-curl -X POST http://localhost:8080/v1/graphql \
+curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
   -d '{
@@ -626,7 +626,7 @@ GraphQL UI is available at: `http://localhost:8080/q/graphql-ui`
 Create feedback:
 
 ```bash
-curl -X POST http://localhost:8080/v1/graphql \
+curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
   -d '{"query": "mutation { receiveFeedback(input: { description: \"Test\", rating: 5 }) { id urgency } }"}'

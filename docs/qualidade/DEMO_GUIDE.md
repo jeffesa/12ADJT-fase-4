@@ -74,7 +74,7 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 1. Open a terminal and create a HIGH-urgency feedback using GraphQL:
    ```bash
-   curl -X POST http://localhost:8080/v1/graphql \
+   curl -X POST http://localhost:8080/graphql \
      -H "Content-Type: application/json" \
      -d '{
        "query": "mutation { receiveFeedback(input: {description: \"Critical issue: System crashes on login\", rating: 2}) { id description rating urgency createdAt } }"
@@ -121,7 +121,7 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 1. Create a LOW-urgency feedback using GraphQL:
    ```bash
-   curl -X POST http://localhost:8080/v1/graphql \
+   curl -X POST http://localhost:8080/graphql \
      -H "Content-Type: application/json" \
      -d '{
        "query": "mutation { receiveFeedback(input: {description: \"Great service! Very satisfied with the experience.\", rating: 9}) { id description rating urgency createdAt } }"
@@ -143,7 +143,7 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 5. Optional: Create one MEDIUM-urgency feedback (rating 6-7) to show all three states:
    ```bash
-   curl -X POST http://localhost:8080/v1/graphql \
+   curl -X POST http://localhost:8080/graphql \
      -H "Content-Type: application/json" \
      -d '{
        "query": "mutation { receiveFeedback(input: {description: \"Average experience, room for improvement.\", rating: 6}) { id description rating urgency createdAt } }"
@@ -166,7 +166,7 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 1. Execute the GraphQL query to list all feedbacks:
    ```bash
-   curl -X POST http://localhost:8080/v1/graphql \
+   curl -X POST http://localhost:8080/graphql \
      -H "Content-Type: application/json" \
      -d '{
        "query": "{ listFeedbacks { id description rating urgency createdAt } }"
@@ -177,7 +177,7 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 3. Format the output using `jq` for clarity:
    ```bash
-   curl -X POST http://localhost:8080/v1/graphql \
+   curl -X POST http://localhost:8080/graphql \
      -H "Content-Type: application/json" \
      -d '{"query": "{ listFeedbacks { id description rating urgency createdAt } }"}' | jq '.data.listFeedbacks[]'
    ```
@@ -359,21 +359,21 @@ This demo showcases a production-grade serverless feedback platform built on AWS
 
 **Create Feedback (HIGH):**
 ```bash
-curl -X POST http://localhost:8080/v1/graphql \
+curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -d '{"query": "mutation { receiveFeedback(input: {description: \"Critical issue: System crashes on login\", rating: 2}) { id description rating urgency createdAt } }"}'
 ```
 
 **Create Feedback (LOW):**
 ```bash
-curl -X POST http://localhost:8080/v1/graphql \
+curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -d '{"query": "mutation { receiveFeedback(input: {description: \"Great service! Very satisfied with the experience.\", rating: 9}) { id description rating urgency createdAt } }"}'
 ```
 
 **Query All Feedbacks:**
 ```bash
-curl -X POST http://localhost:8080/v1/graphql \
+curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -d '{"query": "{ listFeedbacks { id description rating urgency createdAt } }"}'
 ```
@@ -383,7 +383,7 @@ curl -X POST http://localhost:8080/v1/graphql \
 docker compose exec localstack awslocal dynamodb scan \
   --table-name feedbacks \
   --region us-east-1 \
-  --output json | jq '.Items[] | {id: .feedbackId.S, rating: .rating.N, urgency: .urgency.S}'
+  --output json | jq '.Items[] | {id: .id.S, rating: .rating.N, urgency: .urgency.S}'
 ```
 
 **View CloudWatch Logs:**
