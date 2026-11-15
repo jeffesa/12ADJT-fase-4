@@ -64,7 +64,7 @@ public class ReceiveFeedbackUseCase {
      * 
      * @return a list of all Feedback entities, or an empty list if none exist
      */
-    public List<Feedback> listarTodos() {
+    public List<Feedback> listAllFeedbacks() {
         return feedbackGateway.findAll();
     }
 

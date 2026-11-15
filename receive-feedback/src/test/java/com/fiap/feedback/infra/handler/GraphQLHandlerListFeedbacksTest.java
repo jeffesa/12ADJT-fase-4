@@ -63,7 +63,7 @@ class GraphQLHandlerListFeedbacksTest {
     void listFeedbacksWithTokenReturnsEnglishFields() throws Exception {
         LocalDateTime createdAt = LocalDateTime.of(2024, 3, 15, 10, 30);
         Feedback feedback = new Feedback(UUID.randomUUID().toString(), "Good", 7, Urgency.MEDIUM, createdAt, false);
-        when(useCase.listarTodos()).thenReturn(List.of(feedback));
+        when(useCase.listAllFeedbacks()).thenReturn(List.of(feedback));
 
         APIGatewayProxyResponseEvent response = handle("Bearer test-token", LIST_FEEDBACKS);
 
@@ -76,7 +76,7 @@ class GraphQLHandlerListFeedbacksTest {
         assertEquals(7, item.get("rating").asInt());
         assertEquals("MEDIUM", item.get("urgency").asText());
         assertEquals(createdAt.toString(), item.get("createdAt").asText());
-        verify(useCase).listarTodos();
+        verify(useCase).listAllFeedbacks();
     }
 
     @Test
@@ -92,7 +92,7 @@ class GraphQLHandlerListFeedbacksTest {
     void legacyListarAvaliacoesStillReturnsPortugueseFields() throws Exception {
         Feedback feedback = new Feedback(UUID.randomUUID().toString(), "Good", 7, Urgency.MEDIUM,
                 LocalDateTime.of(2024, 3, 15, 10, 30), false);
-        when(useCase.listarTodos()).thenReturn(List.of(feedback));
+        when(useCase.listAllFeedbacks()).thenReturn(List.of(feedback));
 
         APIGatewayProxyResponseEvent response = handle("Bearer test-token", LIST_AVALIACOES);
 

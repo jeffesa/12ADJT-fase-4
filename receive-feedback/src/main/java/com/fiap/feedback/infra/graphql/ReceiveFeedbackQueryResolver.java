@@ -57,7 +57,7 @@ public class ReceiveFeedbackQueryResolver {
         LOGGER.log(Level.INFO, "GraphQL query listarAvaliacoes called");
         
         try {
-            List<Feedback> feedbacks = receiveFeedbackUseCase.listarTodos();
+            List<Feedback> feedbacks = receiveFeedbackUseCase.listAllFeedbacks();
             
             List<ReceiveFeedbackOutput> output = feedbacks.stream()
                 .map(InputOutputMapper::toOutput)
@@ -82,7 +82,7 @@ public class ReceiveFeedbackQueryResolver {
         LOGGER.log(Level.INFO, "GraphQL query listFeedbacks called");
         
         try {
-            List<Feedback> feedbacks = receiveFeedbackUseCase.listarTodos();
+            List<Feedback> feedbacks = receiveFeedbackUseCase.listAllFeedbacks();
             
             List<FeedbackOutput> output = feedbacks.stream()
                 .map(InputOutputMapper::toFeedbackOutput)

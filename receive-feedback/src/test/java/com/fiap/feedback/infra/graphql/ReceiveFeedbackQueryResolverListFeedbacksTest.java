@@ -28,7 +28,7 @@ class ReceiveFeedbackQueryResolverListFeedbacksTest {
         LocalDateTime createdAt = LocalDateTime.of(2024, 3, 15, 10, 30, 45);
         Feedback feedback = new Feedback(id, "Good service", 7, Urgency.MEDIUM, createdAt, false);
         ReceiveFeedbackUseCase useCase = mock(ReceiveFeedbackUseCase.class);
-        when(useCase.listarTodos()).thenReturn(List.of(feedback));
+        when(useCase.listAllFeedbacks()).thenReturn(List.of(feedback));
 
         List<FeedbackOutput> result = new ReceiveFeedbackQueryResolver(useCase).listFeedbacks();
 
@@ -44,7 +44,7 @@ class ReceiveFeedbackQueryResolverListFeedbacksTest {
     @Test
     void returnsEmptyListWhenNoFeedbacksExist() {
         ReceiveFeedbackUseCase useCase = mock(ReceiveFeedbackUseCase.class);
-        when(useCase.listarTodos()).thenReturn(List.of());
+        when(useCase.listAllFeedbacks()).thenReturn(List.of());
 
         List<FeedbackOutput> result = new ReceiveFeedbackQueryResolver(useCase).listFeedbacks();
 
@@ -54,7 +54,7 @@ class ReceiveFeedbackQueryResolverListFeedbacksTest {
     @Test
     void rethrowsWhenUseCaseFails() {
         ReceiveFeedbackUseCase useCase = mock(ReceiveFeedbackUseCase.class);
-        when(useCase.listarTodos()).thenThrow(new IllegalStateException("Scan failed"));
+        when(useCase.listAllFeedbacks()).thenThrow(new IllegalStateException("Scan failed"));
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         IllegalStateException error = assertThrows(IllegalStateException.class, resolver::listFeedbacks);

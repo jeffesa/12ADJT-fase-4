@@ -308,7 +308,7 @@ class ReceiveFeedbackQueryResolverTest {
     @Test
     void queryRethrowsWhenUseCaseFails() {
         ReceiveFeedbackUseCase useCase = mock(ReceiveFeedbackUseCase.class);
-        when(useCase.listarTodos()).thenThrow(new IllegalStateException("Scan failed"));
+        when(useCase.listAllFeedbacks()).thenThrow(new IllegalStateException("Scan failed"));
         ReceiveFeedbackQueryResolver resolver = new ReceiveFeedbackQueryResolver(useCase);
 
         IllegalStateException error = assertThrows(IllegalStateException.class, resolver::listarAvaliacoes);
