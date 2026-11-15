@@ -523,7 +523,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmName: !Sub '${Environment}-severe-errors-receive-feedback'
-      AlarmDescription: !Sub 'Log SEVERE no receive-feedback. Veja o log com: aws logs tail /aws/lambda/${Environment}-receive-feedback --since 1h --region ${Region} --profile fase4. Entrada inválida também dispara este alarme. Ver docs/qualidade/MONITORING_GUIDE.md.'
+      AlarmDescription: !Sub 'Log SEVERE no receive-feedback. Veja o log com: aws logs tail /aws/lambda/${Environment}-receive-feedback --since 1h --region ${Region} --profile fase4. Descrição com menos de 5 caracteres também dispara este alarme (SEVERE e resposta 500). Ver docs/qualidade/MONITORING_GUIDE.md.'
       Namespace: !Sub 'FeedbackPlatform/${Environment}'
       MetricName: SevereErrors-ReceiveFeedback
       Statistic: Sum
