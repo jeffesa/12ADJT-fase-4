@@ -1,5 +1,7 @@
 # Test Results - POST /avaliacao Endpoint
 
+> Historical record. The `/avaliacao` route was removed with the legacy API. The current route is `POST /v1/feedback`.
+
 **Date:** November 11, 2026  
 **Environment:** AWS Production (sa-east-1)  
 **Endpoint:** `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/avaliacao`

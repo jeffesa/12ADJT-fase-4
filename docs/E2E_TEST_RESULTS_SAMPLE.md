@@ -1,4 +1,6 @@
 # End-to-End Test Results — Sample Execution
+> Historical note: the `receiveFeedback` commands and the `descricao`, `nota`, `urgencia` and `dataCriacao` fields below are from the removed legacy GraphQL contract and the `/avaliacao` route. Use the v1 fields in `E2E_TESTING_GUIDE.md`.
+
 
 This document records a sample execution of the feedback platform E2E tests with LocalStack, demonstrating the expected output format and evidence collection.
 

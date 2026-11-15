@@ -1,8 +1,8 @@
 # GraphQL API Documentation — Feedback Platform
 
 **Base URL:** 
-- **Local:** `http://localhost:4566/avaliacao`
-- **Production:** `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao`
+- **Local:** `http://localhost:4566/v1/graphql`
+- **Production:** `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/graphql`
 
 **Authentication:** Bearer token via header `Authorization: Bearer <token>` (required on every route; token = secret `API_TOKEN`)
 
@@ -16,27 +16,27 @@
 ```graphql
 type Feedback {
   id: String!                    # UUID (auto-generated)
-  descricao: String!             # Feedback description (1-1000 chars)
-  nota: Int!                     # Rating (0-10)
-  urgencia: Urgency!             # Calculated from nota
-  dataCriacao: String!           # ISO 8601 timestamp
+  description: String!           # Feedback description (1-1000 chars)
+  rating: Int!                   # Rating (0-10)
+  urgency: Urgency!              # Calculated from rating
+  createdAt: String!             # ISO 8601 timestamp
 }
 ```
 
 #### Urgency (Enum)
 ```graphql
 enum Urgency {
-  HIGH                           # nota 0-5
-  MEDIUM                         # nota 6-7
-  LOW                            # nota 8-10
+  HIGH                           # rating 0-5
+  MEDIUM                         # rating 6-7
+  LOW                            # rating 8-10
 }
 ```
 
 #### FeedbackInput
 ```graphql
 input FeedbackInput {
-  descricao: String!             # Required, min 1 char
-  nota: Int!                     # Required, 0-10
+  description: String!          # Required, min 1 char
+  rating: Int!                   # Required, 0-10
 }
 ```
 
@@ -44,29 +44,29 @@ input FeedbackInput {
 
 ## Mutations
 
-### criarAvaliacao
+### receiveFeedback
 
 Creates a new feedback entry with description and rating. Calculates urgency automatically.
 
 **Signature:**
 ```graphql
-mutation criarAvaliacao(
+mutation receiveFeedback(
   input: FeedbackInput!
 ): Feedback!
 ```
 
 **Request Example:**
 ```graphql
-mutation CriarFeedback {
-  criarAvaliacao(input: {
-    descricao: "Excelente produto, muito satisfeito!"
-    nota: 9
+mutation ReceiveFeedback {
+  receiveFeedback(input: {
+    description: "Excelente produto, muito satisfeito!"
+    rating: 9
   }) {
     id
-    descricao
-    nota
-    urgencia
-    dataCriacao
+    description
+    rating
+    urgency
+    createdAt
   }
 }
 ```
@@ -75,12 +75,12 @@ mutation CriarFeedback {
 ```json
 {
   "data": {
-    "criarAvaliacao": {
+    "receiveFeedback": {
       "id": "550e8400-e29b-41d4-a716-446655440000",
-      "descricao": "Excelente produto, muito satisfeito!",
-      "nota": 9,
-      "urgencia": "LOW",
-      "dataCriacao": "2026-11-08T18:30:45.123456789"
+      "description": "Excelente produto, muito satisfeito!",
+      "rating": 9,
+      "urgency": "LOW",
+      "createdAt": "2026-11-08T18:30:45.123456789"
     }
   }
 }
@@ -109,7 +109,7 @@ mutation CriarFeedback {
 
 ## Validation Rules
 
-### descricao
+### description
 - **Type:** String
 - **Required:** Yes
 - **Min Length:** 1 character
@@ -117,7 +117,7 @@ mutation CriarFeedback {
 - **Constraint:** Must not be blank or null
 - **Error:** "Feedback description must not be empty"
 
-### nota
+### rating
 - **Type:** Integer
 - **Required:** Yes
 - **Min Value:** 0
@@ -185,25 +185,25 @@ Open **Collection > Variables** and set `prodToken` (value of the `API_TOKEN` se
 
 **Local (local-http):**
 ```
-POST http://localhost:8080/avaliacao
+POST http://localhost:8080/v1/feedback
 Content-Type: application/json
 Authorization: Bearer <localToken>
 
 {
-  "descricao": "Test feedback",
-  "nota": 8
+  "description": "Test feedback",
+  "rating": 8
 }
 ```
 
 **Production (AWS):**
 ```
-POST https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao
+POST https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/feedback
 Content-Type: application/json
 Authorization: Bearer <token>
 
 {
-  "descricao": "Test feedback",
-  "nota": 8
+  "description": "Test feedback",
+  "rating": 8
 }
 ```
 
@@ -211,8 +211,8 @@ Authorization: Bearer <token>
 
 The collection contains 20 pre-built requests per environment (`local` and `prod`), including 401 cases for missing and invalid tokens:
 
-- ✅ Success cases (nota 1, 5, 6, 7, 8, 10)
-- ❌ Error cases (nota -1, 11, empty description, null description)
+- ✅ Success cases (rating 1, 5, 6, 7, 8, 10)
+- ❌ Error cases (rating -1, 11, empty description, null description)
 
 Each request includes:
 - Pre-request script: Auto-generates timestamp
@@ -229,7 +229,7 @@ Each request includes:
 
 ## Urgency and Notifications
 
-### HIGH Urgency Feedback (nota 0-5)
+### HIGH Urgency Feedback (rating 0-5)
 
 When a feedback with HIGH urgency is created:
 
@@ -251,7 +251,7 @@ Conteúdo:
 - Data: 2026-11-08 18:30:45
 ```
 
-### MEDIUM/LOW Urgency Feedback (nota 6-10)
+### MEDIUM/LOW Urgency Feedback (rating 6-10)
 
 - **DynamoDB:** Feedback stored in `prod-feedback-table`
 - **SNS:** No message published
@@ -326,12 +326,12 @@ export ADMIN_EMAIL=admin@company.com
 **Example Query:**
 ```graphql
 mutation {
-  criarAvaliacao(input: {
-    descricao: "Test"
-    nota: 8
+  receiveFeedback(input: {
+    description: "Test"
+    rating: 8
   }) {
     id
-    urgencia
+    urgency
   }
 }
 ```
@@ -343,7 +343,7 @@ mutation {
 - **Repository:** https://github.com/jeffesa/12ADJT-fase-4
 - **Postman Collection:** `docs/api-collection/fase4-feedback.postman_collection.json`
 - **SonarCloud Dashboard:** https://sonarcloud.io/dashboard?id=jeffesa_12ADJT-fase-4
-- **AWS Endpoint:** https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/avaliacao
+- **AWS Endpoint:** https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/graphql
 - **Quarkus GraphQL:** https://quarkus.io/guides/smallrye-graphql
 - **RFC 7807 Problem Detail:** https://tools.ietf.org/html/rfc7807
 
@@ -352,4 +352,5 @@ mutation {
 **Last Updated:** November 8, 2026  
 **API Version:** v1  
 **Status:** Production Ready ✅
+
 
