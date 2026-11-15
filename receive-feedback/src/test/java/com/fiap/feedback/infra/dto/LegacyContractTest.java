@@ -19,8 +19,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
- * Guards the legacy public contract: JSON keys, GraphQL field names and the
- * external GraphQL query name must not change when Java identifiers are renamed.
+ * Guards the public contract of the GraphQL mutation: JSON keys and GraphQL field names
+ * must not change when Java identifiers are renamed.
  */
 class LegacyContractTest {
 
@@ -30,7 +30,7 @@ class LegacyContractTest {
 
     private static final Jsonb JSONB = JsonbBuilder.create();
 
-    private static final Set<String> LEGACY_OUTPUT_KEYS = Set.of("id", "descricao", "nota", "urgencia", "dataCriacao");
+    private static final Set<String> OUTPUT_KEYS = Set.of("id", "description", "rating", "urgency", "createdAt");
 
     private static ReceiveFeedbackOutput sampleOutput() {
         return new ReceiveFeedbackOutput(
@@ -53,28 +53,28 @@ class LegacyContractTest {
     }
 
     @Test
-    void jacksonOutputSerializesExactlyTheLegacyKeys() throws Exception {
+    void jacksonOutputSerializesExactlyTheContractKeys() throws Exception {
         JsonNode json = MAPPER.readTree(MAPPER.writeValueAsString(sampleOutput()));
 
-        assertEquals(LEGACY_OUTPUT_KEYS, keys(json));
-        assertEquals("Atendimento excelente", json.get("descricao").asText());
-        assertEquals(9, json.get("nota").asInt());
-        assertEquals("LOW", json.get("urgencia").asText());
-        assertEquals("2024-11-09T10:30:15", json.get("dataCriacao").asText());
+        assertEquals(OUTPUT_KEYS, keys(json));
+        assertEquals("Atendimento excelente", json.get("description").asText());
+        assertEquals(9, json.get("rating").asInt());
+        assertEquals("LOW", json.get("urgency").asText());
+        assertEquals("2024-11-09T10:30:15", json.get("createdAt").asText());
     }
 
     @Test
-    void jsonbOutputSerializesExactlyTheLegacyKeys() {
+    void jsonbOutputSerializesExactlyTheContractKeys() {
         JsonNode json = readTree(JSONB.toJson(sampleOutput()));
 
-        assertEquals(LEGACY_OUTPUT_KEYS, keys(json));
-        assertEquals("Atendimento excelente", json.get("descricao").asText());
-        assertEquals(9, json.get("nota").asInt());
+        assertEquals(OUTPUT_KEYS, keys(json));
+        assertEquals("Atendimento excelente", json.get("description").asText());
+        assertEquals(9, json.get("rating").asInt());
     }
 
     @Test
-    void jacksonInputAcceptsLegacyKeys() throws Exception {
-        ReceiveFeedbackInput input = MAPPER.readValue("{\"descricao\":\"Bom servico\",\"nota\":7}",
+    void jacksonInputAcceptsContractKeys() throws Exception {
+        ReceiveFeedbackInput input = MAPPER.readValue("{\"description\":\"Bom servico\",\"rating\":7}",
                 ReceiveFeedbackInput.class);
 
         assertEquals("Bom servico", input.description());
@@ -82,8 +82,8 @@ class LegacyContractTest {
     }
 
     @Test
-    void jsonbInputAcceptsLegacyKeys() {
-        ReceiveFeedbackInput input = JSONB.fromJson("{\"descricao\":\"Bom servico\",\"nota\":7}",
+    void jsonbInputAcceptsContractKeys() {
+        ReceiveFeedbackInput input = JSONB.fromJson("{\"description\":\"Bom servico\",\"rating\":7}",
                 ReceiveFeedbackInput.class);
 
         assertEquals("Bom servico", input.description());
@@ -91,17 +91,17 @@ class LegacyContractTest {
     }
 
     @Test
-    void graphqlOutputFieldNamesKeepLegacyNames() throws Exception {
-        assertEquals("descricao", graphqlName(ReceiveFeedbackOutput.class, "description"));
-        assertEquals("nota", graphqlName(ReceiveFeedbackOutput.class, "rating"));
-        assertEquals("urgencia", graphqlName(ReceiveFeedbackOutput.class, "urgency"));
-        assertEquals("dataCriacao", graphqlName(ReceiveFeedbackOutput.class, "createdAt"));
+    void graphqlOutputFieldNamesMatchContract() throws Exception {
+        assertEquals("description", graphqlName(ReceiveFeedbackOutput.class, "description"));
+        assertEquals("rating", graphqlName(ReceiveFeedbackOutput.class, "rating"));
+        assertEquals("urgency", graphqlName(ReceiveFeedbackOutput.class, "urgency"));
+        assertEquals("createdAt", graphqlName(ReceiveFeedbackOutput.class, "createdAt"));
     }
 
     @Test
-    void graphqlInputFieldNamesKeepLegacyNames() throws Exception {
-        assertEquals("descricao", graphqlName(ReceiveFeedbackInput.class, "description"));
-        assertEquals("nota", graphqlName(ReceiveFeedbackInput.class, "rating"));
+    void graphqlInputFieldNamesMatchContract() throws Exception {
+        assertEquals("description", graphqlName(ReceiveFeedbackInput.class, "description"));
+        assertEquals("rating", graphqlName(ReceiveFeedbackInput.class, "rating"));
     }
 
     private static JsonNode readTree(String json) {
