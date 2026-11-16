@@ -46,7 +46,7 @@ A aplicação roda na AWS, em região `sa-east-1`, sem servidores para gerenciar
 
 ```
                       ALUNO / CLIENTE
-   POST /v1/feedback   GET /v1/feedback   POST /v1/graphql
+   POST /v1/avaliacao   GET /v1/avaliacoes   POST /v1/graphql
    Authorization: Bearer <token>
                               │
                               ▼
@@ -101,7 +101,7 @@ A solução usa somente serviços gerenciados da AWS. A tabela mostra o papel de
 | **AWS Lambda** | Executa as funções serverless | `prod-receive-feedback`, `prod-graphql`, `prod-send-notification`, `prod-generate-report` | `aws lambda list-functions --region sa-east-1` |
 | **Amazon S3** | Guarda o pacote (zip) de cada função antes do deploy | Bucket `sam-artifacts-sa-east-1-prod` | `aws s3 ls s3://sam-artifacts-sa-east-1-prod` |
 | **AWS CloudFormation** | Cria e atualiza todos os recursos a partir do `infra/template.yaml` | Stack `feedback-api-prod` | `aws cloudformation describe-stacks --stack-name feedback-api-prod` |
-| **Amazon API Gateway** | Recebe as requisições HTTPS e encaminha às funções | API `prod-feedback-api`, com as rotas `/v1/feedback`, `/v1/graphql` e `/graphql` | Acessar a URL de produção |
+| **Amazon API Gateway** | Recebe as requisições HTTPS e encaminha às funções | API `prod-feedback-api`, com as rotas `/v1/avaliacao`, `/v1/avaliacoes`, `/v1/graphql` e `/graphql` | Acessar a URL de produção |
 | **Amazon DynamoDB** | Armazena os feedbacks | Tabela `prod-feedback-table` | `aws dynamodb describe-table --table-name prod-feedback-table` |
 | **Amazon SNS** | Envia o aviso de urgência e os alarmes | Tópicos `prod-feedback-urgent-topic` e `prod-monitoring-alarms-topic` | `aws sns list-topics` |
 | **Amazon EventBridge** | Dispara o relatório toda segunda-feira, às 08h UTC | Regra `prod-generate-report-schedule` | `aws events list-rules` |
@@ -136,7 +136,7 @@ O diagrama completo, com o fluxo de cada função, está no início deste docume
 
 | Componente | Tipo na AWS | Responsabilidade | Gatilho | Permissões principais |
 |---|---|---|---|---|
-| **receive-feedback** | Lambda (`prod-receive-feedback`) | Valida a entrada, calcula a urgência, grava o feedback e publica o aviso no SNS quando a urgência é alta | API Gateway: `POST /v1/feedback` e `GET /v1/feedback` | DynamoDB: gravar e ler. SNS: publicar no tópico de urgência |
+| **receive-feedback** | Lambda (`prod-receive-feedback`) | Valida a entrada, calcula a urgência, grava o feedback e publica o aviso no SNS quando a urgência é alta | API Gateway: `POST /v1/avaliacao` e `GET /v1/avaliacoes` | DynamoDB: gravar e ler. SNS: publicar no tópico de urgência |
 | **graphql** | Lambda (`prod-graphql`) | Responde à consulta GraphQL `listFeedbacks` | API Gateway: `POST /v1/graphql` e `POST /graphql` | DynamoDB: ler |
 | **send-notification** | Lambda (`prod-send-notification`) | Envia o e-mail de aviso de urgência | SNS: `prod-feedback-urgent-topic` | SES: enviar e-mail |
 | **generate-report** | Lambda (`prod-generate-report`) | Monta o relatório do período e envia por e-mail | EventBridge: cron `seg 08h UTC` | DynamoDB: ler (Scan e Query). SES: enviar e-mail |
@@ -151,7 +151,7 @@ O diagrama completo, com o fluxo de cada função, está no início deste docume
 ### Fluxos principais
 
 **1. Recebimento de feedback**
-1. O cliente envia `POST /v1/feedback` com `description` e `rating`, e o cabeçalho Bearer.
+1. O cliente envia `POST /v1/avaliacao` com `description` e `rating`, e o cabeçalho Bearer.
 2. A função valida: descrição com no mínimo 5 caracteres e nota de 0 a 10.
 3. A urgência é calculada pela nota: **HIGH** de 0 a 5, **MEDIUM** de 6 a 7 e **LOW** de 8 a 10.
 4. O feedback é gravado no DynamoDB.
@@ -249,8 +249,8 @@ Todas as rotas exigem o cabeçalho `Authorization: Bearer <token>`.
 
 | Método | Caminho | Função | Descrição |
 |---|---|---|---|
-| POST | `/v1/feedback` | receive-feedback | Cria um feedback |
-| GET | `/v1/feedback` | receive-feedback | Lista os feedbacks |
+| POST | `/v1/avaliacao` | receive-feedback | Cria um feedback |
+| GET | `/v1/avaliacoes` | receive-feedback | Lista os feedbacks |
 | POST | `/v1/graphql` | graphql | Consulta GraphQL (`listFeedbacks`) |
 | POST | `/graphql` | graphql | Mesma consulta, em caminho legado |
 
@@ -259,7 +259,7 @@ Todas as rotas exigem o cabeçalho `Authorization: Bearer <token>`.
 Criar um feedback:
 
 ```bash
-curl -X POST "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback" \
+curl -X POST "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/avaliacao" \
   -H "Authorization: Bearer $API_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"description": "Aula muito clara e bem organizada", "rating": 9}'
@@ -280,7 +280,7 @@ Resposta (`201`):
 Listar os feedbacks:
 
 ```bash
-curl "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback" \
+curl "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/avaliacoes" \
   -H "Authorization: Bearer $API_TOKEN"
 ```
 
@@ -309,7 +309,7 @@ O enunciado pede `POST /avaliação` com os campos `descricao` e `nota`. A imple
 
 | Enunciado | Implementado |
 |---|---|
-| `POST /avaliação` | `POST /v1/feedback` |
+| `POST /avaliação` | `POST /v1/avaliacao` |
 | Campo `descricao` | Campo `description` |
 | Campo `nota` (0 a 10) | Campo `rating` (0 a 10) |
 | Dados do e-mail: descrição, urgência e data de envio | Descrição, urgência e data de envio |
@@ -585,7 +585,7 @@ Execute `./run.sh` na raiz do projeto para abrir o menu:
 | 3 | Roda os testes de todos os módulos com `mvn clean verify` |
 | 4 | Pede o nome de um módulo (`receive-feedback`, `send-notification` ou `generate-report`) e roda só os testes dele |
 | 5 | Instala o `receive-feedback` e sobe a API local em `http://localhost:8080`. Grava na tabela de desenvolvimento. Use Ctrl+C para parar |
-| 6 | Faz `GET /v1/feedback` com token e confirma que a API local responde 200 |
+| 6 | Faz `GET /v1/avaliacoes` com token e confirma que a API local responde 200 |
 | 7 | Valida o template SAM (`sam validate --lint`) |
 | 8 | Lê o endereço da API da stack de produção e confirma que sem token a resposta é 401 |
 | 9 | Lista as stacks, as funções Lambda e as tabelas DynamoDB. Só leitura |
