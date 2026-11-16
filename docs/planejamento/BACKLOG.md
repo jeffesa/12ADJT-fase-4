@@ -662,7 +662,7 @@ Documento `docs/SECURITY.md`:
 - [x] Descritivo de cada IAM Role (ReceiveFeedback, SendNotification, GenerateReport)
 - [x] Explicação de least privilege (cada Lambda só tem permissões que precisa)
 - [x] Autenticação obrigatória em todas as rotas (`/v1/feedback`, `/v1/graphql`), com token Bearer no lugar da API Key
-- [x] ~~Usage Plan com throttling~~: **removido do escopo**. O template não cria Usage Plan. O documento foi corrigido em 2026-11-16 para não descrever esse controle.
+- [ ] ~~Usage Plan com throttling~~: **removido do escopo**. O template não cria Usage Plan. O documento foi corrigido em 2026-11-16 para não descrever esse controle.
 - [x] CloudWatch Logs com retenção de 30 dias
 - [x] Separação de ambientes (dev/prod) via parâmetros do CloudFormation
 - [x] Encriptação em trânsito (HTTPS obrigatório no API Gateway)
