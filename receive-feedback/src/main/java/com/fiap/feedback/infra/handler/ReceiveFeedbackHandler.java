@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.application.usecase.ListFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
+import com.fiap.feedback.infra.dto.AvaliacaoInput;
 import com.fiap.feedback.infra.dto.FeedbackInput;
 import com.fiap.feedback.infra.dto.FeedbackOutput;
 import com.fiap.feedback.infra.dto.InputOutputMapper;
@@ -44,6 +45,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
 
     private static final Logger LOGGER = Logger.getLogger(ReceiveFeedbackHandler.class.getName());
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final String AVALIACAO_PATH = "/v1/avaliacao";
     
     static {
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -141,9 +143,12 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             return badRequest("O corpo da requisição não pode estar vazio");
         }
         
+        boolean avaliacao = isAvaliacaoRoute(event);
         FeedbackInput input;
         try {
-            input = OBJECT_MAPPER.readValue(body, FeedbackInput.class);
+            input = avaliacao
+                ? toFeedbackInput(OBJECT_MAPPER.readValue(body, AvaliacaoInput.class))
+                : OBJECT_MAPPER.readValue(body, FeedbackInput.class);
         } catch (JsonProcessingException e) {
             LOGGER.log(Level.WARNING, "Corpo da requisição inválido: " + e.getOriginalMessage());
             return badRequest("O corpo da requisição não é JSON válido ou possui campos com tipo incorreto");
@@ -172,9 +177,39 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
         response.setStatusCode(201);
-        response.setBody(toFeedbackJson(output).toString());
+        response.setBody(avaliacao ? toAvaliacaoJson(output).toString() : toFeedbackJson(output).toString());
         response.setHeaders(defaultHeaders());
         return response;
+    }
+
+    /**
+     * Returns true when the request targets POST /v1/avaliacao (Portuguese body fields).
+     */
+    private static boolean isAvaliacaoRoute(APIGatewayProxyRequestEvent event) {
+        return AVALIACAO_PATH.equals(event.getPath()) || AVALIACAO_PATH.equals(event.getResource());
+    }
+
+    /**
+     * Maps the Portuguese body of POST /v1/avaliacao to the input used by the use case.
+     */
+    private static FeedbackInput toFeedbackInput(AvaliacaoInput input) {
+        if (input == null) {
+            return null;
+        }
+        return new FeedbackInput(input.descricao(), input.nota());
+    }
+
+    /**
+     * Builds the Portuguese JSON object returned by POST /v1/avaliacao.
+     */
+    private static JsonObject toAvaliacaoJson(FeedbackOutput output) {
+        return Json.createObjectBuilder()
+            .add("id", output.id().toString())
+            .add("descricao", output.description())
+            .add("nota", output.rating())
+            .add("urgencia", output.urgency())
+            .add("dataCriacao", output.createdAt().toString())
+            .build();
     }
 
     /**

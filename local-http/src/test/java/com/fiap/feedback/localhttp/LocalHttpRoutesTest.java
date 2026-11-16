@@ -49,6 +49,18 @@ class LocalHttpRoutesTest {
     }
 
     @Test
+    void mapsAvaliacaoPostPathAndBodyToEvent() {
+        request(HttpMethod.POST, "/v1/avaliacao", MultiMap.caseInsensitiveMultiMap().add("Authorization", "Bearer k"),
+                "{\"descricao\":\"Bom\",\"nota\":5}");
+
+        APIGatewayProxyRequestEvent event = LocalHttpRoutes.toEvent(ctx);
+
+        assertEquals("POST", event.getHttpMethod());
+        assertEquals("/v1/avaliacao", event.getPath());
+        assertEquals("{\"descricao\":\"Bom\",\"nota\":5}", event.getBody());
+    }
+
+    @Test
     void mapsMethodPathHeadersAndBodyToEvent() {
         request(HttpMethod.POST, "/v1/feedback",
                 MultiMap.caseInsensitiveMultiMap().add("Content-Type", "application/json").add("Authorization", "Bearer k"),

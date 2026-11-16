@@ -90,6 +90,6 @@ public interface ReportConfiguration {
      * @return the report title
      */
     @WithName("report-title")
-    @WithDefault("Relatório semanal de feedback")
+    @WithDefault("Relatório semanal de avaliações")
     String reportTitle();
 }

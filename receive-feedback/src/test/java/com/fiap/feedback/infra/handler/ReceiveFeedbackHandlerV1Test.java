@@ -42,6 +42,7 @@ class ReceiveFeedbackHandlerV1Test {
 
     private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
     private static final String V1_PATH = "/v1/feedback";
+    private static final String AVALIACAO_PATH = "/v1/avaliacao";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -216,6 +217,96 @@ class ReceiveFeedbackHandlerV1Test {
 
         assertEquals(200, response.getStatusCode());
         assertTrue(objectMapper.readTree(response.getBody()).has("feedbacks"));
+    }
+
+    @Test
+    void avaliacaoPostReturns201WithPortugueseBodyMappedToUseCase() throws Exception {
+        LocalDateTime createdAt = LocalDateTime.of(2024, 3, 15, 10, 30);
+        Feedback saved = new Feedback(UUID.randomUUID().toString(), "Bom atendimento", 8, Urgency.LOW, createdAt, false);
+        when(receiveFeedbackUseCase.receiveFeedback("Bom atendimento", 8)).thenReturn(saved);
+
+        APIGatewayProxyResponseEvent response = handle("POST", AVALIACAO_PATH,
+                "{\"descricao\":\"Bom atendimento\",\"nota\":8}", "Bearer test-token");
+
+        assertEquals(201, response.getStatusCode());
+        JsonNode body = objectMapper.readTree(response.getBody());
+        assertEquals(saved.getId(), body.get("id").asText());
+        assertEquals("Bom atendimento", body.get("descricao").asText());
+        assertEquals(8, body.get("nota").asInt());
+        assertEquals("LOW", body.get("urgencia").asText());
+        assertEquals(createdAt.toString(), body.get("dataCriacao").asText());
+        assertFalse(body.has("description"));
+        assertFalse(body.has("rating"));
+        assertFalse(body.has("urgency"));
+        assertFalse(body.has("createdAt"));
+    }
+
+    @Test
+    void avaliacaoPostBlankDescricaoReturns400() throws Exception {
+        assertBadRequest(handle("POST", AVALIACAO_PATH, "{\"descricao\":\"\",\"nota\":7}", "Bearer test-token"),
+                "Descrição não pode estar vazia");
+    }
+
+    @Test
+    void avaliacaoPostMissingDescricaoReturns400() throws Exception {
+        assertBadRequest(handle("POST", AVALIACAO_PATH, "{\"nota\":7}", "Bearer test-token"),
+                "Descrição não pode estar vazia");
+    }
+
+    @Test
+    void avaliacaoPostNotaAboveTenReturns400() throws Exception {
+        assertBadRequest(handle("POST", AVALIACAO_PATH, "{\"descricao\":\"Bom\",\"nota\":11}", "Bearer test-token"),
+                "Nota deve ser no máximo 10");
+    }
+
+    @Test
+    void avaliacaoPostNotaBelowZeroReturns400() throws Exception {
+        assertBadRequest(handle("POST", AVALIACAO_PATH, "{\"descricao\":\"Bom\",\"nota\":-1}", "Bearer test-token"),
+                "Nota deve ser no mínimo 0");
+    }
+
+    @Test
+    void avaliacaoPostMissingNotaReturns400() throws Exception {
+        assertBadRequest(handle("POST", AVALIACAO_PATH, "{\"descricao\":\"Bom\"}", "Bearer test-token"),
+                "Nota é obrigatória");
+    }
+
+    @Test
+    void avaliacaoPostEmptyBodyReturns400() throws Exception {
+        assertBadRequest(handle("POST", AVALIACAO_PATH, "", "Bearer test-token"), "O corpo da requisição não pode estar vazio");
+    }
+
+    @Test
+    void avaliacaoPostJsonNullBodyReturns400() throws Exception {
+        assertBadRequest(handle("POST", AVALIACAO_PATH, "null", "Bearer test-token"), "O corpo da requisição não pode estar vazio");
+    }
+
+    @Test
+    void avaliacaoPostMalformedJsonReturns400() throws Exception {
+        assertBadRequest(handle("POST", AVALIACAO_PATH, "{\"descricao\":", "Bearer test-token"),
+                "O corpo da requisição não é JSON válido ou possui campos com tipo incorreto");
+    }
+
+    @Test
+    void avaliacaoPostWrongNotaTypeReturns400() throws Exception {
+        assertBadRequest(handle("POST", AVALIACAO_PATH, "{\"descricao\":\"Bom\",\"nota\":\"abc\"}", "Bearer test-token"),
+                "O corpo da requisição não é JSON válido ou possui campos com tipo incorreto");
+    }
+
+    @Test
+    void avaliacaoPostWithoutTokenReturns401AndTouchesNothing() throws Exception {
+        APIGatewayProxyResponseEvent response = handle("POST", AVALIACAO_PATH, "{\"descricao\":\"Bom\",\"nota\":7}", null);
+        assertEquals(401, response.getStatusCode());
+        assertEquals("Token Bearer ausente", objectMapper.readTree(response.getBody()).get("detail").asText());
+        verifyNoInteractions(receiveFeedbackUseCase, listFeedbackUseCase);
+    }
+
+    @Test
+    void avaliacaoPostWithInvalidTokenReturns401AndTouchesNothing() throws Exception {
+        APIGatewayProxyResponseEvent response = handle("POST", AVALIACAO_PATH, "{\"descricao\":\"Bom\",\"nota\":7}", "Bearer nope");
+        assertEquals(401, response.getStatusCode());
+        assertEquals("Token Bearer inválido", objectMapper.readTree(response.getBody()).get("detail").asText());
+        verifyNoInteractions(receiveFeedbackUseCase, listFeedbackUseCase);
     }
 
     private void assertBadRequest(APIGatewayProxyResponseEvent response, String detail) throws Exception {

@@ -69,7 +69,7 @@ public interface NotificationConfiguration {
      * @return the subject template
      */
     @WithName("subject-template")
-    @WithDefault("⚠️ Feedback ${urgency}: ${description}")
+    @WithDefault("⚠️ Avaliação ${urgency}: ${description}")
     String subjectTemplate();
 
     /**
