@@ -288,6 +288,39 @@ O enunciado pede `POST /avaliação` com os campos `descricao` e `nota`. A imple
 - O token é guardado como segredo do GitHub (`API_TOKEN`), passado à implantação como parâmetro `NoEcho` e lido pelas funções como variável de ambiente.
 - Para trocar o token: atualizar o segredo e refazer o deploy de produção.
 
+### 1.1 Ciclo de vida do token
+
+O diagrama mostra por onde o token passa, da criação até a validação de cada requisição:
+
+```
+┌───────────────────────────────────┐
+│ 1. GITHUB (secret API_TOKEN)      │  o token é gerado com openssl e salvo
+│    guardado de forma criptografada│  como secret do repositório
+│    não pode ser lido depois       │
+└─────────────────┬─────────────────┘
+                  ▼  push na main: job "Deploy to prod (SAM)"
+┌───────────────────────────────────┐
+│ 2. PIPELINE e CLOUDFORMATION      │  o workflow lê o secret e envia ao
+│    parâmetro ApiToken (NoEcho)    │  CloudFormation, sem exibir o valor
+└─────────────────┬─────────────────┘
+                  ▼  grava como variável de ambiente
+┌───────────────────────────────────┐
+│ 3. LAMBDAs                        │  variável API_TOKEN nas funções
+│    receive-feedback e graphql     │  receive-feedback e graphql
+│    texto legível na configuração  │  quem pode ler a configuração da
+│                                   │  função na AWS consegue ver o valor
+└─────────────────┬─────────────────┘
+                  ▼  a cada requisição
+┌───────────────────────────────────┐
+│ 4. VALIDAÇÃO NA API               │  o header Authorization: Bearer <token>
+│    compara com a variável         │  é comparado com API_TOKEN
+│                                   │  igual: a requisição segue
+│                                   │  ausente ou diferente: 401
+└───────────────────────────────────┘
+```
+
+O ponto de atenção é a etapa 3. O token não fica em código nem em arquivo versionado, mas fica na configuração de cada Lambda, e quem tem acesso de leitura à AWS pode consultá-lo. Por isso o acesso à conta AWS deve ser restrito, e o token deve ser trocado se houver suspeita de vazamento.
+
 ### 2. Privilégio mínimo (IAM)
 
 | Função | Permissões concedidas |
