@@ -1,83 +1,83 @@
-# Local Development Setup Guide
+# Guia de configuração do ambiente local
 
-This guide covers setting up the feedback-platform serverless application for local development and testing using LocalStack to simulate AWS services.
+Este guia explica como preparar a aplicação serverless da plataforma de feedback para desenvolvimento e testes locais, usando o LocalStack para simular os serviços da AWS.
 
-**Note**: the legacy `e2e-test.sh` and `e2e-verify.sh` scripts were removed from the repository root.
+**Observação**: os scripts legados `e2e-test.sh` e `e2e-verify.sh` foram removidos da raiz do repositório.
 
-## Overview
+## Visão geral
 
-LocalStack is a fully functional local AWS cloud stack that allows you to develop and test serverless applications without connecting to AWS. This platform uses:
+O LocalStack é uma pilha de nuvem da AWS local e totalmente funcional, que permite desenvolver e testar aplicações serverless sem conectar à AWS. Esta plataforma usa:
 
-- **DynamoDB**: Stores feedback records with primary key (id, createdAt)
-- **SNS**: Publishes notifications for high-urgency feedback to `feedback-urgent-topic`
-- **SQS**: Queues for asynchronous message processing
-- **SES**: Simulates email sending (mocked in LocalStack)
-- **Lambda**: Simulated via Quarkus dev mode with event triggering
-- **CloudWatch**: Logs for monitoring and debugging
+- **DynamoDB**: guarda os registros de feedback com chave primária (id, createdAt)
+- **SNS**: publica notificações de feedbacks de alta urgência no `feedback-urgent-topic`
+- **SQS**: filas para o processamento assíncrono de mensagens
+- **SES**: simula o envio de e-mails (mockado no LocalStack)
+- **Lambda**: simulada pelo Quarkus dev mode, com disparo de eventos
+- **CloudWatch**: logs para monitoramento e depuração
 
-## Prerequisites
+## Pré-requisitos
 
-Ensure your system has the following installed:
+Confirme que o sistema tem os itens abaixo instalados:
 
-### Required Software
+### Software necessário
 
-- **Docker**: Version 20.10 or later
-  - macOS: Install [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- **Docker**: versão 20.10 ou posterior
+  - macOS: instale o [Docker Desktop](https://www.docker.com/products/docker-desktop)
   - Linux: `sudo apt-get install docker.io docker-compose`
-  - Windows: Install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop)
+  - Windows: instale o [Docker Desktop para Windows](https://www.docker.com/products/docker-desktop)
 
-- **Docker Compose**: Version 1.29 or later
-  - Usually bundled with Docker Desktop
-  - Verify: `docker compose version`
+- **Docker Compose**: versão 1.29 ou posterior
+  - Geralmente vem incluído no Docker Desktop
+  - Verifique com `docker compose version`
 
-- **Java 17**: For building and running the modules
-  - Download from [Amazon Corretto](https://aws.amazon.com/corretto/) or [Adoptium](https://adoptium.net/)
-  - Verify: `java -version`
+- **Java 17**: para compilar e rodar os módulos
+  - Baixe no [Amazon Corretto](https://aws.amazon.com/corretto/) ou no [Adoptium](https://adoptium.net/)
+  - Verifique com `java -version`
 
-- **Maven 3.8+**: For project compilation and testing
-  - Download from [Apache Maven](https://maven.apache.org/download.cgi)
-  - Verify: `mvn --version`
+- **Maven 3.8+**: para compilar o projeto e rodar os testes
+  - Baixe no [Apache Maven](https://maven.apache.org/download.cgi)
+  - Verifique com `mvn --version`
 
-- **Git**: For version control
+- **Git**: para controle de versão
   - macOS: `brew install git`
   - Linux: `sudo apt-get install git`
-  - Windows: [Git for Windows](https://gitforwindows.org/)
+  - Windows: [Git para Windows](https://gitforwindows.org/)
 
-### Recommended Tools
+### Ferramentas recomendadas
 
-- **curl**: For testing GraphQL endpoints manually
-  - Usually pre-installed on macOS/Linux
-  - Windows: Install [Git Bash](https://gitforwindows.org/) or [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)
+- **curl**: para testar os endpoints GraphQL manualmente
+  - Geralmente já vem instalado no macOS e no Linux
+  - Windows: instale o [Git Bash](https://gitforwindows.org/) ou o [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)
 
-- **jq**: For parsing JSON in shell scripts
+- **jq**: para ler JSON em scripts de shell
   - macOS: `brew install jq`
   - Linux: `sudo apt-get install jq`
-  - Windows: `choco install jq` or use [pre-built binaries](https://stedolan.github.io/jq/download/)
+  - Windows: `choco install jq` ou use os [binários prontos](https://stedolan.github.io/jq/download/)
 
-- **AWS CLI v2**: For direct interaction with LocalStack
-  - Install from [AWS CLI Documentation](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
-  - Verify: `aws --version`
+- **AWS CLI v2**: para interagir diretamente com o LocalStack
+  - Instale pela [documentação do AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+  - Verifique com `aws --version`
 
-## Quick Start (5 minutes)
+## Início rápido (5 minutos)
 
-### Step 1: Clone and Navigate to Repository
+### Passo 1: clonar e entrar no repositório
 
 ```bash
 cd /Users/jefferson/Documents/FIAP/fase-4
 ```
 
-### Step 2: Start LocalStack
+### Passo 2: iniciar o LocalStack
 
 ```bash
 ./run.sh docker
 ```
 
-This command:
-- Starts the LocalStack container with all AWS services
-- Automatically runs the initialization script (`infra/localstack-init.sh`) to create DynamoDB tables, SNS topics, and SQS queues
-- Outputs available endpoints after services are ready
+Este comando:
+- Inicia o contêiner do LocalStack com todos os serviços da AWS
+- Roda automaticamente o script de inicialização (`infra/localstack-init.sh`), que cria as tabelas do DynamoDB, os tópicos do SNS e as filas do SQS
+- Mostra os endpoints disponíveis depois que os serviços estiverem prontos
 
-Expected output:
+Saída esperada:
 ```
 ✅ LocalStack pronto!
 
@@ -88,89 +88,89 @@ Expected output:
    SQS:       http://localhost:4576
 ```
 
-### Step 3: Verify LocalStack Health
+### Passo 3: verificar a saúde do LocalStack
 
-In a second terminal:
+Em um segundo terminal:
 
 ```bash
 ./run.sh health
 ```
 
-Expected output:
+Saída esperada:
 ```
 ✅ LocalStack (edge:4566): UP
 ```
 
-### Step 4: Start the Three Modules
+### Passo 4: iniciar os três módulos
 
-Open three separate terminals and run each command in its own terminal:
+Abra três terminais separados e rode cada comando no seu terminal:
 
-**Terminal 1 - Receive Feedback Module:**
+**Terminal 1 - módulo Receive Feedback:**
 ```bash
 cd /Users/jefferson/Documents/FIAP/fase-4/receive-feedback
 mvn quarkus:dev
 ```
 
-**Terminal 2 - Send Notification Module:**
+**Terminal 2 - módulo Send Notification:**
 ```bash
 cd /Users/jefferson/Documents/FIAP/fase-4/send-notification
 mvn quarkus:dev
 ```
 
-**Terminal 3 - Generate Report Module:**
+**Terminal 3 - módulo Generate Report:**
 ```bash
 cd /Users/jefferson/Documents/FIAP/fase-4/generate-report
 mvn quarkus:dev
 ```
 
-Each module will:
-- Compile and start a Quarkus development server
-- Display the listening port (usually 8080, 8081, 8282)
-- Monitor file changes for live reload
-- Connect to LocalStack via configured endpoints
+Cada módulo vai:
+- Compilar e iniciar um servidor de desenvolvimento do Quarkus
+- Mostrar a porta em que está escutando (normalmente 8080, 8081 e 8282)
+- Monitorar as mudanças de arquivo para recarga automática
+- Conectar-se ao LocalStack pelos endpoints configurados
 
-### Step 5: Run E2E Tests
+### Passo 5: rodar os testes E2E
 
-In the original terminal (or a new one):
+No terminal original (ou em um novo):
 
 ```bash
 ./run.sh e2e-setup
 ```
 
-This verifies all resources are ready:
-- Checks DynamoDB table existence
-- Verifies SNS topics
-- Confirms SQS queues
-- Tests SES email identities
+Este comando verifica se todos os recursos estão prontos:
+- Confere se a tabela do DynamoDB existe
+- Verifica os tópicos do SNS
+- Confirma as filas do SQS
+- Testa as identidades de e-mail do SES
 
-Then run the test flows:
+Depois, rode os fluxos de teste:
 
 ```bash
 ./run.sh e2e-test
 ```
 
-Finally, verify results:
+Por fim, verifique os resultados:
 
 ```bash
 ./run.sh e2e-verify
 ```
 
-## LocalStack Configuration
+## Configuração do LocalStack
 
-### Endpoints and Services
+### Endpoints e serviços
 
-All AWS services are available at the edge endpoint with port 4566:
+Todos os serviços da AWS ficam disponíveis no endpoint de borda, na porta 4566:
 
-| Service | Port | Endpoint |
-|---------|------|----------|
-| Edge (All Services) | 4566 | http://localhost:4566 |
+| Serviço | Porta | Endpoint |
+|---------|-------|----------|
+| Borda (todos os serviços) | 4566 | http://localhost:4566 |
 | DynamoDB | 4569 | http://localhost:4569 |
 | SNS | 4575 | http://localhost:4575 |
 | SQS | 4576 | http://localhost:4576 |
 
-### Environment Variables
+### Variáveis de ambiente
 
-The following environment variables are configured automatically:
+As variáveis abaixo são configuradas automaticamente:
 
 ```bash
 AWS_REGION=us-east-1
@@ -182,14 +182,14 @@ AWS_ENDPOINT_URL_SQS=http://localhost:4576
 AWS_ENDPOINT_URL_SES=http://localhost:4566
 ```
 
-These are set in:
-- `docker-compose.yml` (LocalStack container environment)
-- Quarkus `application.properties` (per module)
-- `.env` files (if present)
+Elas são definidas em:
+- `docker-compose.yml` (ambiente do contêiner do LocalStack)
+- `application.properties` do Quarkus (de cada módulo)
+- Arquivos `.env`, se existirem
 
-### AWS Credentials
+### Credenciais da AWS
 
-Test credentials (valid only with LocalStack):
+Credenciais de teste (válidas somente com o LocalStack):
 
 ```
 Access Key ID: test
@@ -197,230 +197,230 @@ Secret Access Key: test
 Region: us-east-1
 ```
 
-**Security Note**: These credentials are only valid locally and have no real AWS permissions. Never use these in production.
+**Nota de segurança**: estas credenciais valem apenas localmente e não têm permissões reais na AWS. Nunca as use em produção.
 
-## Resources Created by LocalStack Initialization
+## Recursos criados pela inicialização do LocalStack
 
-When LocalStack starts, the initialization script (`infra/localstack-init.sh`) automatically creates:
+Quando o LocalStack sobe, o script de inicialização (`infra/localstack-init.sh`) cria automaticamente:
 
-### DynamoDB Table: `feedbacks`
+### Tabela do DynamoDB: `feedbacks`
 
-**Primary Key:**
-- Partition Key (HASH): `id` (String)
-- Sort Key (RANGE): `createdAt` (String)
+**Chave primária:**
+- Chave de partição (HASH): `id` (String)
+- Chave de classificação (RANGE): `createdAt` (String)
 
-**Attributes:**
-- `id`: UUID of the feedback (auto-generated)
-- `description`: Feedback description text
-- `rating`: Numeric rating (0-10)
-- `urgency`: Urgency level (HIGH, MEDIUM, LOW)
-- `createdAt`: ISO 8601 timestamp
+**Atributos:**
+- `id`: UUID do feedback (gerado automaticamente)
+- `description`: texto da descrição do feedback
+- `rating`: nota numérica (0 a 10)
+- `urgency`: nível de urgência (HIGH, MEDIUM, LOW)
+- `createdAt`: timestamp ISO 8601
 
-**Billing Mode**: Pay-per-request (no provisioned capacity needed)
+**Modo de cobrança**: por requisição (sem capacidade provisionada)
 
-### SNS Topics
+### Tópicos do SNS
 
-- `feedback-urgent-topic`: Receives messages when HIGH-urgency feedback is submitted
-- `feedback-report-topic`: Receives scheduled report messages
+- `feedback-urgent-topic`: recebe mensagens quando um feedback de urgência HIGH é enviado
+- `feedback-report-topic`: recebe as mensagens de relatórios agendados
 
-### SQS Queues
+### Filas do SQS
 
-- `notification-queue`: Processes notifications (subscribed to `feedback-urgent-topic`)
-- `report-queue`: Processes report generation requests
+- `notification-queue`: processa as notificações (assinante de `feedback-urgent-topic`)
+- `report-queue`: processa os pedidos de geração de relatório
 
-## Quarkus Development Mode
+## Modo de desenvolvimento do Quarkus
 
-Each module runs in Quarkus dev mode, which provides:
+Cada módulo roda no modo de desenvolvimento do Quarkus, que oferece:
 
-- **Live Reload**: Changes to Java code are automatically compiled and deployed
-- **GraphQL Hot Reload**: Schema changes take effect without restart
-- **Dev UI**: Accessible at `http://localhost:8080/q/dev`
-- **Logging**: Console output shows all requests and errors
+- **Recarga ao vivo**: mudanças no código Java são compiladas e implantadas automaticamente
+- **Recarga do GraphQL**: mudanças no schema têm efeito sem reiniciar
+- **Interface de dev**: acessível em `http://localhost:8080/q/dev`
+- **Logs**: a saída do console mostra todas as requisições e erros
 
-### Quarkus Module Ports
+### Portas dos módulos do Quarkus
 
-By default:
+Por padrão:
 - **receive-feedback**: http://localhost:8080/graphql
-- **send-notification**: http://localhost:8081/graphql (or background Lambda)
+- **send-notification**: http://localhost:8081/graphql (ou Lambda em segundo plano)
 - **generate-report**: http://localhost:8282/graphql
 
-Check the module's console output for the exact port.
+Confira a saída do console de cada módulo para ver a porta exata.
 
-### Module Dependencies
+### Dependências entre os módulos
 
-The modules are designed to work together via:
+Os módulos funcionam em conjunto da seguinte forma:
 
-1. **Receive Feedback** → persists to DynamoDB, publishes to SNS if HIGH urgency
-2. **SNS Event** → triggers Send Notification Lambda
-3. **Send Notification** → sends email via SES
-4. **Generate Report** → queries DynamoDB, sends summary email
+1. **Receive Feedback** → grava no DynamoDB e publica no SNS se a urgência for HIGH
+2. **Evento do SNS** → dispara a Lambda Send Notification
+3. **Send Notification** → envia e-mail pelo SES
+4. **Generate Report** → consulta o DynamoDB e envia o e-mail de resumo
 
-### Application Properties
+### Propriedades da aplicação
 
-Each module has an `application.properties` file in `src/main/resources`:
+Cada módulo tem um arquivo `application.properties` em `src/main/resources`:
 
 ```properties
-# LocalStack endpoints
+# Endpoints do LocalStack
 quarkus.dynamodb.endpoint-override=http://localhost:4569
 quarkus.sns.endpoint-override=http://localhost:4575
 quarkus.sqs.endpoint-override=http://localhost:4576
 quarkus.ses.endpoint-override=http://localhost:4566
 
-# AWS credentials
+# Credenciais da AWS
 aws.region=us-east-1
 aws.credentials.static.provider.access-key-id=test
 aws.credentials.static.provider.secret-access-key=test
 
-# Email configuration (SES)
+# Configuração de e-mail (SES)
 notification.sender-email=noreply@feedback-fase-4.com
 notification.admin-email=admin@feedback-fase-4.com
 notification.ses-region=us-east-1
 ```
 
-## Docker Compose Setup
+## Configuração do Docker Compose
 
-The `docker-compose.yml` file orchestrates all services:
+O arquivo `docker-compose.yml` orquestra todos os serviços:
 
-### LocalStack Service
+### Serviço LocalStack
 
-- **Image**: `localstack/localstack:3.0` (latest stable)
-- **Ports**: 4566 (edge), 4569 (DynamoDB), 4575 (SNS), 4576 (SQS)
-- **Volumes**: LocalStack state persists in `localstack-data` volume
-- **Init Script**: Runs `infra/localstack-init.sh` on startup
-- **Network**: `fase4-network` (bridge network for inter-service communication)
+- **Imagem**: `localstack/localstack:3.0` (versão estável mais recente)
+- **Portas**: 4566 (borda), 4569 (DynamoDB), 4575 (SNS), 4576 (SQS)
+- **Volumes**: o estado do LocalStack persiste no volume `localstack-data`
+- **Script de inicialização**: roda `infra/localstack-init.sh` ao subir
+- **Rede**: `fase4-network` (rede bridge para a comunicação entre serviços)
 
-### Network
+### Rede
 
-- **Driver**: Bridge network (`fase4-network`)
-- **Purpose**: Allows Quarkus modules (running on host) to communicate with LocalStack container
+- **Driver**: rede bridge (`fase4-network`)
+- **Finalidade**: permite que os módulos Quarkus (rodando no host) se comuniquem com o contêiner do LocalStack
 
-## Common Issues and Troubleshooting
+## Problemas comuns e solução de problemas
 
-### Port Conflicts
+### Conflito de portas
 
-If you get "Port already in use" errors:
+Se aparecer o erro "Port already in use":
 
-**Problem**: Another service is using the LocalStack ports (4566, 4569, 4575, 4576)
+**Problema**: outro serviço está usando as portas do LocalStack (4566, 4569, 4575, 4576)
 
-**Solution 1**: Stop the conflicting service
+**Solução 1**: pare o serviço que está em conflito
 ```bash
-# Find what's using port 4566
+# Descubra o que está usando a porta 4566
 lsof -i :4566
 
-# Kill the process (macOS/Linux)
+# Encerre o processo (macOS/Linux)
 kill -9 <PID>
 ```
 
-**Solution 2**: Use different ports in `docker-compose.yml`
+**Solução 2**: use outras portas no `docker-compose.yml`
 ```yaml
 ports:
-  - "4566:4566"  # Change first number to different port
+  - "4566:4566"  # Troque o primeiro número por outra porta
 ```
 
-**Solution 3**: Clean up and restart
+**Solução 3**: limpe e reinicie
 ```bash
 ./run.sh clean
 ./run.sh docker
 ```
 
-### Docker Not Running
+### Docker não está rodando
 
-**Problem**: "Cannot connect to Docker daemon"
+**Problema**: "Cannot connect to Docker daemon"
 
-**Solution - macOS (Docker Desktop)**:
+**Solução - macOS (Docker Desktop)**:
 ```bash
-# Start Docker Desktop via GUI or CLI
+# Inicie o Docker Desktop pela interface gráfica ou pela linha de comando
 open /Applications/Docker.app
 
-# Or with Colima
+# Ou com o Colima
 colima start
 ```
 
-**Solution - Linux**:
+**Solução - Linux**:
 ```bash
 sudo systemctl start docker
 sudo usermod -aG docker $USER
-# Log out and back in for group changes to take effect
+# Saia e entre de novo na sessão para as mudanças de grupo valerem
 ```
 
-### Modules Won't Connect to LocalStack
+### Os módulos não conectam ao LocalStack
 
-**Problem**: "Connection refused" when modules try to reach LocalStack
+**Problema**: "Connection refused" quando os módulos tentam acessar o LocalStack
 
-**Cause**: Modules might be using wrong endpoint or LocalStack isn't ready
+**Causa**: os módulos podem estar usando um endpoint errado, ou o LocalStack ainda não está pronto
 
-**Solution**:
-1. Verify LocalStack is running: `./run.sh health`
-2. Check endpoints in module's `application.properties`
-3. Ensure modules are using `http://localhost:4566` (not IP)
-4. Wait longer for LocalStack startup (sometimes takes 30+ seconds)
+**Solução**:
+1. Confirme que o LocalStack está rodando: `./run.sh health`
+2. Confira os endpoints no `application.properties` de cada módulo
+3. Garanta que os módulos usam `http://localhost:4566` (e não um IP)
+4. Espere mais tempo pela inicialização do LocalStack (às vezes leva mais de 30 segundos)
 
-**Debug**:
+**Diagnóstico**:
 ```bash
-# Check if LocalStack is responding
+# Confira se o LocalStack está respondendo
 curl -v http://localhost:4566
 
-# Check module logs for connection errors
-# Look in Terminal 1, 2, or 3 where you ran mvn quarkus:dev
+# Veja nos logs dos módulos os erros de conexão
+# Procure no Terminal 1, 2 ou 3, onde você rodou o mvn quarkus:dev
 ```
 
-### LocalStack Services Not Initialized
+### Os serviços do LocalStack não foram inicializados
 
-**Problem**: DynamoDB table, SNS topics not found
+**Problema**: a tabela do DynamoDB ou os tópicos do SNS não são encontrados
 
-**Cause**: Initialization script didn't run or failed
+**Causa**: o script de inicialização não rodou ou falhou
 
-**Solution**:
+**Solução**:
 ```bash
-# Check LocalStack logs
+# Confira os logs do LocalStack
 ./run.sh logs
 
-# Look for lines like:
+# Procure linhas como:
 # "LocalStack Init: Recursos criados com sucesso"
-# Or error lines starting with "ERR"
+# Ou linhas de erro começando com "ERR"
 
-# Manually run init script if needed
+# Se necessário, rode o script de inicialização manualmente
 docker compose exec localstack /docker-entrypoint-initaws.d/init-aws.sh
 ```
 
-### Tests Timeout
+### Testes com timeout
 
-**Problem**: E2E test script hangs or times out
+**Problema**: o script de teste E2E trava ou estoura o tempo limite
 
-**Cause**: Modules not responding, GraphQL endpoint not available
+**Causa**: os módulos não respondem, ou o endpoint GraphQL não está disponível
 
-**Solution**:
-1. Verify modules are running: Check Terminals 1, 2, 3
-2. Test endpoint manually:
+**Solução**:
+1. Confirme que os módulos estão rodando: veja os Terminais 1, 2 e 3
+2. Teste o endpoint manualmente:
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -d '{"query": "{ __typename }"}'
 ```
-3. Check module logs for startup errors
-4. Restart the module that's not responding
+3. Veja nos logs do módulo se houve erro na inicialização
+4. Reinicie o módulo que não está respondendo
 
-## Cleanup
+## Limpeza
 
-To remove LocalStack state and reset for testing:
+Para remover o estado do LocalStack e zerar o ambiente de testes:
 
 ```bash
-# Stop all containers and remove volumes
+# Para todos os contêineres e remove os volumes
 ./run.sh clean
 
-# This removes all DynamoDB data, SNS messages, etc.
-# Useful before running a fresh test cycle
+# Isso apaga todos os dados do DynamoDB, as mensagens do SNS etc.
+# Útil antes de um novo ciclo de testes
 ```
 
-## Verify Setup is Complete
+## Confirmar que a configuração está completa
 
-Run this command to verify everything is working:
+Rode este comando para verificar se tudo está funcionando:
 
 ```bash
 ./run.sh health && ./run.sh resources
 ```
 
-Expected output:
+Saída esperada:
 
 ```
 🩺 Verificando saúde dos serviços...
@@ -440,28 +440,28 @@ Expected output:
      - http://localhost:4576/000000000000/report-queue
 ```
 
-If all resources are present and all endpoints are UP, your local setup is complete!
+Se todos os recursos estiverem presentes e todos os endpoints estiverem UP, a configuração local está completa!
 
-## Next Steps
+## Próximos passos
 
-After completing this setup:
+Depois de concluir esta configuração:
 
-1. **Run E2E Tests**: Follow the steps in [E2E_TESTING_GUIDE.md](./E2E_TESTING_GUIDE.md)
-2. **Review Test Results**: Check [E2E_TEST_RESULTS.md](./E2E_TEST_RESULTS.md)
-3. **Develop Features**: The modules are now ready for development with hot reload
+1. **Rodar os testes E2E**: siga os passos em [E2E_TESTING_GUIDE.md](./E2E_TESTING_GUIDE.md)
+2. **Ver os resultados dos testes**: consulte [E2E_TEST_RESULTS.md](./E2E_TEST_RESULTS.md)
+3. **Desenvolver funcionalidades**: os módulos já estão prontos para o desenvolvimento com hot reload
 
-## References
+## Referências
 
-- [LocalStack Documentation](https://docs.localstack.cloud/)
-- [Quarkus AWS Services](https://quarkus.io/guides/amazon-services)
-- [AWS SDK for Java v2](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/)
-- [DynamoDB Local Development](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html)
+- [Documentação do LocalStack](https://docs.localstack.cloud/)
+- [Serviços da AWS no Quarkus](https://quarkus.io/guides/amazon-services)
+- [AWS SDK para Java v2](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/)
+- [Desenvolvimento local com DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html)
 
-## Support
+## Suporte
 
-For issues or questions:
+Para problemas ou dúvidas:
 
-1. Check the troubleshooting section above
-2. Review LocalStack logs: `./run.sh logs`
-3. Check module logs in their respective terminals
-4. Review generated test logs in `/tmp/e2e-logs/`
+1. Consulte a seção de solução de problemas acima
+2. Veja os logs do LocalStack: `./run.sh logs`
+3. Confira os logs dos módulos nos respectivos terminais
+4. Veja os logs de teste gerados em `/tmp/e2e-logs/`
