@@ -21,7 +21,7 @@ Esta demonstração mostra uma plataforma de feedback serverless em nível de pr
 | **1. Arquitetura e configuração** | 1,5 min | Diagrama de arquitetura, ambiente local pronto |
 | **2. Criar feedback de urgência HIGH** | 2,5 min | Mutação GraphQL, notificação por e-mail, DynamoDB |
 | **3. Criar feedback de urgência LOW** | 1,5 min | Mutação GraphQL, verificar que NENHUM e-mail foi enviado |
-| **4. Consultar todos os feedbacks** | 1 min | Consulta GraphQL, listar todos com filtros |
+| **4. Consultar todos os feedbacks** | 1 min | Listagem REST (GET /v1/avaliacoes) e consulta GraphQL (listFeedbacks) |
 | **5. Logs e métricas do CloudWatch** | 2,5 min | Logs de execução das Lambdas, métricas de desempenho |
 | **6. Passeio pelo console da AWS** | 2,5 min | Políticas IAM, fluxo de eventos, explicação da arquitetura |
 | **7. Resumo e escalabilidade** | 1 min | Principais conclusões |
@@ -180,6 +180,12 @@ Esta demonstração mostra uma plataforma de feedback serverless em nível de pr
    curl -X POST http://localhost:8080/graphql \
      -H "Content-Type: application/json" \
      -d '{"query": "{ listFeedbacks { id description rating urgency createdAt } }"}' | jq '.data.listFeedbacks[]'
+   ```
+
+4. Repita a listagem pela API REST, que retorna `avaliacoes` e `total`:
+   ```bash
+   curl -X GET http://localhost:8080/v1/avaliacoes \
+     -H "Authorization: Bearer $API_TOKEN" | jq '.avaliacoes[]'
    ```
 
 **Fechamento da narração:**

@@ -13,13 +13,15 @@ A plataforma é construída sobre AWS Lambda, DynamoDB, SNS e SES, usando Quarku
 ### Desenvolvimento local (LocalStack)
 
 - **Endpoint GraphQL**: `http://localhost:8080/graphql`
-- **Endpoint HTTP REST**: `http://localhost:8080/v1/feedback`
+- **Endpoint HTTP REST**: `http://localhost:8080/v1/avaliacao`
+- **Listagem HTTP REST**: `http://localhost:8080/v1/avaliacoes`
 - **Modo de desenvolvimento do Quarkus**: `mvn quarkus:dev` (roda na porta 8080)
 
 ### Produção (AWS)
 
 - **Endpoint GraphQL**: `https://[API-GATEWAY-URL]/v1/graphql`
-- **Endpoint HTTP REST**: `https://[API-GATEWAY-URL]/v1/feedback`
+- **Endpoint HTTP REST**: `https://[API-GATEWAY-URL]/v1/avaliacao`
+- **Listagem HTTP REST**: `https://[API-GATEWAY-URL]/v1/avaliacoes`
 - **Região**: configurável pela variável de ambiente `AWS_REGION` (padrão: `us-east-1`)
 
 ---
@@ -28,7 +30,7 @@ A plataforma é construída sobre AWS Lambda, DynamoDB, SNS e SES, usando Quarku
 
 ### Token Bearer (`API_TOKEN`)
 
-Todas as rotas (`POST /v1/feedback`, `GET /v1/feedback` e `POST /v1/graphql`) exigem o header `Authorization` com um token Bearer.
+Todas as rotas (`POST /v1/avaliacao`, `GET /v1/avaliacoes` e `POST /v1/graphql`) exigem o header `Authorization` com um token Bearer.
 
 ```
 Authorization: Bearer <token>
@@ -315,6 +317,34 @@ mutation {
 
 ---
 
+### Exemplo 4a: listar todas as avaliações (REST)
+
+**Requisição**:
+```bash
+curl -X GET http://localhost:8080/v1/avaliacoes \
+  -H "Authorization: Bearer $API_TOKEN"
+```
+
+**Resposta** (200):
+```json
+{
+  "avaliacoes": [
+    {
+      "id": "uuid",
+      "descricao": "Bom atendimento",
+      "nota": 8,
+      "urgencia": "LOW",
+      "dataCriacao": "2026-11-15T17:36:13.239769912"
+    }
+  ],
+  "total": 1
+}
+```
+
+Sem token, ou com token inválido, a resposta é `401`. Erro interno retorna `500` genérico.
+
+---
+
 ### Exemplo 4: listar todos os feedbacks (via GraphQL)
 
 **Requisição**:
@@ -373,18 +403,18 @@ query {
 
 ---
 
-### Exemplo 5: criar feedback via HTTP REST (handler Lambda)
+### Exemplo 5: criar avaliação via HTTP REST (handler Lambda)
 
-O mesmo feedback pode ser enviado por HTTP POST para a função Lambda, pelo API Gateway.
+A mesma avaliação pode ser enviada por HTTP POST para a função Lambda, pelo API Gateway.
 
 **Requisição**:
 ```bash
-curl -X POST http://localhost:8080/v1/feedback \
+curl -X POST http://localhost:8080/v1/avaliacao \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $API_TOKEN" \
   -d '{
-    "description": "Fast response times",
-    "rating": 8
+    "descricao": "Fast response times",
+    "nota": 8
   }'
 ```
 
@@ -392,10 +422,10 @@ curl -X POST http://localhost:8080/v1/feedback \
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174003",
-  "description": "Fast response times",
-  "rating": 8,
-  "urgency": "LOW",
-  "createdAt": "2026-10-22T10:33:00"
+  "descricao": "Fast response times",
+  "nota": 8,
+  "urgencia": "LOW",
+  "dataCriacao": "2026-10-22T10:33:00"
 }
 ```
 
@@ -419,11 +449,11 @@ curl -X POST http://localhost:8080/v1/feedback \
 ```
 
 **Erros de validação comuns**:
-- `description` ausente: "Descrição não pode estar vazia"
-- `rating` ausente ou nulo: "Nota é obrigatória"
-- `rating < 0`: "Nota deve ser no mínimo 0"
-- `rating > 10`: "Nota deve ser no máximo 10"
-- `description` em branco: "Descrição não pode estar vazia"
+- `descricao` ausente: "Descrição não pode estar vazia"
+- `nota` ausente ou nula: "Nota é obrigatória"
+- `nota < 0`: "Nota deve ser no mínimo 0"
+- `nota > 10`: "Nota deve ser no máximo 10"
+- `descricao` em branco: "Descrição não pode estar vazia"
 
 ---
 

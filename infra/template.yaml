@@ -255,8 +255,8 @@ Resources:
   #========================================
 
   # Lambda 1: ReceiveFeedbackFunction (Bearer auth - REST)
-  # Triggered by: API Gateway POST /v1/feedback, GET /v1/feedback and POST /v1/avaliacao
-  # Actions: Routes based on HTTP method and path
+  # Triggered by: API Gateway POST /v1/avaliacao and GET /v1/avaliacoes
+  # Actions: Creates evaluation (Portuguese body: descricao, nota) and lists evaluations
   ReceiveFeedbackFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -274,24 +274,18 @@ Resources:
           ADMIN_EMAIL: !Ref AdminEmail
           API_TOKEN: !Ref ApiToken
       Events:
-        ApiEventV1Post:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedbackApi
-            Path: /v1/feedback
-            Method: POST
-        ApiEventV1Get:
-          Type: Api
-          Properties:
-            RestApiId: !Ref FeedbackApi
-            Path: /v1/feedback
-            Method: GET
         ApiEventV1AvaliacaoPost:
           Type: Api
           Properties:
             RestApiId: !Ref FeedbackApi
             Path: /v1/avaliacao
             Method: POST
+        ApiEventV1AvaliacoesGet:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedbackApi
+            Path: /v1/avaliacoes
+            Method: GET
       LoggingConfig:
         LogGroup: !Ref ReceiveFeedbackLogGroup
       Tags:
@@ -567,8 +561,8 @@ Resources:
 #========================================
 Outputs:
   ApiEndpoint:
-    Description: 'HTTP API endpoint URL for POST and GET /v1/feedback'
-    Value: !Sub 'https://${FeedbackApi}.execute-api.${Region}.amazonaws.com/${Environment}/v1/feedback'
+    Description: 'HTTP API endpoint URL for POST /v1/avaliacao'
+    Value: !Sub 'https://${FeedbackApi}.execute-api.${Region}.amazonaws.com/${Environment}/v1/avaliacao'
     Export:
       Name: !Sub '${Environment}-FeedbackApiEndpoint'
 

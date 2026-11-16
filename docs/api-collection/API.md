@@ -4,6 +4,8 @@
 - **Local:** `http://localhost:4566/v1/graphql`
 - **Produção:** `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/graphql`
 
+**Listagem REST:** `GET /v1/avaliacoes`, no mesmo host de `/v1/graphql`.
+
 **Autenticação:** token Bearer no header `Authorization: Bearer <token>` (obrigatório em todas as rotas; token = segredo `API_TOKEN`)
 
 ---
@@ -185,25 +187,25 @@ Abra **Collection > Variables** e defina `prodToken` (valor do segredo `API_TOKE
 
 **Local (local-http):**
 ```
-POST http://localhost:8080/v1/feedback
+POST http://localhost:8080/v1/avaliacao
 Content-Type: application/json
 Authorization: Bearer <localToken>
 
 {
-  "description": "Test feedback",
-  "rating": 8
+  "descricao": "Test feedback",
+  "nota": 8
 }
 ```
 
 **Produção (AWS):**
 ```
-POST https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/feedback
+POST https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/avaliacao
 Content-Type: application/json
 Authorization: Bearer <token>
 
 {
-  "description": "Test feedback",
-  "rating": 8
+  "descricao": "Test feedback",
+  "nota": 8
 }
 ```
 

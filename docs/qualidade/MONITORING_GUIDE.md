@@ -30,7 +30,7 @@ Não existe dashboard do CloudWatch configurado no projeto. Para ver os números
 
 | Grupo de log | Função que grava | Observação |
 |---|---|---|
-| `/aws/lambda/prod-receive-feedback` | `prod-receive-feedback` (POST /v1/feedback) e `prod-list-feedback` (GET /v1/feedback) | As duas funções gravam no mesmo grupo |
+| `/aws/lambda/prod-receive-feedback` | `prod-receive-feedback` (POST /v1/avaliacao e GET /v1/avaliacoes) | Grava e lista as avaliações pela REST; a consulta GraphQL fica em `prod-graphql` |
 | `/aws/lambda/prod-graphql` | `prod-graphql` (POST /v1/graphql) | Sem alarme (ver seção 7) |
 | `/aws/lambda/prod-send-notification` | `prod-send-notification` (disparada pelo tópico SNS de urgência) | |
 | `/aws/lambda/prod-generate-report` | `prod-generate-report` (agendada, segunda-feira 8h UTC) | Não tem registros em produção até agora |
@@ -231,9 +231,9 @@ Falhas:
 
 O grupo `prod-generate-report` não tem logs em produção até agora (`storedBytes: 0`, verificado, leitura). Os textos acima foram conferidos no código, não em produção.
 
-### receive-feedback (POST e GET)
+### receive-feedback (POST)
 
-- `Handler Lambda invocado - POST /v1/feedback` (INFO) ou `Handler Lambda invocado - GET /v1/feedback` (INFO).
+- `Handler Lambda invocado - POST /v1/avaliacao` (INFO).
 - `Corpo da requisição inválido: <mensagem>` (WARNING). Não gera alarme.
 - `Erro: <mensagem>` (SEVERE), com a exceção. Gera alarme e resposta 500.
 - `API_TOKEN não configurado; rejeitando todas as requisições` (SEVERE). Indica que a variável `API_TOKEN` está vazia no deploy.

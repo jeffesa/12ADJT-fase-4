@@ -22,8 +22,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 
-import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.application.usecase.ListFeedbackUseCase;
+import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
 import com.fiap.feedback.infra.dto.AvaliacaoInput;
 import com.fiap.feedback.infra.dto.FeedbackInput;
@@ -32,20 +32,19 @@ import com.fiap.feedback.infra.dto.InputOutputMapper;
 import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
 
 /**
- * AWS Lambda handler for REST API: /v1/feedback (routes POST and GET).
+ * AWS Lambda handler for REST API: POST /v1/avaliacao and GET /v1/avaliacoes.
  *
  * Requires "Authorization: Bearer <token>" (token from the API_TOKEN environment variable).
  * Without a valid token the request is rejected with 401 before any other processing.
  * 
- * POST /v1/feedback → Create feedback (ReceiveFeedbackUseCase)
- * GET /v1/feedback → List all feedbacks (ListFeedbackUseCase)
+ * POST /v1/avaliacao → Create evaluation (ReceiveFeedbackUseCase)
+ * GET /v1/avaliacoes → List all evaluations (ListFeedbackUseCase)
  */
 @Named("receiveFeedback")
 public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     private static final Logger LOGGER = Logger.getLogger(ReceiveFeedbackHandler.class.getName());
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final String AVALIACAO_PATH = "/v1/avaliacao";
     
     static {
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -68,7 +67,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             Context context) {
         
         String method = event.getHttpMethod();
-        LOGGER.log(Level.INFO, "Handler Lambda invocado - " + method + " /v1/feedback");
+        LOGGER.log(Level.INFO, "Handler Lambda invocado - " + method + " /v1/avaliacao");
         
         try {
             var denied = authenticator.authenticate(event);
@@ -77,9 +76,9 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             }
 
             if ("GET".equals(method)) {
-                return handleGetFeedbacksV1();
+                return handleGetAvaliacoes();
             } else if ("POST".equals(method)) {
-                return handlePostFeedbackV1(event);
+                return handlePostAvaliacao(event);
             } else {
                 return methodNotAllowed();
             }
@@ -94,30 +93,29 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     }
 
     /**
-     * Handles GET /v1/feedback: list all feedbacks with English field names.
+     * Handles GET /v1/avaliacoes: list all evaluations with the same field names as POST /v1/avaliacao.
      */
-    private APIGatewayProxyResponseEvent handleGetFeedbacksV1() {
-        LOGGER.log(Level.INFO, "GET /v1/feedback - listando todos os feedbacks");
-        
+    private APIGatewayProxyResponseEvent handleGetAvaliacoes() {
+        LOGGER.log(Level.INFO, "GET /v1/avaliacoes - listando avaliações");
+
         if (listFeedbackUseCase == null) {
             throw new IllegalStateException("ListFeedbackUseCase não injetado");
         }
-        
+
         List<Feedback> feedbacks = listFeedbackUseCase.listAllFeedbacks();
-        
+
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
         for (Feedback feedback : feedbacks) {
-            FeedbackOutput output = InputOutputMapper.toFeedbackOutput(feedback);
-            arrayBuilder.add(toFeedbackJson(output));
+            arrayBuilder.add(toAvaliacaoJson(InputOutputMapper.toFeedbackOutput(feedback)));
         }
-        
+
         JsonObject responseBody = Json.createObjectBuilder()
-            .add("feedbacks", arrayBuilder.build())
+            .add("avaliacoes", arrayBuilder.build())
             .add("total", feedbacks.size())
             .build();
-        
-        LOGGER.log(Level.INFO, "Retornados " + feedbacks.size() + " feedbacks");
-        
+
+        LOGGER.log(Level.INFO, "Retornadas " + feedbacks.size() + " avaliações");
+
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
         response.setStatusCode(200);
         response.setBody(responseBody.toString());
@@ -126,10 +124,10 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
     }
 
     /**
-     * Handles POST /v1/feedback: create feedback from English field names (description, rating).
+     * Handles POST /v1/avaliacao: create feedback from the Portuguese body (descricao, nota).
      */
-    private APIGatewayProxyResponseEvent handlePostFeedbackV1(APIGatewayProxyRequestEvent event) {
-        LOGGER.log(Level.INFO, "POST /v1/feedback - criando feedback");
+    private APIGatewayProxyResponseEvent handlePostAvaliacao(APIGatewayProxyRequestEvent event) {
+        LOGGER.log(Level.INFO, "POST /v1/avaliacao - criando feedback");
         
         if (receiveFeedbackUseCase == null) {
             throw new IllegalStateException("ReceiveFeedbackUseCase não injetado");
@@ -143,12 +141,9 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             return badRequest("O corpo da requisição não pode estar vazio");
         }
         
-        boolean avaliacao = isAvaliacaoRoute(event);
         FeedbackInput input;
         try {
-            input = avaliacao
-                ? toFeedbackInput(OBJECT_MAPPER.readValue(body, AvaliacaoInput.class))
-                : OBJECT_MAPPER.readValue(body, FeedbackInput.class);
+            input = toFeedbackInput(OBJECT_MAPPER.readValue(body, AvaliacaoInput.class));
         } catch (JsonProcessingException e) {
             LOGGER.log(Level.WARNING, "Corpo da requisição inválido: " + e.getOriginalMessage());
             return badRequest("O corpo da requisição não é JSON válido ou possui campos com tipo incorreto");
@@ -177,16 +172,9 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
         response.setStatusCode(201);
-        response.setBody(avaliacao ? toAvaliacaoJson(output).toString() : toFeedbackJson(output).toString());
+        response.setBody(toAvaliacaoJson(output).toString());
         response.setHeaders(defaultHeaders());
         return response;
-    }
-
-    /**
-     * Returns true when the request targets POST /v1/avaliacao (Portuguese body fields).
-     */
-    private static boolean isAvaliacaoRoute(APIGatewayProxyRequestEvent event) {
-        return AVALIACAO_PATH.equals(event.getPath()) || AVALIACAO_PATH.equals(event.getResource());
     }
 
     /**
@@ -209,19 +197,6 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
             .add("nota", output.rating())
             .add("urgencia", output.urgency())
             .add("dataCriacao", output.createdAt().toString())
-            .build();
-    }
-
-    /**
-     * Builds the English v1 JSON object for one feedback.
-     */
-    private static JsonObject toFeedbackJson(FeedbackOutput output) {
-        return Json.createObjectBuilder()
-            .add("id", output.id().toString())
-            .add("description", output.description())
-            .add("rating", output.rating())
-            .add("urgency", output.urgency())
-            .add("createdAt", output.createdAt().toString())
             .build();
     }
 

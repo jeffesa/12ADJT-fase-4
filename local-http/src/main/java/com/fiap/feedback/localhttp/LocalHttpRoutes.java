@@ -31,9 +31,8 @@ public class LocalHttpRoutes {
 
     void init(@Observes Router router) {
         router.route().order(-1000).handler(BodyHandler.create());
-        router.post("/v1/feedback").order(-900).blockingHandler(ctx -> handle(ctx, receiveFeedbackHandler::handleRequest));
-        router.get("/v1/feedback").order(-900).blockingHandler(ctx -> handle(ctx, receiveFeedbackHandler::handleRequest));
         router.post("/v1/avaliacao").order(-900).blockingHandler(ctx -> handle(ctx, receiveFeedbackHandler::handleRequest));
+        router.get("/v1/avaliacoes").order(-900).blockingHandler(ctx -> handle(ctx, receiveFeedbackHandler::handleRequest));
         router.post("/graphql").order(-900).blockingHandler(ctx -> handle(ctx, graphQLHandler::handleRequest));
         router.post("/v1/graphql").order(-900).blockingHandler(ctx -> handle(ctx, graphQLHandler::handleRequest));
     }
