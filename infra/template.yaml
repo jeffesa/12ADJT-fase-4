@@ -255,8 +255,8 @@ Resources:
   #========================================
 
   # Lambda 1: ReceiveFeedbackFunction (Bearer auth - REST)
-  # Triggered by: API Gateway POST /v1/avaliacao
-  # Actions: Creates evaluation (Portuguese body: descricao, nota)
+  # Triggered by: API Gateway POST /v1/avaliacao and GET /v1/avaliacoes
+  # Actions: Creates evaluation (Portuguese body: descricao, nota) and lists evaluations
   ReceiveFeedbackFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -280,6 +280,12 @@ Resources:
             RestApiId: !Ref FeedbackApi
             Path: /v1/avaliacao
             Method: POST
+        ApiEventV1AvaliacoesGet:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FeedbackApi
+            Path: /v1/avaliacoes
+            Method: GET
       LoggingConfig:
         LogGroup: !Ref ReceiveFeedbackLogGroup
       Tags:
