@@ -1,42 +1,42 @@
-# GraphQL API Documentation — Feedback Platform
+# Documentação da API GraphQL — Plataforma de Feedback
 
-**Base URL:** 
+**URL base:** 
 - **Local:** `http://localhost:4566/v1/graphql`
-- **Production:** `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/graphql`
+- **Produção:** `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/graphql`
 
-**Authentication:** Bearer token via header `Authorization: Bearer <token>` (required on every route; token = secret `API_TOKEN`)
+**Autenticação:** token Bearer no header `Authorization: Bearer <token>` (obrigatório em todas as rotas; token = segredo `API_TOKEN`)
 
 ---
 
-## GraphQL Schema
+## Schema GraphQL
 
-### Types
+### Tipos
 
 #### Feedback
 ```graphql
 type Feedback {
-  id: String!                    # UUID (auto-generated)
-  description: String!           # Feedback description (1-1000 chars)
-  rating: Int!                   # Rating (0-10)
-  urgency: Urgency!              # Calculated from rating
-  createdAt: String!             # ISO 8601 timestamp
+  id: String!                    # UUID (gerado automaticamente)
+  description: String!           # Descrição do feedback (1-1000 caracteres)
+  rating: Int!                   # Nota (0-10)
+  urgency: Urgency!              # Calculada a partir da nota
+  createdAt: String!             # Timestamp ISO 8601
 }
 ```
 
-#### Urgency (Enum)
+#### Urgency (enum)
 ```graphql
 enum Urgency {
-  HIGH                           # rating 0-5
-  MEDIUM                         # rating 6-7
-  LOW                            # rating 8-10
+  HIGH                           # nota 0-5
+  MEDIUM                         # nota 6-7
+  LOW                            # nota 8-10
 }
 ```
 
 #### FeedbackInput
 ```graphql
 input FeedbackInput {
-  description: String!          # Required, min 1 char
-  rating: Int!                   # Required, 0-10
+  description: String!          # Obrigatório, mínimo 1 caractere
+  rating: Int!                   # Obrigatório, 0-10
 }
 ```
 
@@ -46,16 +46,16 @@ input FeedbackInput {
 
 ### receiveFeedback
 
-Creates a new feedback entry with description and rating. Calculates urgency automatically.
+Cria um novo feedback com descrição e nota. Calcula a urgência automaticamente.
 
-**Signature:**
+**Assinatura:**
 ```graphql
 mutation receiveFeedback(
   input: FeedbackInput!
 ): Feedback!
 ```
 
-**Request Example:**
+**Exemplo de requisição:**
 ```graphql
 mutation ReceiveFeedback {
   receiveFeedback(input: {
@@ -71,7 +71,7 @@ mutation ReceiveFeedback {
 }
 ```
 
-**Success Response (HTTP 201):**
+**Resposta de sucesso (HTTP 201):**
 ```json
 {
   "data": {
@@ -86,102 +86,102 @@ mutation ReceiveFeedback {
 }
 ```
 
-**Validation Error Response (HTTP 400):**
+**Resposta de erro de validação (HTTP 400):**
 ```json
 {
-  "title": "Validation Error",
+  "title": "Erro de validação",
   "status": 400,
-  "detail": "Rating must be between 0 and 10"
+  "detail": "Nota deve ser no mínimo 0"
 }
 ```
 
 ---
 
-### Urgency Calculation Rules
+### Regras de cálculo da urgência
 
-| Rating | Urgency | Priority |
+| Nota | Urgência | Prioridade |
 |--------|---------|----------|
-| 0-5 | HIGH | 🔴 Critical — email notification sent |
-| 6-7 | MEDIUM | 🟡 Normal — stored in DynamoDB |
-| 8-10 | LOW | 🟢 Low priority — stored in DynamoDB |
+| 0-5 | HIGH | 🔴 Crítica — e-mail de notificação enviado |
+| 6-7 | MEDIUM | 🟡 Normal — armazenado no DynamoDB |
+| 8-10 | LOW | 🟢 Baixa prioridade — armazenado no DynamoDB |
 
 ---
 
-## Validation Rules
+## Regras de validação
 
 ### description
-- **Type:** String
-- **Required:** Yes
-- **Min Length:** 1 character
-- **Max Length:** 1000 characters
-- **Constraint:** Must not be blank or null
-- **Error:** "Feedback description must not be empty"
+- **Tipo:** String
+- **Obrigatório:** Sim
+- **Tamanho mínimo:** 1 caractere
+- **Tamanho máximo:** 1000 caracteres
+- **Restrição:** não pode ser vazio nem nulo
+- **Erro:** "Descrição não pode estar vazia"
 
 ### rating
-- **Type:** Integer
-- **Required:** Yes
-- **Min Value:** 0
-- **Max Value:** 10
-- **Constraint:** Rating between 0 and 10
-- **Error (too low):** "Rating must be at least 0"
-- **Error (too high):** "Rating must be at most 10"
+- **Tipo:** Inteiro
+- **Obrigatório:** Sim
+- **Valor mínimo:** 0
+- **Valor máximo:** 10
+- **Restrição:** nota entre 0 e 10
+- **Erro (abaixo do mínimo):** "Nota deve ser no mínimo 0"
+- **Erro (acima do máximo):** "Nota deve ser no máximo 10"
 
 ---
 
-## Error Responses
+## Respostas de erro
 
-All errors follow RFC 7807 Problem Detail format:
+Todos os erros seguem o formato RFC 7807 (Problem Detail):
 
-### HTTP 400 — Bad Request
+### HTTP 400 — Requisição inválida
 
-**Cause:** Validation failure
+**Causa:** falha de validação
 
-**Response:**
+**Resposta:**
 ```json
 {
-  "title": "Validation Error",
+  "title": "Erro de validação",
   "status": 400,
-  "detail": "Rating must be between 0 and 10"
+  "detail": "Nota deve ser no mínimo 0"
 }
 ```
 
-**Common Error Messages:**
-- "Feedback description must not be empty"
-- "Rating must be at least 0"
-- "Rating must be at most 10"
+**Mensagens de erro comuns:**
+- "Descrição não pode estar vazia"
+- "Nota deve ser no mínimo 0"
+- "Nota deve ser no máximo 10"
 
-### HTTP 500 — Internal Server Error
+### HTTP 500 — Erro interno do servidor
 
-**Cause:** Unexpected error in handler or Lambda runtime
+**Causa:** erro inesperado no handler ou no runtime do Lambda
 
-**Response:**
+**Resposta:**
 ```json
 {
-  "title": "Internal Server Error",
+  "title": "Erro interno do servidor",
   "status": 500,
-  "detail": "An unexpected error occurred"
+  "detail": "Ocorreu um erro inesperado. Tente novamente mais tarde."
 }
 ```
 
 ---
 
-## Testing with Bruno/Postman
+## Testar com Bruno/Postman
 
-### 1. Import Collection
+### 1. Importar a collection
 
-Download `fase4-feedback.postman_collection.json` from the repository:
+Baixe `fase4-feedback.postman_collection.json` do repositório:
 
 ```bash
 git clone https://github.com/jeffesa/12ADJT-fase-4.git
 cd fase-4/docs/api-collection
 ```
 
-**Bruno:** File → Import → Select `fase4-feedback.postman_collection.json`  
-**Postman:** Import → Select file
+**Bruno:** File → Import → selecione `fase4-feedback.postman_collection.json`  
+**Postman:** Import → selecione o arquivo
 
-### 2. Set the tokens
+### 2. Definir os tokens
 
-Open **Collection > Variables** and set `prodToken` (value of the `API_TOKEN` secret, kept only on your machine). `localToken` already has the local default.
+Abra **Collection > Variables** e defina `prodToken` (valor do segredo `API_TOKEN`, guardado somente na sua máquina). `localToken` já tem o padrão local.
 
 **Local (local-http):**
 ```
@@ -195,7 +195,7 @@ Authorization: Bearer <localToken>
 }
 ```
 
-**Production (AWS):**
+**Produção (AWS):**
 ```
 POST https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/feedback
 Content-Type: application/json
@@ -207,73 +207,73 @@ Authorization: Bearer <token>
 }
 ```
 
-### 3. Execute Requests
+### 3. Executar as requisições
 
-The collection contains 20 pre-built requests per environment (`local` and `prod`), including 401 cases for missing and invalid tokens:
+A collection traz 20 requisições prontas por ambiente (`local` e `prod`), incluindo casos 401 para token ausente e token inválido:
 
-- ✅ Success cases (rating 1, 5, 6, 7, 8, 10)
-- ❌ Error cases (rating -1, 11, empty description, null description)
+- ✅ Casos de sucesso (nota 1, 5, 6, 7, 8, 10)
+- ❌ Casos de erro (nota -1, 11, descrição vazia, descrição nula)
 
-Each request includes:
-- Pre-request script: Auto-generates timestamp
-- Test script: Validates response status and structure
-- Pre-configured variables: localUrl, prodUrl, localToken, prodToken, feedbackId, timestamp
+Cada requisição inclui:
+- Script de pré-requisição: gera o timestamp automaticamente
+- Script de teste: valida o status e a estrutura da resposta
+- Variáveis pré-configuradas: localUrl, prodUrl, localToken, prodToken, feedbackId, timestamp
 
-### 4. View Results
+### 4. Ver os resultados
 
-**Test Results Tab:** Shows pass/fail for each assertion  
-**Response Body:** Shows JSON response from API  
-**Test Stats:** Summary of passed/failed tests
+**Aba Test Results:** mostra passou/falhou em cada asserção  
+**Corpo da resposta:** mostra o JSON devolvido pela API  
+**Estatísticas de teste:** resumo de testes aprovados e reprovados
 
 ---
 
-## Urgency and Notifications
+## Urgência e notificações
 
-### HIGH Urgency Feedback (rating 0-5)
+### Feedback com urgência HIGH (nota 0-5)
 
-When a feedback with HIGH urgency is created:
+Quando um feedback com urgência HIGH é criado:
 
-1. **DynamoDB:** Feedback stored in `prod-feedback-table`
-2. **SNS:** Message published to `prod-feedback-urgent-topic`
-3. **Lambda 2:** SendNotificationHandler triggered by SNS
-4. **Email:** SES sends notification email to admin
+1. **DynamoDB:** o feedback é salvo em `prod-feedback-table`
+2. **SNS:** a mensagem é publicada em `prod-feedback-urgent-topic`
+3. **Lambda 2:** o SendNotificationHandler é disparado pelo SNS
+4. **E-mail:** o SES envia o e-mail de notificação ao administrador
 
-**Email Format:**
+**Formato do e-mail:**
 ```
-To: admin@company.com
-Subject: ⚠️ Feedback CRÍTICO Recebido
+Para: admin@company.com
+Assunto: ⚠️ Feedback CRÍTICO Recebido
 
 Conteúdo:
 - ID: 550e8400-e29b-41d4-a716-446655440000
 - Feedback: "Produto não funciona corretamente"
-- Rating: 2/10
+- Nota: 2/10
 - Urgência: HIGH
 - Data: 2026-11-08 18:30:45
 ```
 
-### MEDIUM/LOW Urgency Feedback (rating 6-10)
+### Feedback com urgência MEDIUM/LOW (nota 6-10)
 
-- **DynamoDB:** Feedback stored in `prod-feedback-table`
-- **SNS:** No message published
-- **Lambda 2:** Not triggered
-- **Email:** No notification sent
+- **DynamoDB:** o feedback é salvo em `prod-feedback-table`
+- **SNS:** nenhuma mensagem publicada
+- **Lambda 2:** não é disparada
+- **E-mail:** nenhuma notificação enviada
 
 ---
 
-## Weekly Report Generation
+## Geração do relatório semanal
 
-**Trigger:** EventBridge cron rule (Monday 8 AM UTC)
+**Gatilho:** regra cron do EventBridge (segunda-feira, 8h UTC)
 
 **Lambda 3 (GenerateReport):**
-- Queries DynamoDB for feedbacks from past week
-- Aggregates statistics (total, average rating, by urgency, by day)
-- Generates HTML report
-- Sends report via email to admin
+- Consulta no DynamoDB os feedbacks da semana anterior
+- Agrega as estatísticas (total, nota média, por urgência, por dia)
+- Gera o relatório em HTML
+- Envia o relatório por e-mail ao administrador
 
-**Report Format:**
+**Formato do relatório:**
 ```
-To: admin@company.com
-Subject: Relatório de Feedback — Semana de 4-10 de Novembro
+Para: admin@company.com
+Assunto: Relatório de Feedback — Semana de 4-10 de Novembro
 
 Conteúdo:
 - Total de Avaliações: 15
@@ -287,7 +287,7 @@ Conteúdo:
 
 ---
 
-## Environment Variables
+## Variáveis de ambiente
 
 ### Local (docker-compose)
 
@@ -299,7 +299,7 @@ export TABLE_NAME=dev-feedback-table
 export FEEDBACK_TOPIC_ARN=arn:aws:sns:us-east-1:000000000000:dev-feedback-urgent-topic
 ```
 
-### Production (AWS)
+### Produção (AWS)
 
 ```bash
 export AWS_REGION=us-east-1
@@ -310,20 +310,20 @@ export ADMIN_EMAIL=admin@company.com
 
 ---
 
-## GraphiQL Playground
+## Playground GraphiQL
 
 **URL:** 
 - Local: `http://localhost:4566/graphiql`
-- Prod: Not available (Bearer token required)
+- Produção: não disponível (token Bearer obrigatório)
 
-**How to Use GraphiQL:**
+**Como usar o GraphiQL:**
 
-1. Navigate to URL in browser
-2. Left panel: Write GraphQL query/mutation
-3. Middle panel: Click "Play" button to execute
-4. Right panel: View response JSON
+1. Abra a URL no navegador
+2. Painel esquerdo: escreva a query ou mutation GraphQL
+3. Painel central: clique em "Play" para executar
+4. Painel direito: veja o JSON de resposta
 
-**Example Query:**
+**Exemplo de consulta:**
 ```graphql
 mutation {
   receiveFeedback(input: {
@@ -338,19 +338,17 @@ mutation {
 
 ---
 
-## Useful Links
+## Links úteis
 
-- **Repository:** https://github.com/jeffesa/12ADJT-fase-4
-- **Postman Collection:** `docs/api-collection/fase4-feedback.postman_collection.json`
-- **SonarCloud Dashboard:** https://sonarcloud.io/dashboard?id=jeffesa_12ADJT-fase-4
-- **AWS Endpoint:** https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/graphql
-- **Quarkus GraphQL:** https://quarkus.io/guides/smallrye-graphql
+- **Repositório:** https://github.com/jeffesa/12ADJT-fase-4
+- **Collection do Postman:** `docs/api-collection/fase4-feedback.postman_collection.json`
+- **Painel do SonarCloud:** https://sonarcloud.io/dashboard?id=jeffesa_12ADJT-fase-4
+- **Endpoint AWS:** https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/graphql
+- **Guia do Quarkus GraphQL:** https://quarkus.io/guides/smallrye-graphql
 - **RFC 7807 Problem Detail:** https://tools.ietf.org/html/rfc7807
 
 ---
 
-**Last Updated:** November 8, 2026  
-**API Version:** v1  
-**Status:** Production Ready ✅
-
-
+**Última atualização:** 8 de novembro de 2026  
+**Versão da API:** v1  
+**Status:** pronto para produção ✅
