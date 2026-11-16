@@ -9,7 +9,7 @@ Plataforma de feedback de alunos construída na AWS com funções serverless. Re
 
 ```
                       ALUNO / CLIENTE
-   POST /v1/feedback   GET /v1/feedback   POST /v1/graphql
+   POST /v1/avaliacao   POST /v1/graphql
    Authorization: Bearer <token>
                               │
                               ▼
@@ -64,8 +64,8 @@ Plataforma de feedback de alunos construída na AWS com funções serverless. Re
 
 | Método | Caminho | Função | Descrição |
 |---|---|---|---|
-| POST | `/v1/feedback` | receive-feedback | Cria um feedback (`description`, `rating`) |
-| GET | `/v1/feedback` | receive-feedback | Lista os feedbacks |
+| POST | `/v1/avaliacao` | receive-feedback | Cria uma avaliação (`descricao`, `nota`) |
+| GET | `/v1/avaliacoes` | receive-feedback | Lista as avaliações (`avaliacoes`, `total`) |
 | POST | `/v1/graphql` | graphql | Consulta `listFeedbacks` |
 
 Sem o token, a API responde `401`. A documentação completa está em [docs/API.md](docs/API.md).
@@ -114,7 +114,7 @@ O ambiente local grava na tabela `dev-feedback-table`, nunca na de produção. O
 | 3 | Roda os testes de todos os módulos (`mvn clean verify`) |
 | 4 | Roda os testes de um módulo, informado na hora |
 | 5 | Instala o `receive-feedback` e sobe a API local. Ctrl+C para parar |
-| 6 | Confere se a API local responde `GET /v1/feedback` com 200 |
+| 6 | Confere se a API local responde `GET /v1/avaliacoes` com o token Bearer, com 200 |
 | 7 | Valida o template SAM (`sam validate --lint`) |
 | 8 | Confere produção: sem token deve dar 401; com `PROD_API_TOKEN`, deve dar 200 |
 | 9 | Lista stacks, Lambdas e tabelas, sem alterar nada |
