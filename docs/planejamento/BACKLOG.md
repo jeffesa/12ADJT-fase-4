@@ -788,47 +788,39 @@ Menu interativo e comandos diretos no `run.sh` para as operações comuns do pro
 
 ---
 
-### TASK-030: Code Audit — Verificar 100% Inglês
+### ✅ TASK-030: Code Audit — Verificar 100% Inglês — **CONCLUÍDA**
 
 **Labels:** `priority: high`, `épico: qualidade`, `pontos: 2`, `type: quality`
 **Milestone:** Sprint 6 - Finalização (executar no final)
+**Status:** ✅ CONCLUÍDA em 2026-11-16
 
 ## 📋 Descrição
 Audit final do projeto para garantir que **100% do código, comentários, nomes de variáveis, nomes de arquivos está em inglês**. Nenhum resquício de português no código-fonte. Task a ser executada no final do desenvolvimento (antes da entrega).
 
-## ✅ Critérios de Aceitação
-- [ ] **Código Java**: Revisar todos os `.java` files (variáveis, nomes de classe, método, constantes em inglês)
-- [ ] **Comentários**: Todos os comentários e Javadoc em inglês
-- [ ] **Package names**: Verificar pacotes sem português
-- [ ] **Nomes de arquivos**: Sem sufixos/prefixos em português (ex: `Urgencia.java` → `Urgency.java`)
-- [ ] **XML/YAML**: Comments em `pom.xml`, `application.yaml`, templates em inglês
-- [ ] **Properties files**: Sem chaves/valores em português
-- [ ] **String literals**: Mensagens de erro/log em inglês
-- [ ] **Test files**: Nomes de testes e comentários em inglês
-- [ ] **Documentação**: SECURITY.md, API.md em inglês (BACKLOG.md fica em português OK)
-- [ ] **Script shell**: Comments no `run.sh` em inglês (se houver)
-- [ ] Gerar relatório: `docs/qualidade/CODE_AUDIT.md` com:
-  - [ ] Resultado: PASS ou FAIL
-  - [ ] Total de arquivos escaneados
-  - [ ] Problemas encontrados (lista com arquivo + linha)
-  - [ ] Ações corretivas tomadas
-  - [ ] Timestamp do audit
-- [ ] Executar grep/script para buscar palavras-chave em português:
-  - [ ] descrição, descricao, descricão
-  - [ ] nota, notas
-  - [ ] urgência, urgencia, urgência
-  - [ ] avaliação, avaliacao, avaliação
-  - [ ] usuário, usuario
-  - [ ] validação, validacao, validação
-  - [ ] configuração, configuracao, configuração
-  - [ ] notificação, notificacao, notificação
-  - [ ] relatório, relatorio, relatório
-  - [ ] salvar, persistir, recuperar (em português)
-- [ ] Compilação final: `mvn clean compile` SUCCESS
-- [ ] Commit com resultado final: `fix(code-audit): Ensure 100% English codebase`
+## ✅ Critérios de Aceitação (revisados em 2026-11-16)
 
-## 🔧 Dependências Técnicas
-- Todas as tasks (001-029) concluídas
+Decisões que definiram o escopo final: código, comentários, identificadores e nomes de arquivo ficam em inglês. Mensagens para pessoas (respostas da API, logs, menus, e-mails, alarmes e workflows) e documentação em `.md` ficam em português. A API legada em português foi removida, e a v1 em inglês é a única versão.
+
+- [x] **Código Java**: identificadores internos em inglês (PRs #104 e #107). Contrato legado removido (PRs #108, #109 e #111).
+- [x] **Comentários**: Javadoc e comentários em inglês (PR #103).
+- [x] **Package names**: sem português.
+- [x] **Nomes de arquivos**: sem português. Cópias de trabalho `template.yaml.bak` e `.orig` removidas.
+- [x] **XML/YAML**: comentários em inglês (PR #103).
+- [x] **Properties files**: chaves em inglês; textos para pessoas em português.
+- [x] **Mensagens da API**: em português (PR #112).
+- [x] **Logs**: em português (PR #113).
+- [x] **Exceções internas**: em português (PR #115).
+- [x] **E-mails e assunto SNS**: em português (PR #116). O assunto SNS não tem acento, porque o SNS aceita só ASCII.
+- [x] **Test files**: nomes e comentários em inglês, sem textos em português nas asserções de comportamento.
+- [x] **Documentação**: `.md` em português, por decisão do usuário. Inclui `SECURITY.md` e `API.md`, que substituem o critério original de inglês (PR #117).
+- [x] **Script shell**: comentários do `run.sh` em inglês. As mensagens do menu continuam em português.
+- [x] **Relatório**: `docs/qualidade/CODE_AUDIT.md` gerado em PASS, com as exceções documentadas (PR #117).
+- [x] **Busca por palavras-chave**: os termos restantes estão só em mensagens para pessoas, em documentação e em exceções documentadas.
+
+**Exceções documentadas no CODE_AUDIT:**
+- Asserções negativas do teste `ReceiveFeedbackHandlerV1Test`, que confirmam que a v1 não devolve as chaves legadas.
+- Documentos históricos (relatórios, TASK-* e resultados de E2E) que citam rotas e campos removidos.
+
 
 ---
 
