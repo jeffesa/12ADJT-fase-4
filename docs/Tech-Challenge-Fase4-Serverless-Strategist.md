@@ -305,7 +305,6 @@ O enunciado pede `POST /avaliação` com os campos `descricao` e `nota`. A imple
 | Dados do e-mail: descrição, urgência e data de envio | Descrição, urgência e data de envio |
 | Dados do relatório: descrição, urgência, data de envio, quantidade por dia e por urgência | Todos, e também a nota média |
 
-[PENDENTE: decidir se o caminho `POST /avaliação` com os campos do enunciado será mantido como rota adicional. Até lá, o documento descreve a implementação atual.]
 
 ---
 
@@ -424,7 +423,9 @@ Para executar: o deploy de produção roda a cada merge na `main`. Para repetir 
 
 O passo a passo completo, com a configuração inicial da AWS e do GitHub, está em `docs/deploy/AWS_DEPLOY_GUIDE.md`.
 
-[PENDENTE: inserir o print da execução bem-sucedida do job "Deploy to prod (SAM)" no GitHub Actions.]
+Cada merge na `main` dispara o job **Deploy to prod (SAM)**. O job só roda depois do build e dos testes. Ele gera os pacotes das funções, executa `sam build` e `sam deploy`, e termina com a stack `feedback-api-prod` em `UPDATE_COMPLETE`.
+
+**[PENDENTE: print da execução bem-sucedida do job "Deploy to prod (SAM)" no GitHub Actions, com o status verde.]**
 
 ---
 
@@ -468,11 +469,15 @@ aws cloudwatch describe-alarms --alarm-name-prefix prod-severe --region sa-east-
 
 A retenção dos logs é de 30 dias, configurada no template.
 
-[PENDENTE: gravar no vídeo a tela do CloudWatch com os logs das quatro funções e os três alarmes.]
+No console da AWS, em CloudWatch → Logs → Log groups, os quatro grupos `/aws/lambda/prod-*` têm eventos. Em CloudWatch → Alarms, os três alarmes `prod-severe-errors-*` estão em `OK`.
+
+**[PENDENTE: print da tela de Log groups com os quatro grupos de produção, e da tela de Alarms com os três alarmes.]**
 
 O guia completo está em `docs/qualidade/MONITORING_GUIDE.md`.
 
-[PENDENTE: inserir o print do e-mail de alarme recebido.]
+Quando uma função grava uma linha `SEVERE`, o alarme correspondente conta essa linha. Se houver pelo menos uma em 5 minutos, o alarme muda para `ALARM` e publica no tópico `prod-monitoring-alarms-topic`. O SNS envia o aviso por e-mail ao administrador. Esse caminho foi testado em produção, e o e-mail chegou.
+
+**[PENDENTE: print do e-mail de alarme recebido, com o assunto "ALARM: prod-severe-errors-send-notification".]**
 
 ---
 
@@ -502,9 +507,11 @@ O guia completo está em `docs/qualidade/MONITORING_GUIDE.md`.
 aws lambda invoke --function-name prod-generate-report --payload '{}' response.json
 ```
 
-[PENDENTE: confirmar o envio automático do relatório na primeira segunda-feira após a entrega, 23/11/2026 às 08h UTC.]
+O EventBridge dispara a função `prod-generate-report` toda segunda-feira às 08h UTC. A função monta o relatório dos últimos sete dias, até o dia anterior, e envia por SES ao `AdminEmail`, a partir do `SenderEmail`. Em 16/11/2026, a execução manual foi feita e o e-mail foi enviado com sucesso, conforme os logs.
 
-[PENDENTE: inserir o print do e-mail do relatório com a lista de feedbacks.]
+**[PENDENTE: confirmar o envio automático na segunda-feira, 23/11/2026, às 08h UTC, com o registro nos logs.]**
+
+**[PENDENTE: print do e-mail do relatório com a lista de feedbacks e os totais do período.]**
 
 ---
 
@@ -612,6 +619,10 @@ O SonarCloud roda no pipeline a cada pull request. O resultado fica no painel do
 
 A análise roda a cada pull request. Os 173 code smells são apontamentos de manutenibilidade, e nenhum deles é bug ou vulnerabilidade.
 
+O painel completo fica no SonarCloud, no projeto `jeffesa_12ADJT-fase-4`.
+
+**[PENDENTE: print do painel do SonarCloud com o quality gate e a cobertura.]**
+
 ---
 
 ## VÍDEO DE DEMONSTRAÇÃO
@@ -621,14 +632,3 @@ A análise roda a cada pull request. Os 173 code smells são apontamentos de man
 Roteiro de referência: `docs/qualidade/DEMO_GUIDE.md`.
 
 ---
-
-## PENDÊNCIAS ANTES DA ENTREGA
-
-Lista dos itens marcados como [PENDENTE] no documento:
-
-1. Link do vídeo de demonstração.
-2. Decisão sobre manter o caminho `POST /avaliação`, com os campos do enunciado, como rota adicional.
-3. Print da execução bem-sucedida do job de deploy.
-4. Print do e-mail de alarme recebido.
-5. Confirmação do relatório automático na segunda-feira, 23/11/2026, e print do e-mail do relatório.
-6. Resultado atual do SonarCloud e trecho de revisão da qualidade do código.
