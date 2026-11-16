@@ -42,6 +42,36 @@ A aplicação roda na AWS, em região `sa-east-1`, sem servidores para gerenciar
 
 ---
 
+## SERVIÇOS AWS UTILIZADOS
+
+A solução usa somente serviços gerenciados da AWS. A tabela mostra o papel de cada um no projeto, o recurso criado e o comando para conferir na conta, na região `sa-east-1`.
+
+| Serviço AWS | Papel no projeto | Recurso criado | Como conferir |
+|---|---|---|---|
+| **AWS Lambda** | Executa as funções serverless | `prod-receive-feedback`, `prod-graphql`, `prod-send-notification`, `prod-generate-report` | `aws lambda list-functions --region sa-east-1` |
+| **Amazon S3** | Guarda o pacote (zip) de cada função antes do deploy | Bucket `sam-artifacts-sa-east-1-prod` | `aws s3 ls s3://sam-artifacts-sa-east-1-prod` |
+| **AWS CloudFormation** | Cria e atualiza todos os recursos a partir do `infra/template.yaml` | Stack `feedback-api-prod` | `aws cloudformation describe-stacks --stack-name feedback-api-prod` |
+| **Amazon API Gateway** | Recebe as requisições HTTPS e encaminha às funções | API `prod-feedback-api`, com as rotas `/v1/feedback`, `/v1/graphql` e `/graphql` | Acessar a URL de produção |
+| **Amazon DynamoDB** | Armazena os feedbacks | Tabela `prod-feedback-table` | `aws dynamodb describe-table --table-name prod-feedback-table` |
+| **Amazon SNS** | Envia o aviso de urgência e os alarmes | Tópicos `prod-feedback-urgent-topic` e `prod-monitoring-alarms-topic` | `aws sns list-topics` |
+| **Amazon EventBridge** | Dispara o relatório toda segunda-feira, às 08h UTC | Regra `prod-generate-report-schedule` | `aws events list-rules` |
+| **Amazon SES** | Envia os e-mails de urgência, de relatório e de alarme | Identidades verificadas em `sa-east-1` | `aws ses list-identities` |
+| **Amazon CloudWatch** | Guarda os logs das funções e dispara os alarmes | 4 grupos de logs (30 dias) e 3 alarmes `prod-severe-errors-*` | `aws cloudwatch describe-alarms` |
+| **AWS IAM** | Define as roles das funções e o acesso do GitHub, por OIDC | 3 roles de função, e a role `github-actions-deploy-prod`, criada fora do template | `aws iam list-roles` |
+
+### Onde as funções ficam guardadas
+
+Esta é a resposta objetiva para a pergunta "qual serviço grava as funções":
+
+1. O Maven gera o pacote de cada função.
+2. O SAM envia o pacote ao bucket **Amazon S3** `sam-artifacts-sa-east-1-prod`.
+3. O **AWS CloudFormation** cria a função a partir desse pacote.
+4. A função passa a existir no **AWS Lambda**, pronta para ser executada.
+
+Ou seja: o código fica no **S3**, e a função roda no **Lambda**.
+
+---
+
 ## ARQUITETURA
 
 ### Visão geral
