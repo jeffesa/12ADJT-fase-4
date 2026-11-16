@@ -2,7 +2,7 @@
 
 **Veredito: FAIL**
 
-**Data e hora da varredura:** 2026-11-15 21:34:39 (-03:00), saída de `date` na revisão 3 da etapa. Varredura anterior: 21:29:12.
+**Data e hora da varredura:** 2026-11-15 21:39:41 (-03:00), saída de `date` na revisão 2 da etapa. Varredura anterior: 21:34:39.
 **Branch:** `docs/code-audit-final-3`, criada a partir de `chore/email-messages-pt` no commit `1ed4ffb`.
 **Base de referência:** conteúdo do relatório da branch `docs/code-audit-final-2` (commit `255c83f`), usado como ponto de partida e reexecutado contra o estado atual desta branch.
 **Build:** `mvn -B clean verify` na raiz do projeto, JDK 17.0.18, Maven 3.9.11, `BUILD SUCCESS`.
@@ -181,17 +181,17 @@ A regra de português para documentação permite o texto. A regra de mensagens 
 | `docs/SECURITY.md` | 24 | `Missing bearer token` e `Invalid bearer token` em inglês. |
 | `docs/SECURITY.md` | 154 | Rótulo `Description:` em inglês dentro de exemplo de variável de ambiente. Palavra em inglês em documento vivo. |
 | `docs/deploy/AWS_DEPLOY_GUIDE.md` | 396, 397, 437, 518, 519 | `Missing bearer token` e `Invalid bearer token` em tabelas de erro e em instruções. |
-| `docs/api-collection/fase4-feedback.postman_collection.json` | 559, 596, 736, 769, 806, 845, 1422, 1459, 1599, 1632, 1669, 1708 | Os testes de 401 fazem `pm.expect(detail).to.equal('Missing bearer token')` e `'Invalid bearer token'`. O código devolve `Token Bearer ausente` e `Token Bearer inválido`. **Os testes não batem com a API atual.** Não rodei a collection contra a API. A divergência vem da leitura de `BearerTokenAuthenticator.java`, linhas 64 e 111. |
+| `docs/api-collection/fase4-feedback.postman_collection.json` | 4, 559, 596, 736, 769, 806, 845, 1422, 1459, 1599, 1632, 1669, 1708 | Corrigido na revisão 2. As asserções de 401 e os nomes dos testes e a descrição da collection usam `Token Bearer ausente` e `Token Bearer inválido`, o texto que `BearerTokenAuthenticator.java` (linhas 64 e 111) devolve. Não rodei a collection contra a API. Sem ocorrência em inglês restante. |
 | `docs/qualidade/MONITORING_GUIDE.md` | 166, 180, 237, 254 | Cita `Invalid request body` e `Description must be at least 5 characters`. Esses textos não existem em `src/main`. O código emite `Descrição deve ter no mínimo 5 caracteres` e `Descrição não pode estar vazia`. A linha 254 também descreve um comportamento que o código atual não tem. |
 | `docs/qualidade/MONITORING_GUIDE.md` | 206, 258 | Cita `Email address is not verified`, texto que a AWS devolve no SES e que aparece nos logs de produção. Trecho de terceiro, marcado como observação de produção. Mantido como FAIL pela regra estrita. |
-| `docs/api-collection/README.md` | 145, 147, 263, 265, 272 | Exemplos de resposta de erro em bloco de código, com `Validation Error`, `Rating must be at least 0`, `Unauthorized`, `Missing bearer token \| Invalid bearer token`. Os blocos foram restaurados ao original, como pedido (traduzir só a prosa). Os exemplos batem com o texto em inglês da documentação, não com o que a API emite. Mantido como FAIL. Alternativa: traduzir esses quatro exemplos para o texto real da API (`Erro de validação`, `Nota deve ser no mínimo 0`, `Não autorizado`, `Token Bearer ausente \| Token Bearer inválido`). Isso muda só documentação, mas é uma tradução de bloco de código, fora do pedido. |
+| `docs/api-collection/README.md` | 145, 147, 263, 265, 272 | Corrigido na revisão 2. Os exemplos de erro de bloco de código passam a mostrar o texto real da API: `Erro de validação`, `Nota deve ser no mínimo 0`, `Não autorizado`, `Token Bearer ausente \| Token Bearer inválido`, e o formato `Erro de validação\|Requisição inválida\|etc`. Sem ocorrência em inglês restante. |
 | `docs/planejamento/BACKLOG.md` | 27 ocorrências de termos legados | Especificação de tarefas, não é relatório, TASK-* de registro, E2E, CODE_AUDIT antigo nem guia de sessão. Fora da exceção (b). Não foi alterado, conforme pedido. |
 | `docs/qualidade/DEMO_GUIDE.md` | — | Sem mensagem em inglês da API. Os exemplos de faixa de nota (`Rating 0-5 → HIGH`) estão em bloco de código, restaurados ao original. |
 
 Sobre os três guias pedidos nesta etapa:
 
 - `docs/qualidade/DEMO_GUIDE.md`: prosa traduzida. `Urgencia` trocado por `urgency` nas duas ocorrências de prosa (linhas 400 e 409). Blocos de código idênticos à base.
-- `docs/api-collection/README.md`: prosa traduzida. Blocos de código idênticos à base (ver linhas acima).
+- `docs/api-collection/README.md`: prosa traduzida. Os exemplos de erro dos blocos de código foram trocados pelo texto real da API (revisão 2, ver linhas acima). Os demais blocos de código seguem idênticos à base.
 - `docs/qualidade/MONITORING_GUIDE.md`: não tinha prosa em inglês para traduzir. O arquivo já estava em português, e nenhuma linha foi alterada. As linhas com texto em inglês listadas acima são citações de mensagens, e ficam como FAIL.
 
 ### 7.2 Registros históricos (exceção b)
@@ -262,8 +262,7 @@ O módulo `local-http` não faz parte do reactor da raiz e não foi executado.
 
 Itens que bloqueiam o PASS:
 
-1. **Testes de 401 da collection Postman** (seção 7.1): esperam `Missing bearer token` e `Invalid bearer token`, mas a API responde `Token Bearer ausente` e `Token Bearer inválido`. Decisão necessária: ajustar as asserções ao texto atual, ou mudar a API para a mensagem em inglês (o que muda o que o cliente vê e não é o escopo desta etapa).
-2. **Mensagens em inglês em documentação**: `docs/API.md`, `docs/api-collection/API.md`, `docs/SECURITY.md`, `docs/deploy/AWS_DEPLOY_GUIDE.md` e os exemplos de erro de `docs/api-collection/README.md` (seção 7.1). Decisão aberta: manter o bloco original, ou traduzir esses exemplos para o texto real da API.
+1. **Mensagens em inglês em documentação**: `docs/API.md`, `docs/api-collection/API.md`, `docs/SECURITY.md`, `docs/deploy/AWS_DEPLOY_GUIDE.md` (seção 7.1). Os testes de 401 da collection Postman e os exemplos de erro do `docs/api-collection/README.md` foram corrigidos na revisão 2 e não entram mais aqui.
 3. **`docs/qualidade/MONITORING_GUIDE.md`**, linhas 166, 180, 237 e 254: mensagens que o código não emite. Linhas 206 e 258: texto da AWS, marcado como FAIL pela regra estrita.
 4. **Arquivos `infra/template.yaml.bak` e `infra/template.yaml.orig` rastreados** (seção 8). A remoção depende de confirmação.
 5. **`docs/planejamento/BACKLOG.md`** com termos legados (seção 7.1). Não é registro histórico na lista da exceção (b).

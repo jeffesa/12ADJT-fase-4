@@ -142,9 +142,9 @@ Todos os testes verificam esse mapeamento, comparando o campo `urgency` com a fa
 ### Exemplo de resposta de erro
 ```json
 {
-  "title": "Validation Error",
+  "title": "Erro de validação",
   "status": 400,
-  "detail": "Rating must be at least 0"
+  "detail": "Nota deve ser no mínimo 0"
 }
 ```
 
@@ -260,16 +260,16 @@ Content-Type: application/json
 ### Resposta de erro (401 Não autorizado)
 ```json
 {
-  "title": "Unauthorized",
+  "title": "Não autorizado",
   "status": 401,
-  "detail": "Missing bearer token | Invalid bearer token"
+  "detail": "Token Bearer ausente | Token Bearer inválido"
 }
 ```
 
 ### Resposta de erro (400 Bad Request)
 ```json
 {
-  "title": "Validation Error|Constraint Violation|etc",
+  "title": "Erro de validação|Requisição inválida|etc",
   "status": 400,
   "detail": "Specific error message explaining the violation"
 }
