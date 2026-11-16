@@ -1,10 +1,14 @@
 package com.fiap.report.infra.messaging;
 
+import com.fiap.report.domain.entity.Feedback;
 import com.fiap.report.domain.entity.WeeklyReport;
 import com.fiap.report.domain.entity.FeedbackStatistics;
 import com.fiap.report.domain.entity.ReportPeriod;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -21,10 +25,18 @@ import java.util.TreeMap;
  * - Summary statistics (total feedback count, average rating)
  * - Feedback breakdown table by day
  * - Feedback breakdown table by urgency level
+ * - "Feedbacks do período" table: Descrição, Urgência, Data de envio
+ *
+ * The feedback table lists the period's feedbacks sorted by createdAt ascending. Dates use
+ * the pattern dd/MM/yyyy HH:mm, taken from the stored LocalDateTime without a time zone
+ * conversion. Descriptions are HTML-escaped (&, &lt;, &gt;, &quot;, &#39;). An empty period
+ * shows "Nenhum feedback no período".
  *
  * Output is a valid, standalone HTML document suitable for email delivery via SES.
  */
 public class ReportEmailBuilder {
+
+    private static final DateTimeFormatter SEND_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     /**
      * Builds a complete HTML email body for a weekly feedback report.
@@ -142,10 +154,60 @@ public class ReportEmailBuilder {
 
         html.append("  </table>\n");
 
+        // Feedbacks of the period
+        appendFeedbacksSection(html, report.getFeedbacks());
+
         // HTML closing
         html.append("</body>\n");
         html.append("</html>\n");
 
         return html.toString();
+    }
+
+    /**
+     * Appends the "Feedbacks do período" section, ordered by creation date.
+     * Descriptions are HTML-escaped. An empty period shows a placeholder message.
+     */
+    private static void appendFeedbacksSection(StringBuilder html, List<Feedback> feedbacks) {
+        html.append("  <h2>Feedbacks do período</h2>\n");
+
+        if (feedbacks.isEmpty()) {
+            html.append("  <p>Nenhum feedback no período</p>\n");
+            return;
+        }
+
+        html.append("  <table>\n");
+        html.append("    <tr>\n");
+        html.append("      <th>Descrição</th>\n");
+        html.append("      <th>Urgência</th>\n");
+        html.append("      <th>Data de envio</th>\n");
+        html.append("    </tr>\n");
+
+        feedbacks.stream()
+                .sorted(Comparator.comparing(Feedback::getCreatedAt))
+                .forEach(feedback -> {
+                    html.append("    <tr>\n");
+                    html.append("      <td>");
+                    html.append(escapeHtml(feedback.getDescription()));
+                    html.append("</td>\n");
+                    html.append("      <td>");
+                    html.append(feedback.getUrgency().name());
+                    html.append("</td>\n");
+                    html.append("      <td>");
+                    html.append(feedback.getCreatedAt().format(SEND_DATE_FORMATTER));
+                    html.append("</td>\n");
+                    html.append("    </tr>\n");
+                });
+
+        html.append("  </table>\n");
+    }
+
+    private static String escapeHtml(String text) {
+        return text
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }

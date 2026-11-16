@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -330,5 +331,33 @@ class WeeklyReportTest {
 
         // Assert
         assertEquals(hash1, hash2);
+    }
+
+    @Test
+    void testGetFeedbacks_ReturnsFeedbacksPassedToConstructor() {
+        // Arrange
+        Feedback feedback = new Feedback("1", 4, Urgency.HIGH, LocalDateTime.of(2024, 10, 22, 9, 0), "Login quebra");
+        FeedbackStatistics statistics = new FeedbackStatistics(1, 4.0, new HashMap<>(), new HashMap<>());
+
+        // Act
+        WeeklyReport report = new WeeklyReport(
+                LocalDate.of(2024, 10, 21), LocalDate.of(2024, 10, 25), statistics,
+                "admin@feedback-fase-4.com", List.of(feedback));
+
+        // Assert
+        assertEquals(List.of(feedback), report.getFeedbacks());
+    }
+
+    @Test
+    void testGetFeedbacks_IsEmptyWhenConstructedWithoutFeedbacks() {
+        // Arrange
+        FeedbackStatistics statistics = new FeedbackStatistics(0, null, new HashMap<>(), new HashMap<>());
+
+        // Act
+        WeeklyReport report = new WeeklyReport(
+                LocalDate.of(2024, 10, 21), LocalDate.of(2024, 10, 25), statistics, "admin@feedback-fase-4.com");
+
+        // Assert
+        assertTrue(report.getFeedbacks().isEmpty());
     }
 }
