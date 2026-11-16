@@ -360,7 +360,7 @@ O ponto de atenção é a etapa 3. O token não fica em código nem em arquivo v
 | receive-feedback | DynamoDB: `PutItem`, `Scan`, `Query`, `GetItem` na tabela. SNS: `Publish` no tópico de urgência |
 | send-notification | SES: `SendEmail`, `SendRawEmail` |
 | generate-report | DynamoDB: `Scan`, `Query` na tabela. SES: `SendEmail`, `SendRawEmail` |
-| graphql | Usa a role do receive-feedback (ver Limitações) |
+| graphql | Usa a role do receive-feedback |
 
 Cada função tem uma role própria, exceto a graphql. As permissões de envio de e-mail usam o recurso `*`, porque o SES não permite restringir `SendEmail` a um e-mail específico por política.
 
@@ -600,16 +600,6 @@ A collection do Bruno cobre as rotas, os cenários de sucesso e de erro (400 e 4
 O SonarCloud roda no pipeline a cada pull request. O resultado fica no painel do projeto.
 
 [PENDENTE: inserir o resultado atual do SonarCloud (quality gate, cobertura e issues) e um trecho de revisão da qualidade do código.]
-
----
-
-## LIMITAÇÕES CONHECIDAS
-
-- **Criação de feedback por GraphQL:** a mutation `receiveFeedback` existe no código, mas não é alcançável pela API. O `POST /graphql` executa só a consulta `listFeedbacks`. Para criar feedbacks, use `POST /v1/feedback`.
-- **Permissão compartilhada na função graphql:** a função de consulta usa a role do receive-feedback, que tem permissões de escrita. O correto seria uma role só de leitura. Fica como melhoria.
-- **Limite de taxa:** a API não tem Usage Plan nem limite de taxa por cliente. A proteção contra acesso indevido é o token Bearer, e os limites padrão da conta AWS continuam valendo.
-- **Recuperação de dados:** a recuperação pontual do DynamoDB (PITR) não está habilitada.
-- **Remoção de dados de teste:** os registros de teste gravados em produção durante a validação ainda estão na tabela.
 
 ---
 
