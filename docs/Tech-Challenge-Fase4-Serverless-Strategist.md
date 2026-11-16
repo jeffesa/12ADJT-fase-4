@@ -111,14 +111,14 @@ A solução usa somente serviços gerenciados da AWS. A tabela mostra o papel de
 
 ### Onde as funções ficam guardadas
 
-Esta é a resposta objetiva para a pergunta "qual serviço grava as funções":
+As funções são armazenadas como pacotes JAR no bucket **Amazon S3** `sam-artifacts-sa-east-1-prod`, usado pelo SAM como destino dos artefatos de deploy.
 
-1. O Maven gera o pacote de cada função.
-2. O SAM envia o pacote ao bucket **Amazon S3** `sam-artifacts-sa-east-1-prod`.
-3. O **AWS CloudFormation** cria a função a partir desse pacote.
-4. A função passa a existir no **AWS Lambda**, pronta para ser executada.
+Fluxo de deploy:
 
-Ou seja: o código fica no **S3**, e a função roda no **Lambda**.
+1. O Maven gera o JAR de cada função.
+2. O `sam package` envia o JAR ao bucket S3 e reescreve o template com a referência ao objeto.
+3. O **AWS CloudFormation** cria ou atualiza a função **AWS Lambda** usando essa referência.
+4. O Lambda executa o código do JAR armazenado no S3.
 
 ---
 
@@ -128,7 +128,7 @@ Ou seja: o código fica no **S3**, e a função roda no **Lambda**.
 
 A solução segue o modelo serverless: cada responsabilidade é uma função Lambda própria, disparada por um evento. Não há servidor ativo esperando requisições.
 
-O enunciado pede a entrada de feedbacks por REST, o envio de avisos de urgência e o relatório semanal. A consulta por GraphQL não é exigência: foi adotada como melhoria de acesso aos dados. Com ela, o cliente envia uma única requisição em JSON e recebe apenas os campos que escolheu, sem receber a lista completa de campos de cada feedback. A consulta usa a mesma tabela e o mesmo token da API REST.
+O Tech Challenge da Fase 4 pede a entrada de feedbacks por API REST, o envio de avisos de urgência e o relatório semanal. A consulta por GraphQL não é exigência: foi adotada como melhoria de acesso aos dados. Com ela, o cliente envia uma única requisição em JSON e recebe apenas os campos que escolheu, sem receber a lista completa de campos de cada feedback. A consulta usa a mesma tabela e o mesmo token da API REST.
 
 O diagrama completo, com o fluxo de cada função, está no início deste documento.
 
@@ -303,9 +303,9 @@ curl -X POST "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/gra
 | Nota fora de 0 a 10 | `400` | `Erro de validação` |
 | Falha inesperada | `500` | Mensagem genérica, sem detalhes internos |
 
-### Aderência ao enunciado
+### Aderência ao Tech Challenge da Fase 4
 
-O enunciado pede `POST /avaliação` com os campos `descricao` e `nota`. A implementação expõe a mesma funcionalidade com os nomes em inglês:
+O Tech Challenge da Fase 4 pede `POST /avaliação` com os campos `descricao` e `nota`. A implementação expõe a mesma funcionalidade com os nomes em inglês:
 
 | Enunciado | Implementado |
 |---|---|
