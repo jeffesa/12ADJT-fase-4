@@ -31,7 +31,7 @@ feature/fix -> PR -> develop -> PR (release) -> main -> pipeline faz o deploy em
 
 - O deploy em produção é feito **pelo pipeline** (`.github/workflows/ci-cd.yml`), somente em `push` na `main`.
 - O pipeline autentica na AWS por OIDC (sem chaves de acesso fixas) e roda `sam deploy --config-env prod`.
-- Recursos criados pelo stack `feedback-api-prod` (definidos em `infra/template.yaml`): API Gateway (REST), 5 Lambdas (`receive-feedback`, `list-feedback`, `graphql`, `send-notification`, `generate-report`), tabela DynamoDB, tópico SNS, regra do EventBridge (relatório semanal), log groups do CloudWatch e as roles IAM das Lambdas.
+- Recursos criados pelo stack `feedback-api-prod` (definidos em `infra/template.yaml`): API Gateway (REST), 4 Lambdas (`receive-feedback`, `graphql`, `send-notification`, `generate-report`), tabela DynamoDB, tópico SNS, regra do EventBridge (relatório semanal), log groups do CloudWatch e as roles IAM das Lambdas.
 - Recursos criados **manualmente, fora do stack** (seção 4): identidade do SES, buckets S3 de artefatos, OIDC provider e a role `github-actions-deploy-prod`. Os secrets do GitHub também ficam fora do stack.
 
 ## 2. Pré-requisitos
@@ -444,7 +444,7 @@ Log groups reais em prod (retenção de 30 dias), criados pelo template:
 
 | Log group | Lambda |
 |---|---|
-| `/aws/lambda/prod-receive-feedback` | `prod-receive-feedback` **e** `prod-list-feedback` (as duas escrevem neste grupo) |
+| `/aws/lambda/prod-receive-feedback` | `prod-receive-feedback` |
 | `/aws/lambda/prod-graphql` | `prod-graphql` |
 | `/aws/lambda/prod-send-notification` | `prod-send-notification` |
 | `/aws/lambda/prod-generate-report` | `prod-generate-report` |
