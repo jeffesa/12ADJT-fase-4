@@ -44,13 +44,13 @@ class NotificationConfigurationTest {
     void testSubjectTemplateDefaultValue() {
         // Arrange
         NotificationConfiguration config = mock(NotificationConfiguration.class);
-        when(config.subjectTemplate()).thenReturn("⚠️ Feedback ${urgency}: ${description}");
+        when(config.subjectTemplate()).thenReturn("⚠️ Avaliação ${urgency}: ${description}");
 
         // Act
         String template = config.subjectTemplate();
 
         // Assert
-        assertEquals("⚠️ Feedback ${urgency}: ${description}", template);
+        assertEquals("⚠️ Avaliação ${urgency}: ${description}", template);
     }
 
     @Test
@@ -186,7 +186,7 @@ class NotificationConfigurationTest {
     void testSubjectTemplateContainsPlaceholders() {
         // Arrange
         NotificationConfiguration config = mock(NotificationConfiguration.class);
-        when(config.subjectTemplate()).thenReturn("⚠️ Feedback ${urgency}: ${description}");
+        when(config.subjectTemplate()).thenReturn("⚠️ Avaliação ${urgency}: ${description}");
 
         // Act
         String template = config.subjectTemplate();
@@ -278,7 +278,7 @@ class NotificationConfigurationTest {
     void testDefaultSubjectTemplateContainsUrgencyAndDescription() {
         // Arrange
         NotificationConfiguration config = mock(NotificationConfiguration.class);
-        when(config.subjectTemplate()).thenReturn("⚠️ Feedback ${urgency}: ${description}");
+        when(config.subjectTemplate()).thenReturn("⚠️ Avaliação ${urgency}: ${description}");
 
         // Act
         String template = config.subjectTemplate();

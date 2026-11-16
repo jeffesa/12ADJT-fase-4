@@ -31,7 +31,7 @@ class ReportEmailBuilderTest {
 
         String html = ReportEmailBuilder.buildHtmlBody(report);
 
-        String table = html.substring(html.indexOf("<h2>Feedbacks por urgência</h2>"));
+        String table = html.substring(html.indexOf("<h2>Avaliações por urgência</h2>"));
         int high = table.indexOf("<td>HIGH</td>");
         int medium = table.indexOf("<td>MEDIUM</td>");
         int low = table.indexOf("<td>LOW</td>");
@@ -54,7 +54,7 @@ class ReportEmailBuilderTest {
 
         String html = ReportEmailBuilder.buildHtmlBody(report);
 
-        String table = html.substring(html.indexOf("<h2>Feedbacks por dia</h2>"), html.indexOf("<h2>Feedbacks por urgência</h2>"));
+        String table = html.substring(html.indexOf("<h2>Avaliações por dia</h2>"), html.indexOf("<h2>Avaliações por urgência</h2>"));
         int first = table.indexOf("<td>2024-10-21</td>\n      <td>4</td>");
         int second = table.indexOf("<td>2024-10-23</td>\n      <td>1</td>");
         assertTrue(first > 0 && first < second);
@@ -81,7 +81,7 @@ class ReportEmailBuilderTest {
         WeeklyReport report = reportWithFeedbacks(feedbacks);
 
         String html = ReportEmailBuilder.buildHtmlBody(report);
-        String section = html.substring(html.indexOf("<h2>Feedbacks do período</h2>"));
+        String section = html.substring(html.indexOf("<h2>Avaliações do período</h2>"));
 
         assertTrue(section.contains("<th>Descrição</th>"));
         assertTrue(section.contains("<th>Urgência</th>"));
@@ -110,7 +110,7 @@ class ReportEmailBuilderTest {
 
         String html = ReportEmailBuilder.buildHtmlBody(report);
 
-        assertTrue(html.contains("<h2>Feedbacks do período</h2>\n  <p>Nenhum feedback no período</p>"));
+        assertTrue(html.contains("<h2>Avaliações do período</h2>\n  <p>Nenhuma avaliação no período</p>"));
     }
 
     private static WeeklyReport reportWithFeedbacks(List<Feedback> feedbacks) {
