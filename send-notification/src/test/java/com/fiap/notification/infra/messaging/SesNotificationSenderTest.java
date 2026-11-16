@@ -146,8 +146,8 @@ class SesNotificationSenderTest {
         assertTrue(htmlBody.contains("System down"), "HTML should contain description");
         assertTrue(htmlBody.contains("HIGH"), "HTML should contain urgency");
         assertTrue(htmlBody.contains("2024-10-22"), "HTML should contain createdAt date");
-        assertTrue(htmlBody.contains("Feedback crítico recebido"), "HTML should contain heading");
-        assertTrue(htmlBody.contains("ID do feedback:"), "HTML should contain feedback ID label");
+        assertTrue(htmlBody.contains("Avaliação crítica recebida"), "HTML should contain heading");
+        assertTrue(htmlBody.contains("ID da avaliação:"), "HTML should contain evaluation ID label");
         assertTrue(htmlBody.contains("Descrição:"), "HTML should contain description label");
         assertTrue(htmlBody.contains("Urgência:"), "HTML should contain urgency label");
         assertTrue(htmlBody.contains("Data de envio:"), "HTML should contain send date label");

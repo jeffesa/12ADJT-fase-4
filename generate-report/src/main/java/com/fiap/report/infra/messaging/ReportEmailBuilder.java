@@ -76,7 +76,7 @@ public class ReportEmailBuilder {
         html.append("<body>\n");
 
         // Report header
-        html.append("  <h1>Relatório semanal de feedback</h1>\n");
+        html.append("  <h1>Relatório semanal de avaliações</h1>\n");
 
         // Period information
         html.append("  <div class=\"period\">\n");
@@ -90,7 +90,7 @@ public class ReportEmailBuilder {
         // Summary section
         html.append("  <div class=\"summary\">\n");
         html.append("    <h2>Resumo</h2>\n");
-        html.append("    <p><strong>Total de feedbacks:</strong> ");
+        html.append("    <p><strong>Total de avaliações:</strong> ");
         html.append(statistics.getTotalFeedback());
         html.append("</p>\n");
 
@@ -105,7 +105,7 @@ public class ReportEmailBuilder {
         html.append("  </div>\n");
 
         // Feedback by Day table
-        html.append("  <h2>Feedbacks por dia</h2>\n");
+        html.append("  <h2>Avaliações por dia</h2>\n");
         html.append("  <table>\n");
         html.append("    <tr>\n");
         html.append("      <th>Data</th>\n");
@@ -130,7 +130,7 @@ public class ReportEmailBuilder {
         html.append("  </table>\n");
 
         // Feedback by Urgency table
-        html.append("  <h2>Feedbacks por urgência</h2>\n");
+        html.append("  <h2>Avaliações por urgência</h2>\n");
         html.append("  <table>\n");
         html.append("    <tr>\n");
         html.append("      <th>Urgência</th>\n");
@@ -169,10 +169,10 @@ public class ReportEmailBuilder {
      * Descriptions are HTML-escaped. An empty period shows a placeholder message.
      */
     private static void appendFeedbacksSection(StringBuilder html, List<Feedback> feedbacks) {
-        html.append("  <h2>Feedbacks do período</h2>\n");
+        html.append("  <h2>Avaliações do período</h2>\n");
 
         if (feedbacks.isEmpty()) {
-            html.append("  <p>Nenhum feedback no período</p>\n");
+            html.append("  <p>Nenhuma avaliação no período</p>\n");
             return;
         }
 

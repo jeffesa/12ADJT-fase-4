@@ -53,7 +53,7 @@ class SnsUrgencyPublisherTest {
         verify(snsClient).publish(captor.capture());
         PublishRequest request = captor.getValue();
         assertEquals(TOPIC_ARN, request.topicArn());
-        assertEquals("Alerta de feedback de urgencia alta", request.subject());
+        assertEquals("Alerta de avaliacao de urgencia alta", request.subject());
         assertTrue(request.subject().chars().allMatch(c -> c < 128), "SNS subject must be ASCII");
         assertTrue(request.subject().length() <= 100, "SNS subject must be at most 100 characters");
         assertTrue(!request.subject().contains("\n") && !request.subject().contains("\r"), "SNS subject must not contain line breaks");

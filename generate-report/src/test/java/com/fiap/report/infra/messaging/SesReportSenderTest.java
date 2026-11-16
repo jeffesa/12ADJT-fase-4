@@ -137,7 +137,7 @@ class SesReportSenderTest {
         // Assert
         SendEmailRequest request = mockSesClient.lastRequest.get();
         String subject = request.message().subject().data();
-        assertTrue(subject.contains("Relatório semanal de feedback"));
+        assertTrue(subject.contains("Relatório semanal de avaliações"));
         assertTrue(subject.contains("2024-10-21"));
         assertTrue(subject.contains("2024-10-25"));
     }
