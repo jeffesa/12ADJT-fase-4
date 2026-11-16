@@ -1710,6 +1710,875 @@
                   ]
                 }
               }
+            },
+            {
+              "name": "✅ 201 — POST /v1/avaliacao (nota 1, urgência HIGH)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('id é UUID', () => pm.expect(b.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "pm.test('descricao ecoa o envio', () => pm.expect(b.descricao).to.equal(\"Feedback crítico - teste teste\"));",
+                      "pm.test('nota é 1', () => pm.expect(b.nota).to.equal(1));",
+                      "pm.test('urgencia é HIGH', () => pm.expect(b.urgencia).to.equal('HIGH'));",
+                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(b.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Feedback crítico - teste teste\",\n  \"nota\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 201 — POST /v1/avaliacao (nota 6, urgência MEDIUM)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('id é UUID', () => pm.expect(b.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "pm.test('descricao ecoa o envio', () => pm.expect(b.descricao).to.equal(\"Feedback moderado - teste teste\"));",
+                      "pm.test('nota é 6', () => pm.expect(b.nota).to.equal(6));",
+                      "pm.test('urgencia é MEDIUM', () => pm.expect(b.urgencia).to.equal('MEDIUM'));",
+                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(b.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Feedback moderado - teste teste\",\n  \"nota\": 6\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 201 — POST /v1/avaliacao (nota 0, limite inferior, urgência HIGH)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('id é UUID', () => pm.expect(b.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "pm.test('descricao ecoa o envio', () => pm.expect(b.descricao).to.equal(\"Feedback no mínimo teste\"));",
+                      "pm.test('nota é 0', () => pm.expect(b.nota).to.equal(0));",
+                      "pm.test('urgencia é HIGH', () => pm.expect(b.urgencia).to.equal('HIGH'));",
+                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(b.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Feedback no mínimo teste\",\n  \"nota\": 0\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 201 — POST /v1/avaliacao (nota 10, limite superior, urgência LOW)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('id é UUID', () => pm.expect(b.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "pm.test('descricao ecoa o envio', () => pm.expect(b.descricao).to.equal(\"Feedback no máximo teste\"));",
+                      "pm.test('nota é 10', () => pm.expect(b.nota).to.equal(10));",
+                      "pm.test('urgencia é LOW', () => pm.expect(b.urgencia).to.equal('LOW'));",
+                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(b.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Feedback no máximo teste\",\n  \"nota\": 10\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 201 — POST /v1/avaliacao (nota 5, último valor HIGH)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('id é UUID', () => pm.expect(b.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "pm.test('descricao ecoa o envio', () => pm.expect(b.descricao).to.equal(\"Feedback no limite de urgência alta\"));",
+                      "pm.test('nota é 5', () => pm.expect(b.nota).to.equal(5));",
+                      "pm.test('urgencia é HIGH', () => pm.expect(b.urgencia).to.equal('HIGH'));",
+                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(b.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Feedback no limite de urgência alta\",\n  \"nota\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 201 — POST /v1/avaliacao (nota 7, último valor MEDIUM)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('id é UUID', () => pm.expect(b.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "pm.test('descricao ecoa o envio', () => pm.expect(b.descricao).to.equal(\"Feedback no limite de urgência média\"));",
+                      "pm.test('nota é 7', () => pm.expect(b.nota).to.equal(7));",
+                      "pm.test('urgencia é MEDIUM', () => pm.expect(b.urgencia).to.equal('MEDIUM'));",
+                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(b.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Feedback no limite de urgência média\",\n  \"nota\": 7\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 201 — POST /v1/avaliacao (nota 8, primeiro valor LOW)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('id é UUID', () => pm.expect(b.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "pm.test('descricao ecoa o envio', () => pm.expect(b.descricao).to.equal(\"Feedback no limite de urgência baixa\"));",
+                      "pm.test('nota é 8', () => pm.expect(b.nota).to.equal(8));",
+                      "pm.test('urgencia é LOW', () => pm.expect(b.urgencia).to.equal('LOW'));",
+                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(b.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Feedback no limite de urgência baixa\",\n  \"nota\": 8\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 201 — POST /v1/avaliacao descrição com espaços nas bordas é aparada",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('id é UUID', () => pm.expect(b.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "pm.test('descricao ecoa o envio', () => pm.expect(b.descricao).to.equal(\"Atendimento com espaços nas bordas\"));",
+                      "pm.test('nota é 8', () => pm.expect(b.nota).to.equal(8));",
+                      "pm.test('urgencia é LOW', () => pm.expect(b.urgencia).to.equal('LOW'));",
+                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(b.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"  Atendimento com espaços nas bordas  \",\n  \"nota\": 8\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 201 — POST /v1/avaliacao nota decimal 7.5 é truncada para 7 (comportamento atual)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('id é UUID', () => pm.expect(b.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "pm.test('descricao ecoa o envio', () => pm.expect(b.descricao).to.equal(\"Nota decimal de teste\"));",
+                      "pm.test('nota é 7', () => pm.expect(b.nota).to.equal(7));",
+                      "pm.test('urgencia é MEDIUM', () => pm.expect(b.urgencia).to.equal('MEDIUM'));",
+                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(b.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Nota decimal de teste\",\n  \"nota\": 7.5\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 201 — POST /v1/avaliacao nota como string numérica \"9\" é aceita (comportamento atual)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 201', () => pm.expect(pm.response.code).to.equal(201));",
+                      "const b = pm.response.json();",
+                      "pm.test('id é UUID', () => pm.expect(b.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "pm.test('descricao ecoa o envio', () => pm.expect(b.descricao).to.equal(\"Nota em string numérica\"));",
+                      "pm.test('nota é 9', () => pm.expect(b.nota).to.equal(9));",
+                      "pm.test('urgencia é LOW', () => pm.expect(b.urgencia).to.equal('LOW'));",
+                      "pm.test('dataCriacao é ISO 8601', () => pm.expect(b.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Nota em string numérica\",\n  \"nota\": \"9\"\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "❌ 400 — POST /v1/avaliacao nota -1 (abaixo do mínimo)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
+                      "const b = pm.response.json();",
+                      "pm.test('title é Erro de validação', () => pm.expect(b.title).to.equal('Erro de validação'));",
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));",
+                      "pm.test('detail é a mensagem esperada', () => pm.expect(b.detail).to.equal(\"Nota deve ser no mínimo 0\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Feedback inválido\",\n  \"nota\": -1\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "❌ 400 — POST /v1/avaliacao descrição só com espaços",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
+                      "const b = pm.response.json();",
+                      "pm.test('title é Erro de validação', () => pm.expect(b.title).to.equal('Erro de validação'));",
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));",
+                      "pm.test('detail é a mensagem esperada', () => pm.expect(b.detail).to.equal(\"Descrição não pode estar vazia\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"   \",\n  \"nota\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "❌ 400 — POST /v1/avaliacao descrição ausente",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
+                      "const b = pm.response.json();",
+                      "pm.test('title é Erro de validação', () => pm.expect(b.title).to.equal('Erro de validação'));",
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));",
+                      "pm.test('detail é a mensagem esperada', () => pm.expect(b.detail).to.equal(\"Descrição não pode estar vazia\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nota\": 5\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "❌ 400 — POST /v1/avaliacao nota ausente",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
+                      "const b = pm.response.json();",
+                      "pm.test('title é Erro de validação', () => pm.expect(b.title).to.equal('Erro de validação'));",
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));",
+                      "pm.test('detail é a mensagem esperada', () => pm.expect(b.detail).to.equal(\"Nota é obrigatória\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Feedback sem nota\"\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "❌ 400 — POST /v1/avaliacao nota como texto \"cinco\"",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
+                      "const b = pm.response.json();",
+                      "pm.test('title é Erro de validação', () => pm.expect(b.title).to.equal('Erro de validação'));",
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));",
+                      "pm.test('detail é a mensagem esperada', () => pm.expect(b.detail).to.equal(\"O corpo da requisição não é JSON válido ou possui campos com tipo incorreto\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Feedback\",\n  \"nota\": \"cinco\"\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "❌ 400 — POST /v1/avaliacao corpo vazio",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
+                      "const b = pm.response.json();",
+                      "pm.test('title é Erro de validação', () => pm.expect(b.title).to.equal('Erro de validação'));",
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));",
+                      "pm.test('detail é a mensagem esperada', () => pm.expect(b.detail).to.equal(\"O corpo da requisição não pode estar vazio\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "❌ 400 — POST /v1/avaliacao JSON malformado",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 400', () => pm.expect(pm.response.code).to.equal(400));",
+                      "const b = pm.response.json();",
+                      "pm.test('title é Erro de validação', () => pm.expect(b.title).to.equal('Erro de validação'));",
+                      "pm.test('status é 400', () => pm.expect(b.status).to.equal(400));",
+                      "pm.test('detail é a mensagem esperada', () => pm.expect(b.detail).to.equal(\"O corpo da requisição não é JSON válido ou possui campos com tipo incorreto\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"descricao\": \"Teste de JSON malformado\", \"nota\": 5"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — POST /v1/avaliacao token inválido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Token Bearer inválido', () => pm.expect(pm.response.json().detail).to.equal('Token Bearer inválido'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer token-invalido-teste"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Teste com token inválido\",\n  \"nota\": 8\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — POST /v1/avaliacao sem Bearer (esquema Basic)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Token Bearer ausente', () => pm.expect(pm.response.json().detail).to.equal('Token Bearer ausente'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Basic dXN1YXJpbzpzZW5oYQ=="
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"descricao\": \"Teste com esquema Basic\",\n  \"nota\": 8\n}"
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacao",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacao"
+                  ]
+                }
+              }
             }
           ]
         },
@@ -1729,7 +2598,17 @@
                       "pm.test(\"Has data field\", () => pm.expect(response).to.have.property(\"data\"));",
                       "pm.test(\"data has listFeedbacks field\", () => pm.expect(response.data).to.have.property(\"listFeedbacks\"));",
                       "const feedbacks = response.data.listFeedbacks;",
-                      "pm.test(\"listFeedbacks is an array\", () => pm.expect(feedbacks).to.be.an(\"array\"));"
+                      "pm.test(\"listFeedbacks is an array\", () => pm.expect(feedbacks).to.be.an(\"array\"));",
+                      "if (feedbacks.length > 0) {",
+                      "  pm.test(\"each item has id field\", () => pm.expect(feedbacks[0]).to.have.property(\"id\"));",
+                      "  pm.test(\"each item has description field\", () => pm.expect(feedbacks[0]).to.have.property(\"description\"));",
+                      "  pm.test(\"each item has rating field\", () => pm.expect(feedbacks[0]).to.have.property(\"rating\"));",
+                      "  pm.test(\"each item has urgency field\", () => pm.expect(feedbacks[0]).to.have.property(\"urgency\"));",
+                      "  pm.test(\"each item has createdAt field\", () => pm.expect(feedbacks[0]).to.have.property(\"createdAt\"));",
+                      "  pm.test(\"id is valid UUID\", () => pm.expect(feedbacks[0].id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "  pm.test(\"urgency is HIGH, MEDIUM, or LOW\", () => pm.expect([\"HIGH\", \"MEDIUM\", \"LOW\"]).to.include(feedbacks[0].urgency));",
+                      "  pm.test(\"createdAt is ISO 8601\", () => pm.expect(feedbacks[0].createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
+                      "}"
                     ]
                   }
                 }
@@ -1759,6 +2638,251 @@
                   ],
                   "path": [
                     "v1",
+                    "graphql"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 200 — GET /v1/avaliacoes com token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                      "const response = pm.response.json();",
+                      "pm.test('Has avaliacoes array', () => pm.expect(response.avaliacoes).to.be.an('array'));",
+                      "pm.test('Has total number', () => pm.expect(response.total).to.be.a('number'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacoes",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacoes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 200 — GET /v1/avaliacoes itens têm os campos da avaliação",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                      "const b = pm.response.json();",
+                      "pm.test('total é igual ao tamanho da lista', () => pm.expect(b.total).to.equal(b.avaliacoes.length));",
+                      "if (b.avaliacoes.length > 0) {",
+                      "  const item = b.avaliacoes[0];",
+                      "  pm.test('item tem id, descricao, nota, urgencia e dataCriacao', () => pm.expect(item).to.have.all.keys('id', 'descricao', 'nota', 'urgencia', 'dataCriacao'));",
+                      "  pm.test('id é UUID', () => pm.expect(item.id).to.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i));",
+                      "  pm.test('urgencia é HIGH, MEDIUM ou LOW', () => pm.expect(['HIGH', 'MEDIUM', 'LOW']).to.include(item.urgencia));",
+                      "  pm.test('dataCriacao é ISO 8601', () => pm.expect(item.dataCriacao).to.match(/^\\d{4}-\\d{2}-\\d{2}T/));",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacoes",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacoes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 200 — GET /v1/avaliacoes com esquema \"bearer\" em minúsculas",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                      "pm.test('avaliacoes é lista', () => pm.expect(pm.response.json().avaliacoes).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "bearer {{prodToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacoes",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacoes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 200 — POST /v1/graphql listFeedbacks sem seleção de campos",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                      "pm.test('data.listFeedbacks é lista', () => pm.expect(pm.response.json().data.listFeedbacks).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query { listFeedbacks }"
+                  }
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/graphql",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "graphql"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 200 — POST /v1/graphql listFeedbacks com seleção parcial (id)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                      "const list = pm.response.json().data.listFeedbacks;",
+                      "pm.test('data.listFeedbacks é lista', () => pm.expect(list).to.be.an('array'));",
+                      "pm.test('cada item tem id', () => list.forEach((item) => pm.expect(item).to.have.property('id')));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query {\n  listFeedbacks {\n    id\n  }\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/v1/graphql",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "graphql"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "✅ 200 — POST /graphql legado listFeedbacks",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                      "pm.test('data.listFeedbacks é lista', () => pm.expect(pm.response.json().data.listFeedbacks).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query {\n  listFeedbacks {\n    id\n    description\n    rating\n    urgency\n    createdAt\n  }\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{prodUrl}}/graphql",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
                     "graphql"
                   ]
                 }
@@ -1845,42 +2969,6 @@
                   "graphql": {
                     "query": "query {\n  listFeedbacks {\n    id\n    description\n    rating\n    urgency\n    createdAt\n  }\n}"
                   }
-                }
-              }
-            },
-            {
-              "name": "✅ 200 — GET /v1/avaliacoes com token",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
-                      "const response = pm.response.json();",
-                      "pm.test('Has avaliacoes array', () => pm.expect(response.avaliacoes).to.be.an('array'));",
-                      "pm.test('Has total number', () => pm.expect(response.total).to.be.a('number'));"
-                    ]
-                  }
-                }
-              ],
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{prodToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{prodUrl}}/v1/avaliacoes",
-                  "host": [
-                    "{{prodUrl}}"
-                  ],
-                  "path": [
-                    "v1",
-                    "avaliacoes"
-                  ]
                 }
               }
             },
