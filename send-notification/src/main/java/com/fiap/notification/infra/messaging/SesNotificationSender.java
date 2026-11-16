@@ -151,7 +151,7 @@ public class SesNotificationSender implements NotificationSender {
             "<p><strong>ID do feedback:</strong> " + notification.getFeedbackId() + "</p>" +
             "<p><strong>Descrição:</strong> " + notification.getDescription() + "</p>" +
             "<p><strong>Urgência:</strong> " + notification.getUrgency() + "</p>" +
-            "<p><strong>Recebido em:</strong> " + notification.getCreatedAt() + "</p>" +
+            "<p><strong>Data de envio:</strong> " + notification.getCreatedAt() + "</p>" +
             "<p>Por favor, analise e responda o quanto antes.</p>" +
             "</body></html>";
     }

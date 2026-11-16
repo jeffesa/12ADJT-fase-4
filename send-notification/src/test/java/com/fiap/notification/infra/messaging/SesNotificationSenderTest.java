@@ -150,7 +150,7 @@ class SesNotificationSenderTest {
         assertTrue(htmlBody.contains("ID do feedback:"), "HTML should contain feedback ID label");
         assertTrue(htmlBody.contains("Descrição:"), "HTML should contain description label");
         assertTrue(htmlBody.contains("Urgência:"), "HTML should contain urgency label");
-        assertTrue(htmlBody.contains("Recebido em:"), "HTML should contain received-at label");
+        assertTrue(htmlBody.contains("Data de envio:"), "HTML should contain send date label");
         assertTrue(htmlBody.contains("Por favor, analise e responda o quanto antes."), "HTML should contain closing sentence");
     }
 
