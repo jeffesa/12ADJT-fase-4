@@ -422,6 +422,25 @@ As mensagens de erro são gravadas com o nível `SEVERE`.
 
 Os alarmes enviam e-mail ao administrador pelo tópico `prod-monitoring-alarms-topic`. O alarme do send-notification foi testado em produção, e o e-mail chegou ao administrador.
 
+### Evidências no Amazon CloudWatch
+
+O CloudWatch é o serviço que guarda os logs e dispara os alarmes. Para conferir na conta, no console da AWS, região `sa-east-1`:
+
+1. **Logs:** CloudWatch → *Logs* → *Log groups*. Os quatro grupos de produção são `/aws/lambda/prod-receive-feedback`, `/aws/lambda/prod-graphql`, `/aws/lambda/prod-send-notification` e `/aws/lambda/prod-generate-report`. Todos já têm eventos registrados, incluindo a execução do relatório semanal.
+2. **Alarmes:** CloudWatch → *Alarms*. Os três alarmes `prod-severe-errors-*` aparecem com estado `OK`.
+3. **Mensagens de erro:** nos logs, as falhas aparecem com o nível `SEVERE`, e é esse nível que os alarmes contam.
+
+Pelo terminal, o mesmo pode ser conferido com:
+
+```bash
+aws logs tail /aws/lambda/prod-receive-feedback --since 1h --region sa-east-1
+aws cloudwatch describe-alarms --alarm-name-prefix prod-severe --region sa-east-1
+```
+
+A retenção dos logs é de 30 dias, configurada no template.
+
+[PENDENTE: gravar no vídeo a tela do CloudWatch com os logs das quatro funções e os três alarmes.]
+
 O guia completo está em `docs/qualidade/MONITORING_GUIDE.md`.
 
 [PENDENTE: inserir o print do e-mail de alarme recebido.]
