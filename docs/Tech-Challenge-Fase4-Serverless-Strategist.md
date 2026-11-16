@@ -385,6 +385,15 @@ O documento completo está em `docs/SECURITY.md`.
 
 ## DEPLOY AUTOMATIZADO
 
+**Como está hoje, em resumo:**
+- O deploy de produção roda sozinho quando o código entra na `main`, pelo job "Deploy to prod (SAM)" do pipeline.
+- O job só começa depois do build, que roda os testes e o SonarCloud.
+- O deploy usa `sam build` e `sam deploy` na stack `feedback-api-prod`, com a autenticação OIDC.
+- Para conferir depois do deploy: `./run.sh sam-validate` (opção 7) e `./run.sh prod-check` (opção 8).
+- O passo a passo completo, incluindo a configuração inicial da AWS e do GitHub, está em `docs/deploy/AWS_DEPLOY_GUIDE.md`.
+
+**Detalhes do pipeline:**
+
 O deploy é feito pelo pipeline do GitHub Actions, definido em `.github/workflows/ci-cd.yml`:
 
 1. **Pull request:** o build roda os testes dos quatro módulos e a análise do SonarCloud. Um branch com nome inválido é recusado.
@@ -521,6 +530,49 @@ O comando instala o módulo `receive-feedback` e sobe a API em `http://localhost
 ```
 
 O token local é `minha-chave-local` (valor de teste, só local). Para testar com a collection do Bruno, importe `docs/api-collection/fase4-feedback.postman_collection.json` e use o ambiente `local`.
+
+### Menu do `run.sh`
+
+Execute `./run.sh` na raiz do projeto para abrir o menu:
+
+```
+╔════════════════════════════════════════════════════╗
+║   Tech Challenge Fase 4 — Feedback Serverless      ║
+║   Quarkus Dev Mode + AWS (sa-east-1)               ║
+╚════════════════════════════════════════════════════╝
+
+  🔨 Build & Testes
+   1) Validar dependências
+   2) Compilar todos os módulos
+   3) Rodar testes de todos os módulos
+   4) Rodar testes de um módulo
+
+  🚀 HTTP local (porta 8080, grava em dev-feedback-table)
+   5) Instalar receive-feedback e subir local-http
+   6) Checar se o módulo local está no ar
+
+  ☁️  AWS (somente leitura)
+   7) Validar template SAM
+   8) Verificar produção (GET)
+   9) Listar recursos AWS
+
+   0) Sair
+```
+
+| Opção | O que faz |
+|---|---|
+| 1 | Verifica JDK 17, Maven, AWS CLI, SAM CLI, curl e o perfil `fase4` |
+| 2 | Compila os quatro módulos com `mvn clean package -DskipTests` |
+| 3 | Roda os testes de todos os módulos com `mvn clean verify` |
+| 4 | Pede o nome de um módulo (`receive-feedback`, `send-notification` ou `generate-report`) e roda só os testes dele |
+| 5 | Instala o `receive-feedback` e sobe a API local em `http://localhost:8080`. Grava na tabela de desenvolvimento. Use Ctrl+C para parar |
+| 6 | Faz `GET /v1/feedback` com token e confirma que a API local responde 200 |
+| 7 | Valida o template SAM (`sam validate --lint`) |
+| 8 | Lê o endereço da API da stack de produção e confirma que sem token a resposta é 401 |
+| 9 | Lista as stacks, as funções Lambda e as tabelas DynamoDB. Só leitura |
+| 0 | Sai do menu |
+
+Os mesmos comandos podem ser usados direto, sem o menu: `./run.sh compile`, `./run.sh tests [módulo]`, `./run.sh local-up`, `./run.sh local-check`, `./run.sh sam-validate`, `./run.sh prod-check` e `./run.sh aws-list`.
 
 O guia completo está em `docs/LOCAL_DEVELOPMENT.md` e `docs/LOCAL_SETUP.md`.
 

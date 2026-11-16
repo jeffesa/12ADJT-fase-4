@@ -364,7 +364,7 @@ PROD_API_TOKEN=<token> ./run.sh prod-check   # sem token espera 401; com PROD_AP
 
 ## 9. Bearer token (`API_TOKEN`)
 
-Todas as rotas (`POST /v1/feedback`, `GET /v1/feedback`, `POST /v1/graphql`) exigem `Authorization: Bearer <token>`. O token é o valor do secret `API_TOKEN`, que o deploy grava como variável de ambiente `API_TOKEN` nas Lambdas `receive-feedback`, `list-feedback` e `graphql`. A validação acontece dentro das Lambdas.
+Todas as rotas (`POST /v1/feedback`, `GET /v1/feedback`, `POST /v1/graphql`) exigem `Authorization: Bearer <token>`. O token é o valor do secret `API_TOKEN`, que o deploy grava como variável de ambiente `API_TOKEN` nas Lambdas `receive-feedback` e `graphql`. A validação acontece dentro das Lambdas.
 
 ### Criar
 
