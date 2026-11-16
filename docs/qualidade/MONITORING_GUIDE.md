@@ -30,7 +30,7 @@ Não existe dashboard do CloudWatch configurado no projeto. Para ver os números
 
 | Grupo de log | Função que grava | Observação |
 |---|---|---|
-| `/aws/lambda/prod-receive-feedback` | `prod-receive-feedback` (POST /v1/avaliacao) | Grava as avaliações; a consulta fica em `prod-graphql` |
+| `/aws/lambda/prod-receive-feedback` | `prod-receive-feedback` (POST /v1/avaliacao e GET /v1/avaliacoes) | Grava e lista as avaliações pela REST; a consulta GraphQL fica em `prod-graphql` |
 | `/aws/lambda/prod-graphql` | `prod-graphql` (POST /v1/graphql) | Sem alarme (ver seção 7) |
 | `/aws/lambda/prod-send-notification` | `prod-send-notification` (disparada pelo tópico SNS de urgência) | |
 | `/aws/lambda/prod-generate-report` | `prod-generate-report` (agendada, segunda-feira 8h UTC) | Não tem registros em produção até agora |

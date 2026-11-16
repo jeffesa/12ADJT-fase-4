@@ -14,12 +14,14 @@ A plataforma é construída sobre AWS Lambda, DynamoDB, SNS e SES, usando Quarku
 
 - **Endpoint GraphQL**: `http://localhost:8080/graphql`
 - **Endpoint HTTP REST**: `http://localhost:8080/v1/avaliacao`
+- **Listagem HTTP REST**: `http://localhost:8080/v1/avaliacoes`
 - **Modo de desenvolvimento do Quarkus**: `mvn quarkus:dev` (roda na porta 8080)
 
 ### Produção (AWS)
 
 - **Endpoint GraphQL**: `https://[API-GATEWAY-URL]/v1/graphql`
 - **Endpoint HTTP REST**: `https://[API-GATEWAY-URL]/v1/avaliacao`
+- **Listagem HTTP REST**: `https://[API-GATEWAY-URL]/v1/avaliacoes`
 - **Região**: configurável pela variável de ambiente `AWS_REGION` (padrão: `us-east-1`)
 
 ---
@@ -28,7 +30,7 @@ A plataforma é construída sobre AWS Lambda, DynamoDB, SNS e SES, usando Quarku
 
 ### Token Bearer (`API_TOKEN`)
 
-Todas as rotas (`POST /v1/avaliacao` e `POST /v1/graphql`) exigem o header `Authorization` com um token Bearer.
+Todas as rotas (`POST /v1/avaliacao`, `GET /v1/avaliacoes` e `POST /v1/graphql`) exigem o header `Authorization` com um token Bearer.
 
 ```
 Authorization: Bearer <token>
@@ -312,6 +314,34 @@ mutation {
   }
 }
 ```
+
+---
+
+### Exemplo 4a: listar todas as avaliações (REST)
+
+**Requisição**:
+```bash
+curl -X GET http://localhost:8080/v1/avaliacoes \
+  -H "Authorization: Bearer $API_TOKEN"
+```
+
+**Resposta** (200):
+```json
+{
+  "avaliacoes": [
+    {
+      "id": "uuid",
+      "descricao": "Bom atendimento",
+      "nota": 8,
+      "urgencia": "LOW",
+      "dataCriacao": "2026-11-15T17:36:13.239769912"
+    }
+  ],
+  "total": 1
+}
+```
+
+Sem token, ou com token inválido, a resposta é `401`. Erro interno retorna `500` genérico.
 
 ---
 

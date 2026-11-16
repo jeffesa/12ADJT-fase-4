@@ -4,6 +4,8 @@
 - **Local:** `http://localhost:4566/v1/graphql`
 - **Produção:** `https://x250lwug12.execute-api.us-east-1.amazonaws.com/prod/v1/graphql`
 
+**Listagem REST:** `GET /v1/avaliacoes`, no mesmo host de `/v1/graphql`.
+
 **Autenticação:** token Bearer no header `Authorization: Bearer <token>` (obrigatório em todas as rotas; token = segredo `API_TOKEN`)
 
 ---

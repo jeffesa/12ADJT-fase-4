@@ -276,7 +276,7 @@ open target/site/jacoco/index.html
 
 ### receive-feedback (porta 8080)
 
-- **Handler**: endpoint REST para POST /v1/avaliacao (criação)
+- **Handler**: endpoints REST para POST /v1/avaliacao (criação) e GET /v1/avaliacoes (listagem)
 - **Papel**: valida o feedback, calcula a urgência, grava no DynamoDB e publica no SNS
 - **Dependências**: DynamoDB, SNS
 - **Teste**: `curl -X POST http://localhost:8080/...`

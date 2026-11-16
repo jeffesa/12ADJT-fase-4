@@ -8,10 +8,11 @@ Esta coleção do Postman cobre os endpoints da Feedback API da FIAP Fase-4, com
 - **POST `/v1/avaliacao`**: cria um feedback com classificação automática de urgência
   - Casos de sucesso: 3 faixas de urgência (HIGH, MEDIUM, LOW) com teste de valores limite
   - Casos de erro: 9 cenários de validação e violação de restrições
+- **GET `/v1/avaliacoes`**: lista todas as avaliações (`avaliacoes` e `total`), com token Bearer
 - **POST `/v1/graphql`**: consulta GraphQL `listFeedbacks`, que lista todos os feedbacks
 
 ### Arquitetura
-- **Baseada em REST**, com uma consulta GraphQL (`listFeedbacks`)
+- **Baseada em REST**, com listagem REST (`GET /v1/avaliacoes`) e uma consulta GraphQL (`listFeedbacks`)
 - **Contrato da requisição:** JSON com `descricao` (string) e `nota` (inteiro de 0 a 10)
 - **Formato da resposta:** RFC 7807 Problem Detail para erros; objeto JSON simples (sem wrapper) para a resposta de sucesso da v1
 - **Códigos de status:** 201 Created (sucesso), 400 Bad Request (erros de validação)
@@ -76,6 +77,8 @@ A coleção tem duas pastas: **local** e **prod**. Cada uma contém os mesmos ca
 ### Casos de teste em "Listar Avaliações"
 | Requisição | Finalidade | Resposta |
 |---------|---------|------|
+| GET /v1/avaliacoes (com token) | Lista todas as avaliações armazenadas | HTTP 200 com o array `avaliacoes` e o campo `total` |
+| GET /v1/avaliacoes (sem token ou token inválido) | Confirma que a listagem REST exige Bearer | HTTP 401 |
 | listFeedbacks | Consulta todos os feedbacks armazenados no DynamoDB | HTTP 200 com o array `data.listFeedbacks` |
 
 **Asserções do teste (listFeedbacks):**
@@ -197,7 +200,7 @@ query {
 ### Pré-requisitos
 1. Credenciais da AWS com o perfil `fase4` (o módulo local grava na tabela `dev-feedback-table`)
 2. Inicie o módulo: na pasta `local-http`, execute `./run.sh local-up`
-3. Rotas disponíveis em `http://localhost:8080` (`/v1/avaliacao` e `/v1/graphql`)
+3. Rotas disponíveis em `http://localhost:8080` (`/v1/avaliacao`, `/v1/avaliacoes` e `/v1/graphql`)
 
 ### Passos
 1. Mantenha o `localToken` padrão (ou exporte `API_TOKEN` antes de `./run.sh local-up` e defina o mesmo valor em `localToken`)
