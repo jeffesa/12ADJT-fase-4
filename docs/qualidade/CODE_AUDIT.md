@@ -2,7 +2,7 @@
 
 **Veredito: FAIL**
 
-**Data e hora da varredura:** 2026-11-15 21:29:12 (-03:00), saída de `date` no início da revisão 2 da etapa.
+**Data e hora da varredura:** 2026-11-15 21:34:39 (-03:00), saída de `date` na revisão 3 da etapa. Varredura anterior: 21:29:12.
 **Branch:** `docs/code-audit-final-3`, criada a partir de `chore/email-messages-pt` no commit `1ed4ffb`.
 **Base de referência:** conteúdo do relatório da branch `docs/code-audit-final-2` (commit `255c83f`), usado como ponto de partida e reexecutado contra o estado atual desta branch.
 **Build:** `mvn -B clean verify` na raiz do projeto, JDK 17.0.18, Maven 3.9.11, `BUILD SUCCESS`.
@@ -185,6 +185,7 @@ A regra de português para documentação permite o texto. A regra de mensagens 
 | `docs/qualidade/MONITORING_GUIDE.md` | 166, 180, 237, 254 | Cita `Invalid request body` e `Description must be at least 5 characters`. Esses textos não existem em `src/main`. O código emite `Descrição deve ter no mínimo 5 caracteres` e `Descrição não pode estar vazia`. A linha 254 também descreve um comportamento que o código atual não tem. |
 | `docs/qualidade/MONITORING_GUIDE.md` | 206, 258 | Cita `Email address is not verified`, texto que a AWS devolve no SES e que aparece nos logs de produção. Trecho de terceiro, marcado como observação de produção. Mantido como FAIL pela regra estrita. |
 | `docs/api-collection/README.md` | 145, 147, 263, 265, 272 | Exemplos de resposta de erro em bloco de código, com `Validation Error`, `Rating must be at least 0`, `Unauthorized`, `Missing bearer token \| Invalid bearer token`. Os blocos foram restaurados ao original, como pedido (traduzir só a prosa). Os exemplos batem com o texto em inglês da documentação, não com o que a API emite. Mantido como FAIL. Alternativa: traduzir esses quatro exemplos para o texto real da API (`Erro de validação`, `Nota deve ser no mínimo 0`, `Não autorizado`, `Token Bearer ausente \| Token Bearer inválido`). Isso muda só documentação, mas é uma tradução de bloco de código, fora do pedido. |
+| `docs/planejamento/BACKLOG.md` | 27 ocorrências de termos legados | Especificação de tarefas, não é relatório, TASK-* de registro, E2E, CODE_AUDIT antigo nem guia de sessão. Fora da exceção (b). Não foi alterado, conforme pedido. |
 | `docs/qualidade/DEMO_GUIDE.md` | — | Sem mensagem em inglês da API. Os exemplos de faixa de nota (`Rating 0-5 → HIGH`) estão em bloco de código, restaurados ao original. |
 
 Sobre os três guias pedidos nesta etapa:
@@ -204,13 +205,12 @@ Estes arquivos são registros de testes, tarefas e sessões. Citam `/avaliacao`,
 | `docs/E2E_TEST_RESULTS.md` | 19 | Registro de testes |
 | `docs/E2E_TEST_RESULTS_SAMPLE.md` | 26 | Registro de testes |
 | `docs/TASK-019-AWS-DEPLOYMENT-BLOQUEADO.md` | 1 | Registro de deploy, cita `POST /avaliacao` |
-| `docs/planejamento/BACKLOG.md` | 27 | Especificação de tarefas antigas. Não foi alterado, conforme pedido. |
 | `docs/planejamento/HANDOFF_SESSION.md` | 3 | Guia de sessão. Inclui `descricao` em nomes de branch, falso positivo. |
 | `docs/planejamento/RESUMO_CONVERSA.md` | 2 | Guia de sessão com `POST /avaliacao` |
 | `docs/planejamento/SESSION_SUMMARY_20261026.md` | 1 | Registro de sessão com `/avaliacao` |
 | `docs/planejamento/TASK-022-023-COMPLETION-CHECKLIST.md` | 7 | Checklist histórico com `criarAvaliacao` e `POST /avaliacao` |
 
-A exceção (b) vem da regra da etapa de auditoria, que cita "relatórios, TASK-*, E2E_TEST_RESULTS*, CODE_AUDIT antigo, guias de sessão". Essa lista não está em nenhum arquivo do repositório. Por isso, a classificação de `BACKLOG.md` e `docs/planejamento/` como históricos é possível, e não confirmada. Se o responsável não aceitar essa leitura, esses arquivos viram FAIL.
+A exceção (b) vem da regra da etapa de auditoria, que cita "relatórios, TASK-*, E2E_TEST_RESULTS*, CODE_AUDIT antigo, guias de sessão". Os arquivos acima entram na exceção porque o nome ou o tipo corresponde a uma dessas categorias. `docs/planejamento/BACKLOG.md` não corresponde a nenhuma delas, então é FAIL (seção 7.1).
 
 ### 7.3 Falsos positivos sem ação
 
@@ -266,7 +266,7 @@ Itens que bloqueiam o PASS:
 2. **Mensagens em inglês em documentação**: `docs/API.md`, `docs/api-collection/API.md`, `docs/SECURITY.md`, `docs/deploy/AWS_DEPLOY_GUIDE.md` e os exemplos de erro de `docs/api-collection/README.md` (seção 7.1). Decisão aberta: manter o bloco original, ou traduzir esses exemplos para o texto real da API.
 3. **`docs/qualidade/MONITORING_GUIDE.md`**, linhas 166, 180, 237 e 254: mensagens que o código não emite. Linhas 206 e 258: texto da AWS, marcado como FAIL pela regra estrita.
 4. **Arquivos `infra/template.yaml.bak` e `infra/template.yaml.orig` rastreados** (seção 8). A remoção depende de confirmação.
-5. **Classificação de `BACKLOG.md` e `docs/planejamento/`** como históricos (seção 7.2).
+5. **`docs/planejamento/BACKLOG.md`** com termos legados (seção 7.1). Não é registro histórico na lista da exceção (b).
 
 Itens aceitos como exceção:
 
