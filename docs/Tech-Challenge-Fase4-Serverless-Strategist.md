@@ -36,7 +36,7 @@ A aplicação roda na AWS, em região `sa-east-1`, sem servidores para gerenciar
 
 **API em produção:** https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod
 
-**Segurança:** a API é pública, mas exige o cabeçalho `Authorization: Bearer <token>` em todas as rotas. Sem o token, a requisição é recusada com `401 Unauthorized`, e nenhum dado é retornado. O token fica guardado como segredo do GitHub e é passado às funções na implantação, sem aparecer no código nem nos logs.
+**Segurança:** a API é pública, mas exige o cabeçalho `Authorization: Bearer <token>` em todas as rotas. Sem o token, a requisição é recusada com `401 Unauthorized`, e nenhum dado é retornado. O token fica em um GitHub Secret e é passado às funções na implantação, sem aparecer no código nem nos logs.
 
 **Vídeo de demonstração:** [PENDENTE: inserir o link do vídeo]
 
@@ -221,7 +221,7 @@ Os nomes dos recursos recebem o prefixo do ambiente, o que isola os dados e as f
 | `ApiToken` | Sim | Token Bearer exigido nas rotas. Não aparece em logs (`NoEcho`) |
 | `Region` | Não | Região dos recursos (`sa-east-1` na implantação) |
 
-Os valores de `AdminEmail` e `SenderEmail` vêm dos segredos do GitHub, e o token vem do segredo `API_TOKEN`. Nenhum desses valores fica no código.
+Os valores de `AdminEmail` e `SenderEmail` vêm dos GitHub Secrets, e o token vem do GitHub Secret `API_TOKEN`. Nenhum desses valores fica no código.
 
 ### Configurações das funções
 
@@ -315,8 +315,8 @@ O enunciado pede `POST /avaliação` com os campos `descricao` e `nota`. A imple
 - A comparação é feita em tempo constante, com hash SHA-256.
 - Sem token, a resposta é `401`, com o cabeçalho `WWW-Authenticate: Bearer`.
 - Se o token do servidor não estiver configurado, toda requisição é recusada com `500`. Assim a API nunca fica aberta por falta de configuração.
-- O token é guardado como segredo do GitHub (`API_TOKEN`), passado à implantação como parâmetro `NoEcho` e lido pelas funções como variável de ambiente.
-- Para trocar o token: atualizar o segredo e refazer o deploy de produção.
+- O token fica no GitHub Secret `API_TOKEN`, é passado à implantação como parâmetro `NoEcho` e chega às funções como variável de ambiente.
+- Para trocar o token: atualizar o GitHub Secret `API_TOKEN` e refazer o deploy de produção.
 
 ### 1.1 Ciclo de vida do token
 
@@ -371,7 +371,7 @@ Cada função tem uma role própria, exceto a graphql. As permissões de envio d
 ### 4. Governança e auditoria
 
 - Logs de todas as funções no CloudWatch, com retenção de 30 dias.
-- Separação dos ambientes dev e prod, com recursos e segredos independentes.
+- Separação dos ambientes dev e prod, com recursos e configurações próprios.
 - Os e-mails de envio só saem de identidades verificadas no SES.
 - Alterações na infraestrutura passam pelo pipeline, com revisão em pull request.
 
@@ -387,7 +387,7 @@ O deploy é feito pelo pipeline do GitHub Actions, definido em `.github/workflow
 
 1. **Pull request:** o build roda os testes dos quatro módulos e a análise do SonarCloud. Um branch com nome inválido é recusado.
 2. **Merge na `main`:** dispara o job **Deploy to prod (SAM)**, que só roda depois do build.
-3. **Verificações antes do deploy:** o job confere se os segredos `AWS_DEPLOY_ROLE_ARN`, `ADMIN_EMAIL`, `SENDER_EMAIL` e `API_TOKEN` existem, e falha cedo se algum faltar.
+3. **Verificações antes do deploy:** o job confere se os GitHub Secrets `AWS_DEPLOY_ROLE_ARN`, `ADMIN_EMAIL`, `SENDER_EMAIL` e `API_TOKEN` existem, e falha cedo se algum faltar.
 4. **Autenticação na AWS:** por OIDC, com a role `github-actions-deploy-prod`. Não há chave de acesso guardada no GitHub.
 5. **Build e deploy:** `mvn package` gera os pacotes das funções, depois `sam build` e `sam deploy --config-env prod` atualizam a stack `feedback-api-prod`.
 
