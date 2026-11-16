@@ -42,6 +42,56 @@ A aplicação roda na AWS, em região `sa-east-1`, sem servidores para gerenciar
 
 ---
 
+## DIAGRAMA DE ARQUITETURA
+
+```
+                      ALUNO / CLIENTE
+   POST /v1/feedback   GET /v1/feedback   POST /v1/graphql
+   Authorization: Bearer <token>
+                              │
+                              ▼
+                  API GATEWAY (prod-feedback-api, HTTPS)
+                    │                              │
+                    ▼                              ▼
+   LAMBDA receive-feedback                 LAMBDA graphql
+    1. valida: descrição ≥ 5 caracteres,      lê os feedbacks
+       nota de 0 a 10                         (listFeedbacks)
+    2. urgência pela nota:
+       HIGH 0–5 · MEDIUM 6–7 · LOW 8–10
+    3. grava no DynamoDB ─────────┐
+    4. se HIGH, publica no SNS    │
+                    │             │                 │
+                    │             ▼                 ▼
+                    │      DYNAMODB prod-feedback-table
+                    │      id · description · rating · urgency · createdAt
+                    ▼
+        SNS prod-feedback-urgent-topic   (somente urgência HIGH)
+                    │
+                    ▼
+        LAMBDA send-notification
+          envia e-mail pelo SES ao AdminEmail
+                    │
+                    ▼
+                  SES ──────────────────────────────► ADMINISTRADOR
+
+
+   EVENTBRIDGE cron(0 8 ? * MON *)   (segunda-feira, 08h UTC)
+                    │
+                    ▼
+        LAMBDA generate-report
+          lê o período (últimos 7 dias) no DynamoDB
+          monta totais, média, contagem por dia,
+          contagem por urgência e a lista de feedbacks
+                    │
+                    ▼
+                  SES ──────────────────────────────► ADMINISTRADOR
+
+
+   ALARMES CloudWatch (linhas SEVERE) ──► SNS prod-monitoring-alarms-topic ──► ADMINISTRADOR
+```
+
+---
+
 ## SERVIÇOS AWS UTILIZADOS
 
 A solução usa somente serviços gerenciados da AWS. A tabela mostra o papel de cada um no projeto, o recurso criado e o comando para conferir na conta, na região `sa-east-1`.
@@ -80,47 +130,7 @@ A solução segue o modelo serverless: cada responsabilidade é uma função Lam
 
 O enunciado pede a entrada de feedbacks por REST, o envio de avisos de urgência e o relatório semanal. A consulta por GraphQL não é exigência: foi adotada como melhoria de acesso aos dados. Com ela, o cliente envia uma única requisição em JSON e recebe apenas os campos que escolheu, sem receber a lista completa de campos de cada feedback. A consulta usa a mesma tabela e o mesmo token da API REST.
 
-```
-                         +-------------------------+
-  Cliente (Bruno/curl)   |                         |
-  Authorization: Bearer ---->  API Gateway (HTTPS)  |
-                         |                         |
-                         +-----+-------------+-----+
-                               |             |
-                 POST/GET      |             |   POST
-                 /v1/feedback  |             |   /v1/graphql
-                               v             v
-                   +-------------------+   +-------------------+
-                   | receive-feedback  |   | graphql           |
-                   | (Lambda)          |   | (Lambda)          |
-                   +---------+---------+   +---------+---------+
-                             |                       |
-              grava          |                       |  lê (listFeedbacks)
-                             v                       v
-                   +----------------------------------------+
-                   |  DynamoDB: prod-feedback-table         |
-                   +----------------------------------------+
-                             ^                       ^
-                             |  lê (período)         |
-                             |                       |
-                   +---------+-----------------------+
-                   | generate-report (Lambda)        |<---- EventBridge
-                   +---------+-----------------------+      cron: seg 08h UTC
-                             |
-                             |  envia relatório
-                             v
-                          +-----+        +-------+
-                          | SES |------->| Admin |
-                          +-----+        +-------+
-                             ^
-                             |  envia aviso de urgência
-                   +---------+-----------------------+
-                   | send-notification (Lambda)      |<---- SNS
-                   +---------------------------------+      prod-feedback-urgent-topic
-                                                             (publicado só se urgência = HIGH)
-
-  Alarmes CloudWatch (SEVERE nas funções) --> SNS prod-monitoring-alarms-topic --> e-mail do administrador
-```
+O diagrama completo, com o fluxo de cada função, está no início deste documento.
 
 ### Componentes e responsabilidades
 
