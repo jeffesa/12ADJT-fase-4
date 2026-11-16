@@ -1,58 +1,58 @@
-# API Documentation
+# Documentação da API
 
-## Overview
+## Visão geral
 
-This API provides a serverless platform for managing feedback through GraphQL and HTTP REST endpoints. The system automatically calculates feedback urgency, routes high-priority feedback for notification, and generates weekly reports.
+Esta API oferece uma plataforma serverless para gerenciar feedbacks por meio de endpoints GraphQL e HTTP REST. O sistema calcula automaticamente a urgência do feedback, encaminha os feedbacks de alta prioridade para notificação e gera relatórios semanais.
 
-The platform is built on AWS Lambda, DynamoDB, SNS, and SES using Quarkus with GraphQL support.
-
----
-
-## Endpoints and Base URLs
-
-### Local Development (LocalStack)
-
-- **GraphQL Endpoint**: `http://localhost:8080/graphql`
-- **HTTP REST Endpoint**: `http://localhost:8080/v1/feedback`
-- **Quarkus Dev Mode**: `mvn quarkus:dev` (runs on port 8080)
-
-### Production (AWS)
-
-- **GraphQL Endpoint**: `https://[API-GATEWAY-URL]/v1/graphql`
-- **HTTP REST Endpoint**: `https://[API-GATEWAY-URL]/v1/feedback`
-- **Region**: Configurable via `AWS_REGION` environment variable (default: `us-east-1`)
+A plataforma é construída sobre AWS Lambda, DynamoDB, SNS e SES, usando Quarkus com suporte a GraphQL.
 
 ---
 
-## Authentication
+## Endpoints e URLs base
 
-### Bearer token (`API_TOKEN`)
+### Desenvolvimento local (LocalStack)
 
-All routes (`POST /v1/feedback`, `GET /v1/feedback` and `POST /v1/graphql`) require the `Authorization` header with a bearer token.
+- **Endpoint GraphQL**: `http://localhost:8080/graphql`
+- **Endpoint HTTP REST**: `http://localhost:8080/v1/feedback`
+- **Modo de desenvolvimento do Quarkus**: `mvn quarkus:dev` (roda na porta 8080)
+
+### Produção (AWS)
+
+- **Endpoint GraphQL**: `https://[API-GATEWAY-URL]/v1/graphql`
+- **Endpoint HTTP REST**: `https://[API-GATEWAY-URL]/v1/feedback`
+- **Região**: configurável pela variável de ambiente `AWS_REGION` (padrão: `us-east-1`)
+
+---
+
+## Autenticação
+
+### Token Bearer (`API_TOKEN`)
+
+Todas as rotas (`POST /v1/feedback`, `GET /v1/feedback` e `POST /v1/graphql`) exigem o header `Authorization` com um token Bearer.
 
 ```
 Authorization: Bearer <token>
 ```
 
-**Response on missing or invalid token**:
-- Status: `401 Unauthorized` with `WWW-Authenticate: Bearer`
-- Body: `{"title":"Unauthorized","status":401,"detail":"Missing bearer token"}` (header absent, empty or wrong scheme) or `"detail":"Invalid bearer token"` (token does not match).
-- Implementation: validated inside the Lambda handlers, so the same rule applies locally and in production.
+**Resposta quando o token está ausente ou é inválido**:
+- Status: `401 Não autorizado`, com `WWW-Authenticate: Bearer`
+- Corpo: `{"title":"Não autorizado","status":401,"detail":"Token Bearer ausente"}` (header ausente, vazio ou com esquema diferente de Bearer) ou `"detail":"Token Bearer inválido"` (token não confere).
+- Implementação: a validação ocorre dentro dos handlers Lambda, então a mesma regra vale localmente e em produção.
 
-**Obtaining the token**:
-1. In production: it is the GitHub secret `API_TOKEN`. Create it with `openssl rand -hex 24 | tee >(pbcopy) | gh secret set API_TOKEN --repo jeffesa/12ADJT-fase-4`. GitHub does not show the value again, so keep a copy. Rotation means replacing the secret and running a new deploy. For a manual `sam deploy`, pass `ApiToken=<token>` in `--parameter-overrides`.
-2. For local development: `./run.sh local-up` uses `minha-chave-local` unless you export `API_TOKEN` first.
+**Como obter o token**:
+1. Em produção: é o segredo do GitHub `API_TOKEN`. Crie-o com `openssl rand -hex 24 | tee >(pbcopy) | gh secret set API_TOKEN --repo jeffesa/12ADJT-fase-4`. O GitHub não mostra o valor de novo, então guarde uma cópia. Para trocar o token, substitua o segredo e rode um novo deploy. Em um `sam deploy` manual, passe `ApiToken=<token>` em `--parameter-overrides`.
+2. Para desenvolvimento local: `./run.sh local-up` usa `minha-chave-local`, a menos que você exporte `API_TOKEN` antes.
 
-In the examples below, `API_TOKEN` is a shell variable holding the token (`export API_TOKEN=<token>`).
+Nos exemplos abaixo, `API_TOKEN` é uma variável de shell que guarda o token (`export API_TOKEN=<token>`).
 
 ---
 
-## GraphQL Schema
+## Schema GraphQL
 
-### Types
+### Tipos
 
 #### `Feedback`
-Represents a single feedback entry with automatically calculated urgency.
+Representa um feedback com a urgência calculada automaticamente.
 
 ```graphql
 type Feedback {
@@ -64,12 +64,12 @@ type Feedback {
 }
 ```
 
-**Fields**:
-- `id` (UUID): Unique identifier (generated server-side).
-- `description` (String): Description of the feedback. Must not be blank.
-- `rating` (Int): Rating from 0 to 10 (inclusive). Determines urgency.
-- `urgency` (String): Urgency level calculated from rating: `HIGH`, `MEDIUM`, or `LOW`.
-- `createdAt` (DateTime): ISO 8601 timestamp when feedback was created.
+**Campos**:
+- `id` (UUID): identificador único, gerado no servidor.
+- `description` (String): descrição do feedback. Não pode ficar em branco.
+- `rating` (Int): nota de 0 a 10 (inclusive). Define a urgência.
+- `urgency` (String): nível de urgência calculado a partir da nota: `HIGH`, `MEDIUM` ou `LOW`.
+- `createdAt` (DateTime): timestamp ISO 8601 de quando o feedback foi criado.
 
 ---
 
@@ -77,7 +77,7 @@ type Feedback {
 
 #### `receiveFeedback`
 
-Receives and persists a new feedback entry. Calculates urgency automatically and publishes to SNS for high-urgency feedback.
+Recebe e grava um novo feedback. Calcula a urgência automaticamente e publica no SNS os feedbacks de urgência alta.
 
 ```graphql
 type Mutation {
@@ -90,18 +90,18 @@ input ReceiveFeedbackInput {
 }
 ```
 
-**Input Fields**:
-- `description` (String): Feedback description. Constraints: not blank, trimmed on storage.
-- `rating` (Int): Rating 0–10. Constraints: `@Min(0)`, `@Max(10)`.
+**Campos de entrada**:
+- `description` (String): descrição do feedback. Restrições: não pode estar em branco; é removido o espaço das bordas ao gravar.
+- `rating` (Int): nota de 0 a 10. Restrições: `@Min(0)`, `@Max(10)`.
 
-**Returns**: A `Feedback` object with generated ID, urgency, and timestamp.
+**Retorno**: um objeto `Feedback` com o ID gerado, a urgência e o timestamp.
 
-**Error Responses**:
-- `400 Bad Request`: Validation failed (description blank or missing, rating out of range).
-- `401 Unauthorized`: Invalid or missing bearer token (`Authorization: Bearer <token>`).
-- `500 Internal Server Error`: Unexpected server error (e.g., DynamoDB unavailable).
+**Respostas de erro**:
+- `400 Requisição inválida`: falha de validação (descrição em branco ou ausente, nota fora da faixa).
+- `401 Não autorizado`: token Bearer ausente ou inválido (`Authorization: Bearer <token>`).
+- `500 Erro interno do servidor`: erro inesperado no servidor (por exemplo, DynamoDB indisponível).
 
-**Example Response** (201 Created):
+**Exemplo de resposta** (201 Created):
 ```json
 {
   "receiveFeedback": {
@@ -120,7 +120,7 @@ input ReceiveFeedbackInput {
 
 #### `listFeedbacks`
 
-Lists all feedback entries stored in the system, ordered by creation date.
+Lista todos os feedbacks armazenados, ordenados pela data de criação.
 
 ```graphql
 type Query {
@@ -128,13 +128,13 @@ type Query {
 }
 ```
 
-**Returns**: A list of `Feedback` objects. Empty list if no feedbacks exist.
+**Retorno**: uma lista de objetos `Feedback`. Lista vazia se não houver feedbacks.
 
-**Error Responses**:
-- `401 Unauthorized`: Invalid or missing bearer token (`Authorization: Bearer <token>`).
-- `500 Internal Server Error`: Unexpected server error (e.g., DynamoDB unavailable).
+**Respostas de erro**:
+- `401 Não autorizado`: token Bearer ausente ou inválido (`Authorization: Bearer <token>`).
+- `500 Erro interno do servidor`: erro inesperado no servidor (por exemplo, DynamoDB indisponível).
 
-**Example Response** (200 OK):
+**Exemplo de resposta** (200 OK):
 ```json
 {
   "listFeedbacks": [
@@ -158,25 +158,25 @@ type Query {
 
 ---
 
-## Urgency Calculation
+## Cálculo da urgência
 
-Urgency is automatically calculated when feedback is received based on the rating:
+A urgência é calculada automaticamente quando o feedback é recebido, com base na nota:
 
-| Rating Range | Urgency Level | Notes |
+| Faixa de nota | Nível de urgência | Observações |
 |---|---|---|
-| 0–5 | HIGH | Critical/very negative feedback requires immediate attention |
-| 6–7 | MEDIUM | Moderate feedback with room for improvement |
-| 8–10 | LOW | Positive feedback with minor concerns (if any) |
+| 0–5 | HIGH | Feedback crítico ou muito negativo, exige atenção imediata |
+| 6–7 | MEDIUM | Feedback moderado, com espaço para melhoria |
+| 8–10 | LOW | Feedback positivo, com pequenas ressalvas (se houver) |
 
-**Implementation**: The `Urgency.fromRating(int rating)` method in the domain layer performs this calculation. HIGH urgency feedback is automatically published to an SNS topic for notification processing.
+**Implementação**: o método `Urgency.fromRating(int rating)`, na camada de domínio, faz este cálculo. Feedbacks de urgência HIGH são publicados automaticamente em um tópico SNS para processamento de notificação.
 
 ---
 
-## Worked Examples
+## Exemplos práticos
 
-### Example 1: Create a HIGH Urgency Feedback (via GraphQL)
+### Exemplo 1: criar um feedback de urgência HIGH (via GraphQL)
 
-**Request**:
+**Requisição**:
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
@@ -186,7 +186,7 @@ curl -X POST http://localhost:8080/graphql \
   }'
 ```
 
-**GraphQL Body** (raw):
+**Corpo GraphQL** (bruto):
 ```graphql
 mutation {
   receiveFeedback(
@@ -204,7 +204,7 @@ mutation {
 }
 ```
 
-**Response** (201 Created):
+**Resposta** (201 Created):
 ```json
 {
   "data": {
@@ -221,9 +221,9 @@ mutation {
 
 ---
 
-### Example 2: Create a MEDIUM Urgency Feedback (via GraphQL)
+### Exemplo 2: criar um feedback de urgência MEDIUM (via GraphQL)
 
-**Request**:
+**Requisição**:
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
@@ -233,7 +233,7 @@ curl -X POST http://localhost:8080/graphql \
   }'
 ```
 
-**GraphQL Body** (raw):
+**Corpo GraphQL** (bruto):
 ```graphql
 mutation {
   receiveFeedback(
@@ -251,7 +251,7 @@ mutation {
 }
 ```
 
-**Response** (201 Created):
+**Resposta** (201 Created):
 ```json
 {
   "data": {
@@ -268,9 +268,9 @@ mutation {
 
 ---
 
-### Example 3: Create a LOW Urgency Feedback (via GraphQL)
+### Exemplo 3: criar um feedback de urgência LOW (via GraphQL)
 
-**Request**:
+**Requisição**:
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
@@ -280,7 +280,7 @@ curl -X POST http://localhost:8080/graphql \
   }'
 ```
 
-**GraphQL Body** (raw):
+**Corpo GraphQL** (bruto):
 ```graphql
 mutation {
   receiveFeedback(
@@ -298,7 +298,7 @@ mutation {
 }
 ```
 
-**Response** (201 Created):
+**Resposta** (201 Created):
 ```json
 {
   "data": {
@@ -315,9 +315,9 @@ mutation {
 
 ---
 
-### Example 4: List All Feedbacks (via GraphQL)
+### Exemplo 4: listar todos os feedbacks (via GraphQL)
 
-**Request**:
+**Requisição**:
 ```bash
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
@@ -327,7 +327,7 @@ curl -X POST http://localhost:8080/graphql \
   }'
 ```
 
-**GraphQL Body** (raw):
+**Corpo GraphQL** (bruto):
 ```graphql
 query {
   listFeedbacks {
@@ -340,7 +340,7 @@ query {
 }
 ```
 
-**Response** (200 OK):
+**Resposta** (200 OK):
 ```json
 {
   "data": {
@@ -373,11 +373,11 @@ query {
 
 ---
 
-### Example 5: Create Feedback via HTTP REST (Lambda Handler)
+### Exemplo 5: criar feedback via HTTP REST (handler Lambda)
 
-The same feedback can be sent via HTTP POST to the Lambda function through API Gateway.
+O mesmo feedback pode ser enviado por HTTP POST para a função Lambda, pelo API Gateway.
 
-**Request**:
+**Requisição**:
 ```bash
 curl -X POST http://localhost:8080/v1/feedback \
   -H "Content-Type: application/json" \
@@ -388,7 +388,7 @@ curl -X POST http://localhost:8080/v1/feedback \
   }'
 ```
 
-**Response** (201 Created):
+**Resposta** (201 Created):
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174003",
@@ -401,137 +401,137 @@ curl -X POST http://localhost:8080/v1/feedback \
 
 ---
 
-## Error Handling
+## Tratamento de erros
 
-### Validation Errors
+### Erros de validação
 
-**Scenario**: Invalid input (missing field, out-of-range value).
+**Cenário**: entrada inválida (campo ausente ou valor fora da faixa).
 
-**HTTP Status**: `400 Bad Request`
+**Status HTTP**: `400 Requisição inválida`
 
-**Response Format** (RFC 7807 Problem Detail):
+**Formato da resposta** (RFC 7807, Problem Detail):
 ```json
 {
-  "title": "Validation Error",
+  "title": "Erro de validação",
   "status": 400,
-  "detail": "Rating must be between 0 and 10, received: 15"
+  "detail": "Nota deve estar entre 0 e 10; recebido: 15"
 }
 ```
 
-**Common Validation Errors**:
-- Missing `description`: "Description cannot be empty"
-- Missing or null `rating`: "Rating is required"
-- `rating < 0`: "Rating must be at least 0"
-- `rating > 10`: "Rating must be at most 10"
-- `description` is blank: "Description cannot be empty"
+**Erros de validação comuns**:
+- `description` ausente: "Descrição não pode estar vazia"
+- `rating` ausente ou nulo: "Nota é obrigatória"
+- `rating < 0`: "Nota deve ser no mínimo 0"
+- `rating > 10`: "Nota deve ser no máximo 10"
+- `description` em branco: "Descrição não pode estar vazia"
 
 ---
 
-### Missing or Invalid Bearer Token
+### Token Bearer ausente ou inválido
 
-**Scenario**: Request without the `Authorization` header, with a scheme other than `Bearer`, or with a wrong token.
+**Cenário**: requisição sem o header `Authorization`, com esquema diferente de `Bearer` ou com token errado.
 
-**HTTP Status**: `401 Unauthorized`
+**Status HTTP**: `401 Não autorizado`
 
-**Response**:
+**Resposta**:
 ```json
 {
-  "title": "Unauthorized",
+  "title": "Não autorizado",
   "status": 401,
-  "detail": "Missing bearer token"
+  "detail": "Token Bearer ausente"
 }
 ```
-The `detail` is `Invalid bearer token` when the token is sent but does not match.
+O `detail` é `Token Bearer inválido` quando o token é enviado, mas não confere.
 
-**Solution**:
-1. Add `Authorization: Bearer <token>` to all requests.
-2. Verify the token with your administrator.
-3. The header name and the `Bearer` scheme are case-insensitive, but the token itself is case-sensitive.
+**Solução**:
+1. Adicione `Authorization: Bearer <token>` a todas as requisições.
+2. Confirme o token com o administrador.
+3. O nome do header e o esquema `Bearer` não diferenciam maiúsculas de minúsculas, mas o token diferencia.
 
 ---
 
-### Malformed GraphQL
+### GraphQL malformado
 
-**Scenario**: Invalid GraphQL syntax or query structure.
+**Cenário**: sintaxe GraphQL inválida ou estrutura de consulta incorreta.
 
-**HTTP Status**: `400 Bad Request`
+**Status HTTP**: `400 Requisição inválida`
 
-**Response**:
+**Resposta**:
 ```json
 {
   "errors": [
     {
-      "message": "Syntax error in query",
+      "message": "Erro de sintaxe na consulta",
       "locations": [{"line": 1, "column": 10}]
     }
   ]
 }
 ```
 
-**Common Issues**:
-- Missing closing braces or quotes in the query.
-- Typo in mutation/query name (e.g., `recieveFeedback` instead of `receiveFeedback`).
-- Using a field that does not exist in the type (e.g., `score` instead of `rating`).
+**Problemas comuns**:
+- Chaves ou aspas de fechamento ausentes na consulta.
+- Erro de digitação no nome da mutation ou da query (por exemplo, `recieveFeedback` em vez de `receiveFeedback`).
+- Uso de um campo que não existe no tipo (por exemplo, `score` em vez de `rating`).
 
 ---
 
-### DynamoDB Unavailable
+### DynamoDB indisponível
 
-**Scenario**: Database is offline or unreachable.
+**Cenário**: o banco está fora do ar ou inacessível.
 
-**HTTP Status**: `500 Internal Server Error`
+**Status HTTP**: `500 Erro interno do servidor`
 
-**Response**:
+**Resposta**:
 ```json
 {
-  "title": "Internal Server Error",
+  "title": "Erro interno do servidor",
   "status": 500,
-  "detail": "An unexpected error occurred. Please try again later."
+  "detail": "Ocorreu um erro inesperado. Tente novamente mais tarde."
 }
 ```
 
-**Troubleshooting**:
-1. Check LocalStack is running: `docker ps | grep localstack`
-2. Verify DynamoDB table exists: `aws --endpoint-url=http://localhost:4566 dynamodb list-tables`
-3. Check application logs for detailed error: `mvn quarkus:dev` output.
+**Diagnóstico**:
+1. Confirme que o LocalStack está rodando: `docker ps | grep localstack`
+2. Confirme que a tabela do DynamoDB existe: `aws --endpoint-url=http://localhost:4566 dynamodb list-tables`
+3. Veja o erro detalhado nos logs da aplicação: saída de `mvn quarkus:dev`.
 
 ---
 
-### SNS Unavailable (HIGH Urgency Publishing)
+### SNS indisponível (publicação de urgência HIGH)
 
-**Scenario**: SNS topic is offline or the Lambda lacks permission to publish.
+**Cenário**: o tópico SNS está fora do ar ou a Lambda não tem permissão para publicar.
 
-**Impact**: Feedback is still persisted to DynamoDB, but notifications will not be sent.
+**Impacto**: o feedback continua gravado no DynamoDB, mas a notificação não é enviada.
 
-**HTTP Status**: Request succeeds (`201`), but notification delivery fails asynchronously.
+**Status HTTP**: a requisição tem sucesso (`201`), mas a entrega da notificação falha de forma assíncrona.
 
-**Troubleshooting**:
-1. Verify SNS topic exists: `aws --endpoint-url=http://localhost:4566 sns list-topics`
-2. Check feedback topic ARN is correctly set: `echo $FEEDBACK_TOPIC_ARN`
-3. Check Lambda IAM role has `sns:Publish` permission.
+**Diagnóstico**:
+1. Confirme que o tópico SNS existe: `aws --endpoint-url=http://localhost:4566 sns list-topics`
+2. Confirme que o ARN do tópico de feedback está correto: `echo $FEEDBACK_TOPIC_ARN`
+3. Confirme que o papel IAM da Lambda tem a permissão `sns:Publish`.
 
 ---
 
-## Data Models
+## Modelos de dados
 
-### Feedback Storage (DynamoDB)
+### Armazenamento de feedbacks (DynamoDB)
 
-Feedback is stored in a DynamoDB table named `feedbacks` with the following schema:
+Os feedbacks são gravados em uma tabela DynamoDB chamada `feedbacks`, com o seguinte schema:
 
-| Attribute | Type | Description |
+| Atributo | Tipo | Descrição |
 |---|---|---|
-| `id` | String (PK) | Unique identifier (UUID format) |
-| `description` | String | Feedback text |
-| `rating` | Number | Rating 0–10 |
-| `urgency` | String | HIGH, MEDIUM, or LOW |
-| `createdAt` | String | ISO 8601 timestamp |
-| `notificationSent` | Boolean | Whether notification was sent (default: false) |
+| `id` | String (PK) | Identificador único (formato UUID) |
+| `description` | String | Texto do feedback |
+| `rating` | Number | Nota de 0 a 10 |
+| `urgency` | String | HIGH, MEDIUM ou LOW |
+| `createdAt` | String | Timestamp ISO 8601 |
+| `notificationSent` | Boolean | Indica se a notificação foi enviada (padrão: false) |
 
 ---
 
-### SNS Message Format (HIGH Urgency)
+### Formato da mensagem SNS (urgência HIGH)
 
-When feedback with urgency HIGH is received, it is published to SNS with the following JSON structure:
+Quando um feedback de urgência HIGH é recebido, ele é publicado no SNS com a seguinte estrutura JSON:
 
 ```json
 {
@@ -543,13 +543,13 @@ When feedback with urgency HIGH is received, it is published to SNS with the fol
 }
 ```
 
-This message triggers the `send-notification` Lambda for email delivery via SES.
+Essa mensagem dispara a Lambda `send-notification`, que envia o e-mail pelo SES.
 
 ---
 
-### Weekly Report (Email)
+### Relatório semanal (e-mail)
 
-The `generate-report` Lambda runs every Monday at 08:00 UTC and generates a JSON report of the previous week's feedback:
+A Lambda `generate-report` roda toda segunda-feira às 08:00 UTC e gera um relatório JSON com os feedbacks da semana anterior:
 
 ```json
 {
@@ -578,31 +578,31 @@ The `generate-report` Lambda runs every Monday at 08:00 UTC and generates a JSON
 
 ---
 
-## Local Development Setup
+## Configuração do ambiente de desenvolvimento local
 
-### Prerequisites
+### Pré-requisitos
 
 - Java 17+
 - Maven 3.8+
-- Docker (for LocalStack)
+- Docker (para o LocalStack)
 
-### Start LocalStack
+### Iniciar o LocalStack
 
 ```bash
 docker-compose up -d
 ```
 
-This starts:
-- LocalStack (DynamoDB, SNS, SES on port 4566)
-- Quarkus in dev mode (GraphQL on port 8080)
+Isso inicia:
+- LocalStack (DynamoDB, SNS e SES na porta 4566)
+- Quarkus em modo de desenvolvimento (GraphQL na porta 8080)
 
-### Initialize DynamoDB Table
+### Inicializar a tabela do DynamoDB
 
 ```bash
 ./run.sh
 ```
 
-Or manually:
+Ou manualmente:
 
 ```bash
 aws --endpoint-url=http://localhost:4566 dynamodb create-table \
@@ -613,17 +613,17 @@ aws --endpoint-url=http://localhost:4566 dynamodb create-table \
   --region us-east-1
 ```
 
-### Run Quarkus in Dev Mode
+### Rodar o Quarkus em modo de desenvolvimento
 
 ```bash
 mvn quarkus:dev
 ```
 
-GraphQL UI is available at: `http://localhost:8080/q/graphql-ui`
+A interface do GraphQL fica disponível em: `http://localhost:8080/q/graphql-ui`
 
-### Test with curl
+### Testar com curl
 
-Create feedback:
+Criar feedback:
 
 ```bash
 curl -X POST http://localhost:8080/graphql \
@@ -634,22 +634,22 @@ curl -X POST http://localhost:8080/graphql \
 
 ---
 
-## Production Deployment (AWS)
+## Implantação em produção (AWS)
 
-### Prerequisites
+### Pré-requisitos
 
-- AWS account with appropriate permissions
-- SAM CLI or CloudFormation for infrastructure deployment
-- `API_TOKEN` configured in the Lambdas (deploy parameter `ApiToken`)
+- Conta AWS com as permissões necessárias
+- SAM CLI ou CloudFormation para implantar a infraestrutura
+- `API_TOKEN` configurado nas Lambdas (parâmetro de deploy `ApiToken`)
 
-### Environment Variables
+### Variáveis de ambiente
 
-Set these variables in your Lambda environment:
+Defina estas variáveis no ambiente da Lambda:
 
-- `AWS_REGION`: AWS region (default: `us-east-1`)
-- `FEEDBACK_TOPIC_ARN`: SNS topic ARN for HIGH urgency feedback
-- `ADMIN_EMAIL`: Email address for report delivery
-- `DYNAMODB_TABLE_NAME`: Table name (default: `feedbacks`)
+- `AWS_REGION`: região da AWS (padrão: `us-east-1`)
+- `FEEDBACK_TOPIC_ARN`: ARN do tópico SNS para feedbacks de urgência HIGH
+- `ADMIN_EMAIL`: e-mail que recebe os relatórios
+- `DYNAMODB_TABLE_NAME`: nome da tabela (padrão: `feedbacks`)
 
 ### Deploy
 
@@ -657,7 +657,7 @@ Set these variables in your Lambda environment:
 sam deploy --guided
 ```
 
-### Verify
+### Verificação
 
 ```bash
 curl -X POST https://[API-GATEWAY-URL]/v1/graphql \
@@ -668,34 +668,34 @@ curl -X POST https://[API-GATEWAY-URL]/v1/graphql \
 
 ---
 
-## Rate Limiting and Quotas
+## Limites de taxa e cotas
 
-- **API Gateway**: Default 10,000 requests per second per account.
-- **DynamoDB**: On-demand billing (provisioned throughput not required).
-- **SNS**: Standard throughput per AWS quotas.
-- **SES**: Default sandbox mode (100 emails/day). Request production access for higher limits.
+- **API Gateway**: padrão de 10.000 requisições por segundo por conta.
+- **DynamoDB**: cobrança sob demanda (não é preciso provisionar throughput).
+- **SNS**: throughput padrão, conforme as cotas da AWS.
+- **SES**: modo sandbox por padrão (100 e-mails por dia). Solicite acesso de produção para limites maiores.
 
 ---
 
-## Support and Troubleshooting
+## Suporte e solução de problemas
 
-### Common Issues
+### Problemas comuns
 
-1. **401 "Missing bearer token" / "Invalid bearer token"**: Add `Authorization: Bearer <token>` to all requests.
-2. **"Rating must be between 0 and 10"**: Ensure `rating` is an integer in range.
-3. **"DynamoDB is unavailable"**: Start LocalStack and verify table exists.
-4. **"GraphQL endpoint returns 404"**: Verify Quarkus is running and the path is `/v1/graphql`.
+1. **401 "Token Bearer ausente" / "Token Bearer inválido"**: adicione `Authorization: Bearer <token>` a todas as requisições.
+2. **"Nota deve estar entre 0 e 10"**: confirme que `rating` é um inteiro dentro da faixa.
+3. **"DynamoDB indisponível"**: inicie o LocalStack e confirme que a tabela existe.
+4. **"Endpoint GraphQL retorna 404"**: confirme que o Quarkus está rodando e que o caminho é `/v1/graphql`.
 
-### Enable Debug Logging
+### Ativar log de depuração
 
-Set in `application.properties`:
+Defina em `application.properties`:
 
 ```properties
 quarkus.log.level=DEBUG
 quarkus.log.category."com.fiap".level=DEBUG
 ```
 
-Then check logs:
+Depois, consulte os logs:
 
 ```bash
 mvn quarkus:dev 2>&1 | grep -i "com.fiap"
@@ -703,8 +703,8 @@ mvn quarkus:dev 2>&1 | grep -i "com.fiap"
 
 ---
 
-## Summary
+## Resumo
 
-This API provides a robust, serverless feedback management platform with automatic urgency calculation, notification routing, and reporting. All operations are RESTful and GraphQL-enabled, with strong validation and error handling. The system is designed for scalability on AWS and easy local development with LocalStack.
+Esta API oferece uma plataforma de gestão de feedbacks serverless, robusta, com cálculo automático de urgência, encaminhamento de notificações e relatórios. Todas as operações são RESTful e expostas via GraphQL, com validação forte e tratamento de erros. O sistema foi projetado para escalar na AWS e para desenvolvimento local fácil com LocalStack.
 
-For questions or issues, refer to the project README or contact the development team.
+Para dúvidas ou problemas, consulte o README do projeto ou entre em contato com a equipe de desenvolvimento.

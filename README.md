@@ -524,12 +524,12 @@ Disparado em:
 
 **Etapas do pipeline:**
 
-1. **Checkout code** — Clona repositório com histórico completo (necessário para SonarCloud)
-2. **Setup Java 17** — Runtime de build Maven
-3. **Build and Test** — Executa `mvn clean verify`
-4. **Generate coverage** — JaCoCo cria relatórios XML
-5. **SonarCloud Scan** — Analisa qualidade de código e cobertura
-6. **Quality gate check** — Falha se cobertura < 80% ou problemas críticos detectados
+1. **Checkout do código** — Clona o repositório com histórico completo (necessário para SonarCloud)
+2. **Configurar Java 17** — Runtime de build Maven
+3. **Build e testes** — Executa `mvn clean verify`
+4. **Gerar cobertura** — JaCoCo cria relatórios XML
+5. **Análise no SonarCloud** — Analisa qualidade de código e cobertura
+6. **Verificação do quality gate** — Falha se cobertura < 80% ou problemas críticos detectados
 
 ### Configuração SonarCloud
 

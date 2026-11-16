@@ -1,134 +1,134 @@
-# FIAP Fase-4 Feedback API — Postman Collection
+# FIAP Fase-4 Feedback API — Coleção Postman
 
-## Overview
+## Visão geral
 
-This Postman collection covers the Feedback API endpoints for FIAP Fase-4, with comprehensive test cases for creating feedback and validating urgency calculations based on ratings. The collection includes both local (LocalStack) and production (AWS API Gateway) environments, allowing easy switching between testing scenarios.
+Esta coleção do Postman cobre os endpoints da Feedback API da FIAP Fase-4, com casos de teste para criar feedbacks e validar o cálculo de urgência com base na nota. A coleção inclui os ambientes local (LocalStack) e produção (AWS API Gateway), permitindo alternar entre os cenários de teste.
 
-### API Coverage
-- **POST `/v1/feedback`** — Create feedback with automatic urgency classification
-  - Success cases: 3 urgency tiers (HIGH, MEDIUM, LOW) with boundary value testing
-  - Error cases: 9 validation and constraint violation scenarios
-- **GET `/v1/feedback`** — List all feedbacks
-- **POST `/v1/graphql`** — GraphQL query `listFeedbacks`
+### Cobertura da API
+- **POST `/v1/feedback`**: cria um feedback com classificação automática de urgência
+  - Casos de sucesso: 3 faixas de urgência (HIGH, MEDIUM, LOW) com teste de valores limite
+  - Casos de erro: 9 cenários de validação e violação de restrições
+- **GET `/v1/feedback`**: lista todos os feedbacks
+- **POST `/v1/graphql`**: consulta GraphQL `listFeedbacks`
 
-### Architecture
-- **REST-based**, with one GraphQL query (`listFeedbacks`)
-- **Request contract:** JSON with `description` (string) and `rating` (integer 0-10)
-- **Response format:** RFC 7807 Problem Detail for errors; flat JSON object (no wrapper) for the v1 success response
-- **Status codes:** 201 Created (success), 400 Bad Request (validation errors)
-
----
-
-## Import Instructions
-
-### In Postman
-1. Open Postman
-2. Click **File** → **Import**
-3. Select `docs/api-collection/fase4-feedback.postman_collection.json` (only the collection; there are no environment files)
-4. Collection appears in the left sidebar
-
-### In Bruno
-1. Open Bruno
-2. Click **+ New** → **Collection**
-3. Import the JSON file
-4. Collection loads with the `local` and `prod` folders
-5. Open **Collection > Variables** and set `prodToken` (see below)
+### Arquitetura
+- **Baseada em REST**, com uma consulta GraphQL (`listFeedbacks`)
+- **Contrato da requisição:** JSON com `description` (string) e `rating` (inteiro de 0 a 10)
+- **Formato da resposta:** RFC 7807 Problem Detail para erros; objeto JSON simples (sem wrapper) para a resposta de sucesso da v1
+- **Códigos de status:** 201 Created (sucesso), 400 Bad Request (erros de validação)
 
 ---
 
-## Collection Variables
+## Instruções de importação
 
-All variables are embedded in the collection (no separate environment file needed). Every request sends `Authorization: Bearer <token>` using `localToken` (folder `local`) or `prodToken` (folder `prod`), except the requests named "sem token", which test the 401 response.
+### No Postman
+1. Abra o Postman
+2. Clique em **File** → **Import**
+3. Selecione `docs/api-collection/fase4-feedback.postman_collection.json` (somente a coleção; não há arquivos de ambiente)
+4. A coleção aparece na barra lateral esquerda
 
-| Variable | Default Value | Purpose |
+### No Bruno
+1. Abra o Bruno
+2. Clique em **+ New** → **Collection**
+3. Importe o arquivo JSON
+4. A coleção é carregada com as pastas `local` e `prod`
+5. Abra **Collection > Variables** e defina `prodToken` (veja abaixo)
+
+---
+
+## Variáveis da coleção
+
+Todas as variáveis estão embutidas na coleção (não é preciso um arquivo de ambiente separado). Cada requisição envia `Authorization: Bearer <token>` usando `localToken` (pasta `local`) ou `prodToken` (pasta `prod`), exceto as requisições chamadas "sem token", que testam a resposta 401.
+
+| Variável | Valor padrão | Finalidade |
 |----------|---------------|---------|
-| `localUrl` | `http://localhost:8080` | local-http base URL |
-| `prodUrl` | `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod` | AWS API Gateway base URL |
-| `localToken` | `minha-chave-local` | Local token (not a secret; matches the `./run.sh local-up` default) |
-| `prodToken` | *(empty)* | Production token: paste the value of the `API_TOKEN` secret on your machine only; never commit it |
-| `feedbackId` | *(empty)* | Captured from successful create response |
-| `timestamp` | *(auto-generated per request)* | Ensures unique feedback descriptions |
+| `localUrl` | `http://localhost:8080` | URL base HTTP local |
+| `prodUrl` | `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod` | URL base do AWS API Gateway |
+| `localToken` | `minha-chave-local` | Token local (não é segredo; corresponde ao padrão do `./run.sh local-up`) |
+| `prodToken` | *(vazio)* | Token de produção: cole o valor do segredo `API_TOKEN` somente na sua máquina; nunca o versione |
+| `feedbackId` | *(vazio)* | Capturado a partir da resposta de criação bem-sucedida |
+| `timestamp` | *(gerado automaticamente por requisição)* | Garante descrições de feedback únicas |
 
 ---
 
-## Execution Workflow
+## Fluxo de execução
 
-The collection has two folders: **local** and **prod**. Each contains the same test cases but pointing to different endpoints.
+A coleção tem duas pastas: **local** e **prod**. Cada uma contém os mesmos casos de teste, mas apontando para endpoints diferentes.
 
-### To test LOCAL (local-http):
-1. Expand folder **"local"**
-2. Run any request under **"Criar Avaliação"**
-3. All requests will hit `{{localUrl}}/v1/feedback` = `http://localhost:8080/v1/feedback`
+### Para testar o LOCAL (local-http):
+1. Expanda a pasta **"local"**
+2. Execute qualquer requisição em **"Criar Avaliação"**
+3. Todas as requisições vão para `{{localUrl}}/v1/feedback` = `http://localhost:8080/v1/feedback`
 
-### To test PRODUCTION (AWS):
-1. Expand folder **"prod"**
-2. Run any request under **"Criar Avaliação"**
-3. All requests will hit `{{prodUrl}}/v1/feedback` = `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback`
+### Para testar a PRODUÇÃO (AWS):
+1. Expanda a pasta **"prod"**
+2. Execute qualquer requisição em **"Criar Avaliação"**
+3. Todas as requisições vão para `{{prodUrl}}/v1/feedback` = `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback`
 
-### Test Cases in "Criar Avaliação"
-| Request | Rating | Urgency | Note |
-|---------|--------|---------|------|
-| rating 1 | 1 | HIGH | Captures feedback ID for future list queries |
-| rating 6 | 6 | MEDIUM | Mid-range feedback |
-| rating 9 | 9 | LOW | High satisfaction |
-| rating 0 | 0 | HIGH | Boundary: minimum valid rating |
-| rating 10 | 10 | LOW | Boundary: maximum valid rating |
+### Casos de teste em "Criar Avaliação"
+| Requisição | Nota | Urgência | Observação |
+|---------|--------|--------|------|
+| nota 1 | 1 | HIGH | Captura o ID do feedback para consultas de lista futuras |
+| nota 6 | 6 | MEDIUM | Feedback de faixa intermediária |
+| nota 9 | 9 | LOW | Alta satisfação |
+| nota 0 | 0 | HIGH | Limite: nota mínima válida |
+| nota 10 | 10 | LOW | Limite: nota máxima válida |
 
-### Test Cases in "Listar Avaliações"
-| Request | Purpose | Response |
-|---------|---------|----------|
-| listFeedbacks | Query all feedbacks stored in DynamoDB | HTTP 200 with `data.listFeedbacks` array |
+### Casos de teste em "Listar Avaliações"
+| Requisição | Finalidade | Resposta |
+|---------|---------|------|
+| listFeedbacks | Consulta todos os feedbacks armazenados no DynamoDB | HTTP 200 com o array `data.listFeedbacks` |
 
-**Test Assertions (listFeedbacks):**
-- ✅ Status code 200
-- ✅ Response has `data.listFeedbacks` field
-- ✅ Each feedback item has: `id`, `description`, `rating`, `urgency`, `createdAt`
-- ✅ `id` is a valid UUID
-- ✅ `urgency` is one of: HIGH, MEDIUM, LOW
-- ✅ `createdAt` is ISO 8601 format
-- ✅ Array is returned (may be empty)
+**Asserções do teste (listFeedbacks):**
+- ✅ Código de status 200
+- ✅ A resposta tem o campo `data.listFeedbacks`
+- ✅ Cada item de feedback tem: `id`, `description`, `rating`, `urgency`, `createdAt`
+- ✅ `id` é um UUID válido
+- ✅ `urgency` é um de: HIGH, MEDIUM, LOW
+- ✅ `createdAt` está no formato ISO 8601
+- ✅ O array é retornado (pode estar vazio)
 
-#### Error Cases (HTTP 400 — RFC 7807 Problem Detail)
-| Request | Issue | Error Field |
-|---------|-------|------------|
-| rating -1 | Rating below minimum | `detail` contains "must be at least 0" |
-| rating 11 | Rating above maximum | `detail` contains "must be at most 10" |
-| descrição vazia | Empty string | `detail` contains "cannot be empty" |
-| descrição com espaços | Whitespace only | `detail` contains blank-check violation |
-| rating ausente | Missing field | HTTP 400 — field required |
-| descrição ausente | Missing field | HTTP 400 — field required |
-| rating como string | Type mismatch | HTTP 400 — number expected |
+#### Casos de erro (HTTP 400, RFC 7807 Problem Detail)
+| Requisição | Problema | Campo de erro |
+|---------|------------|-------------|
+| nota -1 | Nota abaixo do mínimo | `detail` contém "Nota deve ser no mínimo 0" |
+| nota 11 | Nota acima do máximo | `detail` contém "Nota deve ser no máximo 10" |
+| descrição vazia | String vazia | `detail` contém "Descrição não pode estar vazia" |
+| descrição com espaços | Apenas espaços em branco | `detail` contém a violação de verificação de vazio |
+| nota ausente | Campo ausente | HTTP 400, campo obrigatório |
+| descrição ausente | Campo ausente | HTTP 400, campo obrigatório |
+| nota como string | Tipo incompatível | HTTP 400, número esperado |
 
 ---
 
-## Urgency Mapping
+## Mapeamento de urgência
 
-The API calculates urgency based on the rating:
+A API calcula a urgência com base na nota:
 
-| Rating Range | Urgency | Business Meaning |
+| Faixa de nota | Urgência | Significado para o negócio |
 |--------------|---------|------------------|
-| 0–5 | **HIGH** | Negative feedback requiring immediate attention |
-| 6–7 | **MEDIUM** | Moderate feedback — standard review |
-| 8–10 | **LOW** | Positive feedback — no action needed |
+| 0–5 | **HIGH** | Feedback negativo que exige atenção imediata |
+| 6–7 | **MEDIUM** | Feedback moderado: revisão padrão |
+| 8–10 | **LOW** | Feedback positivo: nenhuma ação necessária |
 
-All tests verify this mapping by asserting the `urgency` field matches the expected tier.
+Todos os testes verificam esse mapeamento, comparando o campo `urgency` com a faixa esperada.
 
 ---
 
-## Expected Test Results
+## Resultados esperados dos testes
 
-### All Success Cases Pass
+### Todos os casos de sucesso passam
 - HTTP 201 Created
-- Response is a flat object (no `receiveFeedback` wrapper)
-- Fields: `id` (UUID), `description` (echoed), `rating` (echoed), `urgency` (calculated), `createdAt` (ISO 8601)
-- Timestamp in description is unique (no duplicates in DynamoDB)
+- A resposta é um objeto simples (sem o wrapper `receiveFeedback`)
+- Campos: `id` (UUID), `description` (repetido da requisição), `rating` (repetido da requisição), `urgency` (calculada), `createdAt` (ISO 8601)
+- O timestamp na descrição é único (sem duplicatas no DynamoDB)
 
-### All Error Cases Return HTTP 400
-- Response format: RFC 7807 Problem Detail
-- Fields: `title` (e.g., "Validation Error"), `status` (400), `detail` (specific violation)
-- **Not** a GraphQL `errors` array
+### Todos os casos de erro retornam HTTP 400
+- Formato da resposta: RFC 7807 Problem Detail
+- Campos: `title` (ex.: "Erro de validação"), `status` (400), `detail` (violação específica)
+- **Não** é um array `errors` do GraphQL
 
-### Example Success Response
+### Exemplo de resposta de sucesso
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -139,22 +139,22 @@ All tests verify this mapping by asserting the `urgency` field matches the expec
 }
 ```
 
-### Example Error Response
+### Exemplo de resposta de erro
 ```json
 {
-  "title": "Validation Error",
+  "title": "Erro de validação",
   "status": 400,
-  "detail": "Rating must be at least 0"
+  "detail": "Nota deve ser no mínimo 0"
 }
 ```
 
 ---
 
-## GraphQL Query: listFeedbacks
+## Consulta GraphQL: listFeedbacks
 
-Retrieve all feedbacks stored in DynamoDB.
+Recupera todos os feedbacks armazenados no DynamoDB.
 
-### Request
+### Requisição
 ```graphql
 query {
   listFeedbacks {
@@ -167,7 +167,7 @@ query {
 }
 ```
 
-### Success Response (200 OK)
+### Resposta de sucesso (200 OK)
 ```json
 {
   "data": {
@@ -193,42 +193,42 @@ query {
 
 ---
 
-## Running in Local Environment
+## Executando no ambiente local
 
-### Prerequisites
-1. AWS credentials with profile `fase4` (the local module writes to `dev-feedback-table`)
-2. Start the module: in the `local-http` folder, run `./run.sh local-up`
-3. Routes available at `http://localhost:8080` (`/v1/feedback` and `/v1/graphql`)
+### Pré-requisitos
+1. Credenciais da AWS com o perfil `fase4` (o módulo local grava na tabela `dev-feedback-table`)
+2. Inicie o módulo: na pasta `local-http`, execute `./run.sh local-up`
+3. Rotas disponíveis em `http://localhost:8080` (`/v1/feedback` e `/v1/graphql`)
 
-### Steps
-1. Keep the default `localToken` (or export `API_TOKEN` before `./run.sh local-up` and set the same value in `localToken`)
-2. Run "✅ 201 — rating 1 (urgência HIGH)" (a rating from 0 to 5 triggers SNS/email)
-3. Run the remaining test cases in any order, including the 401 requests ("sem token" e "token inválido")
-
----
-
-## Running in Production (AWS)
-
-### Prerequisites
-1. AWS Lambda function deployed and accessible
-2. API Gateway endpoint active: `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback`
-3. DynamoDB table `prod-feedback-table` available in sa-east-1
-4. SES verified (if email notifications enabled)
-5. `prodToken` set to the value of the `API_TOKEN` secret
-
-### Steps
-1. Set `prodToken` (Collection > Variables)
-2. Run test cases (same structure as local). Requests with a rating from 0 to 5 create real records and send SNS/email in production
-3. Monitor AWS CloudWatch Logs for Lambda execution
-4. Verify DynamoDB items created in the console
-
-### Known Limitations
-- **Bearer token required** on every route (`Authorization: Bearer <token>`); to create it, see the secret `API_TOKEN` in `docs/deploy/AWS_DEPLOY_GUIDE.md`
-- **Email notifications** — Currently in development; test with SES sandbox mode
+### Passos
+1. Mantenha o `localToken` padrão (ou exporte `API_TOKEN` antes de `./run.sh local-up` e defina o mesmo valor em `localToken`)
+2. Execute "✅ 201 — rating 1 (urgência HIGH)" (uma nota de 0 a 5 dispara SNS e e-mail)
+3. Execute os demais casos de teste em qualquer ordem, incluindo as requisições 401 ("sem token" e "token inválido")
 
 ---
 
-## API Contract Summary
+## Executando em produção (AWS)
+
+### Pré-requisitos
+1. Função AWS Lambda implantada e acessível
+2. Endpoint do API Gateway ativo: `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback`
+3. Tabela DynamoDB `prod-feedback-table` disponível em sa-east-1
+4. SES com identidades verificadas (se as notificações por e-mail estiverem habilitadas)
+5. `prodToken` definido com o valor do segredo `API_TOKEN`
+
+### Passos
+1. Defina `prodToken` (Collection > Variables)
+2. Execute os casos de teste (mesma estrutura do local). Requisições com nota de 0 a 5 criam registros reais e enviam SNS e e-mail em produção
+3. Acompanhe os logs de execução da Lambda no AWS CloudWatch Logs
+4. Verifique os itens do DynamoDB criados no console
+
+### Limitações conhecidas
+- **Bearer token obrigatório** em todas as rotas (`Authorization: Bearer <token>`); para criá-lo, consulte o segredo `API_TOKEN` em `docs/deploy/AWS_DEPLOY_GUIDE.md`
+- **Notificações por e-mail**: ainda em desenvolvimento; teste com o modo sandbox do SES
+
+---
+
+## Resumo do contrato da API
 
 ### Endpoint
 ```
@@ -238,7 +238,7 @@ Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
-### Request Body
+### Corpo da requisição
 ```json
 {
   "description": "string (required, non-blank)",
@@ -246,7 +246,7 @@ Content-Type: application/json
 }
 ```
 
-### Success Response (201 Created)
+### Resposta de sucesso (201 Created)
 ```json
 {
   "id": "UUID",
@@ -257,19 +257,19 @@ Content-Type: application/json
 }
 ```
 
-### Error Response (401 Unauthorized)
+### Resposta de erro (401 Não autorizado)
 ```json
 {
-  "title": "Unauthorized",
+  "title": "Não autorizado",
   "status": 401,
-  "detail": "Missing bearer token | Invalid bearer token"
+  "detail": "Token Bearer ausente | Token Bearer inválido"
 }
 ```
 
-### Error Response (400 Bad Request)
+### Resposta de erro (400 Bad Request)
 ```json
 {
-  "title": "Validation Error|Constraint Violation|etc",
+  "title": "Erro de validação|Requisição inválida|etc",
   "status": 400,
   "detail": "Specific error message explaining the violation"
 }
@@ -277,59 +277,59 @@ Content-Type: application/json
 
 ---
 
-## Troubleshooting
+## Solução de problemas
 
-### Troubleshooting
+### Solução de problemas
 
-#### 401 Unauthorized
-- **Cause:** `localToken`/`prodToken` empty or different from the token configured in the API (`API_TOKEN`)
-- **Fix:** Set the variable in Collection > Variables; locally, use the same value passed to `./run.sh local-up`
+#### 401 Não autorizado
+- **Causa:** `localToken`/`prodToken` vazio ou diferente do token configurado na API (`API_TOKEN`)
+- **Correção:** Defina a variável em Collection > Variables; localmente, use o mesmo valor passado ao `./run.sh local-up`
 
-#### 404/405 on {{localUrl}}/v1/feedback
-- **Cause:** local-http not running, or started from the wrong folder (the `receive-feedback` module has no HTTP routes)
-- **Fix:** Run `./run.sh local-up` in the `local-http` folder and keep it running
+#### 404/405 em {{localUrl}}/v1/feedback
+- **Causa:** o local-http não está em execução, ou foi iniciado na pasta errada (o módulo `receive-feedback` não tem rotas HTTP)
+- **Correção:** Execute `./run.sh local-up` na pasta `local-http` e mantenha-o em execução
 
-### 500 Internal Server Error
-- **Cause:** Lambda handler initialization failed
-- **Fix:** Check CloudWatch logs for Arc CDI bootstrap errors; confirm Quarkus handler configured
+### 500 Erro interno do servidor
+- **Causa:** falha na inicialização do handler da Lambda
+- **Correção:** Verifique os logs do CloudWatch em busca de erros de bootstrap do Arc CDI; confirme se o handler do Quarkus está configurado
 
-### Test Assertion Failures
-- **Cause:** Response structure doesn't match (e.g., missing `receiveFeedback` wrapper)
-- **Fix:** Verify API updated to REST response format (not GraphQL); check Lambda logs
+### Falhas nas asserções de teste
+- **Causa:** a estrutura da resposta não corresponde (por exemplo, falta o wrapper `receiveFeedback`)
+- **Correção:** Verifique se a API foi atualizada para o formato REST (não GraphQL); verifique os logs da Lambda
 
-### Duplicate Description Error (if persisting to external store)
-- **Cause:** Same test run multiple times with fixed descriptions
-- **Fix:** Use `{{timestamp}}` in all descriptions; it auto-generates per request
-
----
-
-## Import Verification
-
-After importing, verify the collection loads correctly:
-
-1. **Check variables:** Collection > Variables shows `localUrl`, `prodUrl`, `localToken`, `prodToken`, `feedbackId` and `timestamp`
-2. **Check folders:** only `local` and `prod`, with 20 requests each
-3. **Run one 401 case:** "🔒 401 — GET /v1/feedback sem token" → HTTP 401
-4. **Run one success case:** "✅ 200 — GET /v1/feedback com token" (local) → HTTP 200
+### Erro de descrição duplicada (se houver persistência em armazenamento externo)
+- **Causa:** o mesmo teste foi executado várias vezes com descrições fixas
+- **Correção:** Use `{{timestamp}}` em todas as descrições; ele é gerado automaticamente por requisição
 
 ---
 
-## Known Issues & Future Work
+## Verificação da importação
 
-### Not Yet Implemented
-- **Listar Avaliações endpoint:** Query to retrieve feedback by ID or filter
-- **Email notifications:** Infrastructure present but not yet wired in Quarkus handler
+Depois de importar, verifique se a coleção carregou corretamente:
 
-### Deprecated (from Fase-3)
-- **GraphQL mutations:** Collection no longer tests GraphQL mutations; it only runs the `listFeedbacks` query
-- **Legacy GraphQL key header:** no longer accepted; all routes use `Authorization: Bearer <token>`
+1. **Variáveis:** Collection > Variables mostra `localUrl`, `prodUrl`, `localToken`, `prodToken`, `feedbackId` e `timestamp`
+2. **Pastas:** apenas `local` e `prod`, com 20 requisições cada
+3. **Execute um caso 401:** "🔒 401 — GET /v1/feedback sem token" → HTTP 401
+4. **Execute um caso de sucesso:** "✅ 200 — GET /v1/feedback com token" (local) → HTTP 200
 
 ---
 
-## Support & Feedback
+## Problemas conhecidos e trabalhos futuros
 
-For issues with the collection:
-1. Verify the API contract in `/Users/jefferson/Documents/FIAP/fase-4/docs/api-collection/plan.md`
-2. Check source code in `/Users/jefferson/Documents/FIAP/fase-4/receive-feedback/src/main/java/com/fiap/feedback/infra/handler/ReceiveFeedbackHandler.java`
-3. Review Lambda logs in AWS CloudWatch for actual error details
-4. Confirm local-http is running if testing locally: `./run.sh local-check`
+### Ainda não implementado
+- **Endpoint Listar Avaliações:** consulta para obter feedback por ID ou filtro
+- **Notificações por e-mail:** a infraestrutura existe, mas ainda não está conectada ao handler Quarkus
+
+### Descontinuado (da Fase-3)
+- **Mutações GraphQL:** a coleção não testa mais mutações GraphQL; executa apenas a consulta `listFeedbacks`
+- **Cabeçalho legado de chave GraphQL:** não é mais aceito; todas as rotas usam `Authorization: Bearer <token>`
+
+---
+
+## Suporte e feedback
+
+Para problemas com a coleção:
+1. Verifique o contrato da API em `/Users/jefferson/Documents/FIAP/fase-4/docs/api-collection/plan.md`
+2. Consulte o código-fonte em `/Users/jefferson/Documents/FIAP/fase-4/receive-feedback/src/main/java/com/fiap/feedback/infra/handler/ReceiveFeedbackHandler.java`
+3. Revise os logs de Lambda no AWS CloudWatch para ver os detalhes reais do erro
+4. Confirme se o local-http está em execução para testes locais: `./run.sh local-check`

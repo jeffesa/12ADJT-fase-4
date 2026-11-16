@@ -1,220 +1,236 @@
-# Code Audit Report: 100% English Compliance
+# Auditoria final de código: padrão de idiomas
 
-**Date:** 2026-10-27  
-**Scope:** Full code audit for Portuguese language removal from all source files  
-**Result:** PASSED - All Portuguese identifiers and non-contract comments translated to English
+**Veredito: PASS (com exceções documentadas)**
 
----
+**Data e hora da varredura:** 2026-11-15 21:49:32 (-03:00), saída de `date`.
+**Branch:** `docs/code-audit-final-3`, a partir de `chore/email-messages-pt` (`1ed4ffb`).
+**Base de referência:** relatório da branch `docs/code-audit-final-2` (commit `255c83f`), usado como ponto de partida e reexecutado contra o estado atual.
+**Build:** `mvn -B clean verify` na raiz (módulos `receive-feedback`, `send-notification`, `generate-report`) e `mvn -B -f local-http/pom.xml clean verify`, JDK 17, todos com `BUILD SUCCESS`.
 
-## Executive Summary
-
-This audit scanned all Java source files, XML/YAML configuration files, and properties files under `/Users/jefferson/Documents/FIAP/fase-4/.worktrees/final-docs` for Portuguese language content. A total of 104 source files were examined.
-
-**Findings:**
-- 1 public GraphQL API contract preserved (see "Public API Exceptions" section)
-- 1 internal method name renamed (Portuguese → English)
-- 7 configuration/documentation files with Portuguese comments/descriptions updated
-- All changes verified with 146 passing tests
+Este relatório substitui a versão anterior. Ele aplica as decisões do responsável registradas em 2026-11-15:
+- Documentos de planejamento (`docs/planejamento/*`, incluindo `BACKLOG.md`) ficam fora da varredura.
+- Todos os `.md` em escopo ficam em português: prose traduzida, blocos de código, comandos, nomes de campos e rotas mantidos.
+- Exemplos de erro usam o texto real da API.
+- `infra/template.yaml.bak` e `infra/template.yaml.orig` foram removidos do git.
+- Os registros históricos listados por nome (seção 7.2) continuam como exceção (b).
 
 ---
 
-## Files Scanned and Changes Made
+## 1. Regras da auditoria
 
-### Java Files (50 scanned)
-
-**Directory:** `receive-feedback/src/main/java/`  
-**Files scanned:** 21  
-**Changes:** 2 (method name, no breaking changes to behavior)
-
-- `com/fiap/feedback/application/usecase/ReceiveFeedbackUseCase.java`
-  - **Line 64:** Method renamed `listarTodos()` → `listAll()`
-  - **Reason:** Internal use case method; Portuguese identifier
-  - **Impact:** Low (internal API only, updated all call sites)
-
-- `com/fiap/feedback/infra/graphql/ReceiveFeedbackQueryResolver.java`
-  - **Line 58:** Updated method call from `listarTodos()` to `listAll()`
-  - **Reason:** Reflects renamed internal method
-  - **Impact:** None (implementation detail change only)
-
-- `com/fiap/feedback/infra/graphql/ReceiveFeedbackQueryResolver.java`
-  - **Line 52:** GraphQL query name `listarAvaliacoes()` preserved (see exceptions)
-  - **Reason:** Public GraphQL API contract; renaming would break client queries
-  - **Impact:** Intentionally preserved for API stability
-
-**Directory:** `receive-feedback/src/test/java/`  
-**Files scanned:** 6  
-**Changes:** 0 (tests call GraphQL resolver, which preserves public query name)
-
-**Directory:** `send-notification/src/main/java/` and `src/test/java/`  
-**Files scanned:** 12  
-**Changes:** 0 (all identifiers already in English)
-
-**Directory:** `generate-report/src/main/java/` and `src/test/java/`  
-**Files scanned:** 11  
-**Changes:** 0 (all identifiers already in English)
-
-### Configuration Files (54 scanned)
-
-**POM Files (XML):** 4 scanned, 3 updated
-
-1. **receive-feedback/pom.xml**
-   - **Line 15:** Description: `"Lambda 1 - Recebe e persiste avaliações, dispara notificação SNS para urgências altas"` → `"Lambda 1 - Receives and persists feedback ratings, triggers SNS notification for high urgency"`
-   - **Line 40:** Comment: `"<!-- Jackson para serialização JSON -->"` → `"<!-- Jackson for JSON serialization -->"`
-
-2. **send-notification/pom.xml**
-   - **Line 15:** Description: `"Lambda 2 - Envia notificação por e-mail ao admin quando feedback é crítico (urgência HIGH)"` → `"Lambda 2 - Sends email notification to admin when feedback is critical (HIGH urgency)"`
-   - **Line 35:** Comment: `"<!-- Jackson para deserializar mensagem SNS -->"` → `"<!-- Jackson for deserializing SNS message -->"`
-
-3. **generate-report/pom.xml**
-   - **Line 15:** Description: `"Lambda 3 - Gera e envia relatório semanal de feedbacks (triggered por EventBridge cron)"` → `"Lambda 3 - Generates and sends weekly feedback report (triggered by EventBridge cron)"`
-
-**Properties Files:** 2 scanned, 1 updated
-
-1. **receive-feedback/src/main/resources/application.properties**
-   - **Line 2:** Comment: `"# receive-feedback — configurações da Lambda"` → `"# receive-feedback — Lambda configuration"`
-   - **Line 5:** Comment: `"# Profile ativo (dev usa LocalStack, prod usa AWS real)"` → `"# Active profile (dev uses LocalStack, prod uses real AWS)"`
-   - **Line 9-10:** Comments: `"# dev: aponta para LocalStack"` → `"# dev: points to LocalStack"`
-   - **Line 17:** Comment: `"# prod: usa credenciais da IAM Role da Lambda (sem configuração explícita)"` → `"# prod: uses IAM Role credentials from Lambda (no explicit configuration)"`
-   - **Line 20:** Comment: `"# Nome da tabela DynamoDB"` → `"# DynamoDB table name"`
-   - **Line 33:** Comment: `"# ARN do tópico SNS para notificações urgentes (injetado pelo SAM via env var)"` → `"# SNS topic ARN for urgent notifications (injected by SAM via env var)"`
-
-**YAML Files:** 3 scanned, 2 updated
-
-1. **docker-compose.yml**
-   - **Line 5:** Comment: `"# LocalStack — emula AWS services localmente"` → `"# LocalStack — emulates AWS services locally"`
-   - **Line 21:** Comment: `"# Services a serem emulados"` → `"# Services to be emulated"`
-   - **Line 22:** Comment: `"# Modo debug (opcional, descomente para troubleshooting)"` → `"# Debug mode (optional, uncomment for troubleshooting)"`
-   - **Line 26:** Comment: `"# Usar a mesma região configurada nas aplicações"` → `"# Use the same region configured in the applications"`
-   - **Line 29:** Comment: `"# LocalStack 3.x específico"` → `"# LocalStack 3.x specific"`
-   - **Line 33:** Comment: `"# Persist LocalStack state (opcional)"` → `"# Persist LocalStack state (optional)"`
-   - **Line 35:** Comment: `"# Script de inicialização para criar recursos"` → `"# Initialization script for creating resources"`
-
-2. **generate-report/src/main/resources/application.yaml** (scanned, no Portuguese found)
-
-**Properties Files (Sonar):** 1 scanned, 1 updated
-
-1. **sonar-project.properties**
-   - **Line 3:** Comment: `"# SonarCloud - Tech Challenge Fase 4 (Projeto Serverless Multi-Module)"` → `"# SonarCloud - Tech Challenge Fase 4 (Serverless Multi-Module Project)"`
-   - **Line 6:** Comment: `"# Módulos Maven (3 Lambdas independentes)"` → `"# Maven modules (3 independent Lambdas)"`
-   - **Line 8-10:** Comments: Multiple updates ("Fontes e testes" → "Sources and tests", etc.)
-   - **Line 13-14:** Comments: `"# Relatórios de cobertura JaCoCo..."` → `"# JaCoCo coverage reports..."`
-   - **Line 17:** Comment: `"# Exclusões de cobertura..."` → `"# Coverage exclusions..."`
-   - **Line 26:** Comment: `"# Exclusões de duplicação..."` → `"# Code duplication exclusions..."`
-   - **Line 32:** Comment: `"# Quality Gate (opcional...)"` → `"# Quality Gate (optional...)"`
+| Tema | Regra | Resultado |
+|---|---|---|
+| Código e identificadores | Em inglês (`*.java`, `*.properties`, `*.xml`, `*.yml`, `*.yaml`, nomes de arquivo) | PASS |
+| Comentários e Javadoc | Em inglês | PASS |
+| Mensagens para pessoas em código | Em português: textos de e-mail, assunto de SNS, alarmes, menus, workflows, POM, nomes de requisição da collection, `.md` | PASS |
+| Logs | Em português, e a documentação cita os logs com o texto atual do código | PASS |
+| Mensagens de API (`detail`, `title`) | Em português no código e na documentação | PASS |
+| Identificadores de contrato externo | Só as exceções (a) e (b) da seção 5 e 7.2 | PASS com exceções |
+| Arquivos de cópia de trabalho | `infra/template.yaml.bak` e `.orig` não rastreados | PASS (seção 8) |
+| Documentos `.md` em escopo | Prose em português | PASS (seção 7) |
 
 ---
 
-## Public API Exceptions
+## 2. Comandos de varredura
 
-### GraphQL Query: `listarAvaliacoes()`
+Todos os comandos rodam na raiz do worktree `R=/Users/jefferson/Documents/FIAP/fase-4/.worktrees/code-audit-final-3`, com `git -C` e caminho absoluto. A busca usa `git grep`, compatível com macOS. Não usa `\b`.
 
-**Location:** `receive-feedback/src/main/java/com/fiap/feedback/infra/graphql/ReceiveFeedbackQueryResolver.java:52`
-
-**Status:** ✅ PRESERVED (intentional exception)
-
-**Rationale:**
-- This is a **published GraphQL API contract** exposed to clients
-- The query name appears in the GraphQL schema and is used by existing client applications
-- Renaming would constitute a **breaking change** requiring a major version bump (2.0)
-- Per TASK-033 decision: "This is acceptable because (1) the query name is in the GraphQL schema (public interface), (2) renaming would be a breaking change, (3) internal code should be 100% English, but public API contracts can be stable even if they contain Portuguese names"
-
-**Guidance for future maintenance:** Any changes to this query name must be coordinated with API versioning strategy and client notification.
-
----
-
-## Verification Results
-
-### Build Command
 ```bash
-mvn -f /Users/jefferson/Documents/FIAP/fase-4/.worktrees/final-docs/pom.xml clean verify
+date
+git -C "$R" rev-parse --short HEAD
+
+# Arquivos rastreados e contagem por extensão
+git -C "$R" ls-files | wc -l
+git -C "$R" ls-files | sed -E 's/.*\.([^./]+)$/\1/' | sort | uniq -c | sort -rn
+
+# Arquivos de cópia de trabalho (deve retornar vazio)
+git -C "$R" ls-files | grep -E 'template\.yaml\.(bak|orig)'
+
+# Contrato legado em código de produção (deve retornar vazio)
+git -C "$R" grep -n -I -E '"(descricao|nota|urgencia|dataCriacao)"|listarAvaliacoes|/avaliacao' -- '*/src/main/*'
+
+# Contrato legado nos testes
+git -C "$R" grep -n -I -E 'descricao|"nota"|[[:<:]]nota[[:>:]]|urgencia|dataCriacao' -- '*/src/test/*'
+
+# Mensagens em inglês em código, collection e documentação (deve retornar vazio)
+git -C "$R" grep -n -I -E 'Missing bearer|Invalid bearer|Validation Error|"Unauthorized"|Rating must|Description cannot|Description must|must not be empty' -- '*.md' '*.json' 'README.md'
+
+# Identificadores de contrato em .md, fora de planejamento e deste relatório
+git -C "$R" grep -c -I -E '/avaliacao|listarAvaliacoes|criarAvaliacao|dataCriacao|avaliacoes|descricao|[Uu]rgencia' -- '*.md' ':!docs/planejamento/*' ':!docs/qualidade/CODE_AUDIT.md'
+
+# Guia de demo sem o nome legado
+git -C "$R" grep -c 'Urgencia' -- docs/qualidade/DEMO_GUIDE.md
+
+# BACKLOG sem alteração em relação à base
+git -C "$R" diff --quiet chore/email-messages-pt HEAD -- docs/planejamento/BACKLOG.md
+
+# Código e configuração sem alteração em relação à base
+git -C "$R" diff --stat chore/email-messages-pt HEAD -- '*.java' '*.properties' '*.xml' '*.yml' '*.yaml' '*.toml' '*.sh'
+
+# Prose em inglês fora de blocos de código (script Python que ignora cercas ```)
+# Lista apenas palavras em inglês; ocorrências de "status", "use" e "test" em português são falsos positivos.
 ```
 
-### Test Results
-```
-Tests run: 146, Failures: 0, Errors: 0, Skipped: 0
-```
-
-**Modules tested:**
-- receive-feedback: ✅ PASS (46 tests)
-- send-notification: ✅ PASS (44 tests)
-- generate-report: ✅ PASS (56 tests)
-
-**Build status:** ✅ SUCCESS
-
-**Total build time:** 41.386 seconds
-
-**Conclusion:** All code changes are functionally correct. No regressions detected.
+Os scripts de busca de comentários e de identificadores em português da auditoria anterior continuam válidos. O código Java não mudou desde a varredura anterior, então esses resultados se mantêm.
 
 ---
 
-## Summary of Changes by Category
+## 3. Arquivos varridos por extensão
 
-| Category | Count | Examples |
-|----------|-------|----------|
-| Method names (internal) | 1 | `listarTodos()` → `listAll()` |
-| POM descriptions | 3 | Lambda descriptions in `<description>` tags |
-| POM comments | 2 | Jackson dependency comments |
-| Properties comments | 6 | Configuration section headers and variable descriptions |
-| YAML comments | 7 | Docker Compose service and configuration comments |
-| Sonar config comments | 5 | SonarCloud project configuration |
-| **GraphQL contracts (preserved)** | **1** | `listarAvaliacoes()` query name |
-| **Total changes** | **25** | All non-contract Portuguese → English |
+Contagem com `git ls-files` depois da remoção dos arquivos de cópia de trabalho.
 
----
+| Extensão | Arquivos | Escopo da regra |
+|---|---|---|
+| `java` | 115 | Código: identificadores, comentários, nomes de arquivo |
+| `md` | 28 | Documentação: prose em português; identificadores de contrato sujeitos à seção 7 |
+| `properties` | 6 | Configuração: chaves e comentários em inglês; textos de e-mail em português |
+| `xml` | 5 | POM: `<description>` em português |
+| `yml` | 3 | Configuração e workflows |
+| `yaml` | 3 | Configuração e template |
+| `toml` | 2 | `build.toml`, `infra/samconfig.toml` |
+| `sh` | 2 | `run.sh`, `monitor-stack.sh`: menus e mensagens em português |
+| `json` | 2 | Collection e registro de review: nomes de requisição e descrições em português |
+| `pdf` | 1 | Documento de entrega, fora da varredura |
+| `gitignore` | 1 | Fora da varredura |
+| `dockerignore` | 1 | Fora da varredura |
 
-## Files Reviewed
-
-### Source Files (Java)
-- ✅ receive-feedback: 27 files (21 src + 6 test)
-- ✅ send-notification: 12 files
-- ✅ generate-report: 11 files
-- ✅ Total Java files: 50
-
-### Configuration Files
-- ✅ POM files: 4 (receive-feedback, send-notification, generate-report, parent)
-- ✅ Properties: 2 (application.properties files)
-- ✅ YAML: 3 (docker-compose.yml, application.yaml files)
-- ✅ SonarCloud: 1 (sonar-project.properties)
-- ✅ Total config files: 10
-
-### Infrastructure & Workflow Files
-- ✅ GitHub Actions: 3 workflow files (scanned, all in English)
-- ✅ Template: 1 (AWS SAM template, scanned, all in English)
-- ✅ Other: docs, infra scripts (in scope but contained no Portuguese)
+Total rastreado: 169 arquivos (antes, 171; saíram `infra/template.yaml.bak` e `.orig`).
 
 ---
 
-## Audit Metadata
+## 4. Nomes de arquivo
 
-| Field | Value |
-|-------|-------|
-| Audit Type | First Iteration - Full Scan |
-| Scope | `/Users/jefferson/Documents/FIAP/fase-4/.worktrees/final-docs` |
-| Total Files Scanned | 104 |
-| Portuguese Occurrences Found | 25 |
-| Occurrences Fixed | 24 |
-| Occurrences Preserved (exceptions) | 1 (public API contract) |
-| Test Coverage | 146 tests, all passing |
-| Build Result | ✅ SUCCESS |
-| Timestamp | 2026-10-27T23:54:47-03:00 |
-| Build Time | 41.386 seconds |
+Os 115 arquivos `.java`, os 6 `.properties`, os 5 `.xml`, os 3 `.yml` e os 3 `.yaml` têm nome em inglês. Os documentos `.md` com termos em português (`BACKLOG.md`, `HANDOFF_SESSION.md`, `RESUMO_CONVERSA.md`, `TASK-019-AWS-DEPLOYMENT-BLOQUEADO.md`) estão fora da regra de nomes de código.
+
+**Resultado: PASS.**
 
 ---
 
-## Recommendations
+## 5. Identificadores e contrato em código
 
-1. **Code Review:** All identifier renames and comment translations have been reviewed for accuracy. No semantic changes were made.
+### 5.1 Identificadores e comentários
+- Não há identificador em português em código. As ocorrências de `urgency` e `description` são palavras em inglês.
+- Não há comentário Java com palavra comum em português.
+- Os campos JSON atuais são `description`, `rating`, `urgency`, `createdAt` e `id`.
 
-2. **API Documentation:** Document the `listarAvaliacoes()` query name in API.md with a note that it is a stable public contract and should not be changed without a major version bump.
+**Resultado: PASS.**
 
-3. **Continuous Compliance:** Going forward, enforce English-only identifiers in code reviews via lint rules or CI/CD checks to prevent future Portuguese identifiers from entering the codebase.
+### 5.2 Contrato legado em código e configuração
 
-4. **Legacy Support:** The preserved `listarAvaliacoes()` query should be considered for eventual replacement with `listFeedbacks()` or `listRatings()` in a future 2.0 API release with proper deprecation messaging.
+Nenhuma ocorrência em `src/main`, `.properties`, `.xml`, `.yml`, `.yaml`, `infra/template.yaml`, `docs/api-collection/*.json`, `run.sh`, `monitor-stack.sh` ou `infra/samconfig.toml`. A query `listarAvaliacoes` e a rota `/avaliacao` não aparecem em nenhum arquivo rastreado de código ou configuração.
+
+| Arquivo | Linha | Ocorrência | Situação |
+|---|---|---|---|
+| `receive-feedback/src/test/java/com/fiap/feedback/infra/handler/ReceiveFeedbackHandlerV1Test.java` | 83 | Corpo de requisição com `"descricao"` e `"nota"`, esperando 400 | Exceção (a): teste negativo que confirma que a v1 rejeita o formato legado |
+| `receive-feedback/src/test/java/com/fiap/feedback/infra/handler/ReceiveFeedbackHandlerV1Test.java` | 172 | `assertFalse(item.has("descricao"))` | Exceção (a): asserção negativa que confirma que a v1 não devolve a chave legada |
+
+Os outros dois resultados de `grep` nos testes são frases em português e não são identificadores legados: `ReportDynamoMapperTest.java:52` e `SnsUrgencyPublisherTest.java:56`.
+
+**Resultado: PASS, com as duas exceções (a) documentadas.**
 
 ---
 
-## Conclusion
+## 6. Logs, mensagens de API e textos para pessoas
 
-✅ **AUDIT COMPLETE**
+### 6.1 Logs e exceções
+- Os textos de log do código estão em português. Termos técnicos (`Handler`, `Lambda`, `GraphQL`, `SNS`, `SES`, `DynamoDB`, `MessageId`, `receiveFeedback`, `listFeedbacks`) permanecem em inglês, como nomes de tecnologia ou de operação.
+- Os e-mails e assuntos SNS estão em português.
+- `e.getMessage()` concatenado em logs produz, às vezes, texto da biblioteca ou do SDK da AWS. Esse texto não é escrito pelo código e não entra como falha.
 
-The codebase now complies with 100% English code policy with one documented exception for the published GraphQL API contract. All changes have been tested and verified. The build passes with all 146 tests succeeding.
+**Resultado: PASS.**
+
+### 6.2 Mensagens de API no código
+
+Os valores de `title` e `detail` emitidos pelo código estão em português: `Erro de validação`, `Erro interno do servidor`, `Requisição inválida`, `Não autorizado`, `Token Bearer ausente`, `Token Bearer inválido`, `Nota deve ser no mínimo 0`, `Descrição não pode estar vazia`.
+
+**Resultado: PASS.**
+
+### 6.3 Logs citados na documentação
+
+`docs/qualidade/MONITORING_GUIDE.md` cita os logs com o texto atual do código, por exemplo `Descrição deve ter no mínimo 5 caracteres`, `Erro do SES ao enviar e-mail para o feedback <id>` e `Handler Lambda invocado`. Os textos foram conferidos em `src/main`, e a citação que não existia no código foi trocada.
+
+**Resultado: PASS.**
+
+---
+
+## 7. Documentação
+
+### 7.1 Documentos em escopo, em português
+
+Documentos traduzidos nesta etapa: `docs/API.md`, `docs/api-collection/API.md`, `docs/api-collection/README.md`, `docs/SECURITY.md`, `docs/deploy/AWS_DEPLOY_GUIDE.md`, `docs/qualidade/DEMO_GUIDE.md`, `docs/qualidade/MONITORING_GUIDE.md`, `docs/qualidade/FINAL_STATUS_REPORT.md`, `docs/LOCAL_SETUP.md`, `docs/E2E_TESTING_GUIDE.md`, `LOCAL_DEVELOPMENT.md`, `README.md` (passos do pipeline) e `receive-feedback/GRAPHQL_TEST_GUIDE.md`.
+
+Mantidos sem tradução, por decisão: blocos de código, comandos, nomes de campos GraphQL e JSON (`description`, `rating`, `urgency`, `createdAt`), rotas, nomes de recursos da AWS, nomes de rótulos de interface do GitHub (`Re-run all jobs`, `Run workflow`) e o nome do job `Build & Test & SonarCloud`.
+
+Exemplos de erro nos blocos de código foram trocados pelo texto real da API:
+- `Token Bearer ausente` / `Token Bearer inválido`, com `title` `Não autorizado`
+- `Erro de validação` com `Nota deve ser no mínimo 0`
+- `Erro interno do servidor`
+
+Collection do Postman: as asserções dos 12 testes 401 e os nomes dos testes usam o texto real da API.
+
+**Resultado: PASS.**
+
+### 7.2 Registros históricos (exceção b)
+
+Estes arquivos são registros de testes e de tarefas. Citam `/avaliacao`, `listarAvaliacoes`, `criarAvaliacao`, `dataCriacao`, `avaliacoes`, `descricao` ou `urgencia`. Ficam como exceção por nome, conforme a decisão do responsável. O texto deles não foi traduzido.
+
+| Arquivo | Ocorrências | Tipo |
+|---|---|---|
+| `TEST_RESULTS.md` | 14 | Registro de testes do `/avaliacao` |
+| `TASK_018_COMPLETION_SUMMARY.md` | 3 | Registro de tarefa |
+| `docs/E2E_TEST_RESULTS.md` | 19 | Registro de testes |
+| `docs/E2E_TEST_RESULTS_SAMPLE.md` | 26 | Registro de testes |
+| `docs/TASK-019-AWS-DEPLOYMENT-BLOQUEADO.md` | 1 | Registro de deploy, cita `POST /avaliacao` |
+
+Total: 63 ocorrências em 5 arquivos.
+
+`docs/planejamento/*` e `BACKLOG.md` estão fora da varredura (decisão c).
+
+### 7.3 Falsos positivos sem ação
+- `README.md`: "descrição" e "nota" em português. Não são identificadores.
+- Dados de exemplo em `DEMO_GUIDE.md` (por exemplo `Critical issue: System crashes on login`) são payload de entrada, não mensagens do sistema.
+- Palavras em português que coincidem com termos em inglês (`Status`, `use`, `Test`) não são prose em inglês.
+
+**Resultado: PASS.**
+
+---
+
+## 8. Arquivos de cópia de trabalho
+
+| Arquivo | Estado | Verificação |
+|---|---|---|
+| `infra/template.yaml.bak` | Removido com `git rm` | `git ls-files` não lista o arquivo |
+| `infra/template.yaml.orig` | Removido com `git rm` | `git ls-files` não lista o arquivo |
+
+Nenhuma referência aponta para os dois arquivos: `git grep -n -I -E 'yaml\.(bak|orig)'` só retornava este relatório antes da remoção. `infra/` agora tem `samconfig.toml` e `template.yaml`.
+
+**Resultado: PASS.**
+
+---
+
+## 9. Testes
+
+Comando: `mvn -B clean verify` na raiz e `mvn -B -f local-http/pom.xml clean verify`.
+
+| Módulo | Testes | Falhas | Erros | Resultado |
+|---|---|---|---|---|
+| receive-feedback | 147 | 0 | 0 | SUCCESS |
+| send-notification | 86 | 0 | 0 | SUCCESS |
+| generate-report | 159 | 0 | 0 | SUCCESS |
+| local-http | 6 | 0 | 0 | SUCCESS |
+
+Logs: `/tmp/code-audit-final-3-build.log` (raiz, `MVN_ROOT_EXIT=0`) e `/tmp/code-audit-final-3-local-http.log` (local-http, `MVN_LOCALHTTP_EXIT=0`).
+
+---
+
+## 10. Veredito e pendências
+
+**Veredito: PASS, com exceções documentadas.**
+
+Exceções aceitas:
+1. **(a)** `ReceiveFeedbackHandlerV1Test.java`, linhas 83 e 172 (seção 5.2).
+2. **(b)** Registros históricos listados por nome na seção 7.2: 63 ocorrências em 5 arquivos.
+
+Fora da varredura, por decisão: `docs/planejamento/*` e `BACKLOG.md`.
+
+Nenhum item bloqueia o PASS.

@@ -1,19 +1,19 @@
-# GraphQL Query Testing Guide: listFeedbacks
+# Guia de teste de consulta GraphQL: listFeedbacks
 
-## Section 1: Prerequisites
+## Seção 1: pré-requisitos
 
-Before testing, ensure:
-- The receive-feedback application is running (port 8080 by default)
-- GraphQL endpoint is available at `http://localhost:8080/graphql`
-- DynamoDB (LocalStack or AWS) is accessible with configured credentials
-- Bruno or Postman is installed for testing
-- The build was successful: `mvn clean verify -pl receive-feedback` ✓
+Antes de testar, confirme que:
+- A aplicação receive-feedback está rodando (porta 8080 por padrão)
+- O endpoint GraphQL está disponível em `http://localhost:8080/graphql`
+- O DynamoDB (LocalStack ou AWS) está acessível com as credenciais configuradas
+- O Bruno ou o Postman está instalado para os testes
+- O build foi bem-sucedido: `mvn clean verify -pl receive-feedback` ✓
 
-## Section 2: Create 3 Feedbacks via Mutation
+## Seção 2: criar 3 feedbacks pela mutation
 
-Execute the following GraphQL mutation three times in sequence, once for each feedback:
+Execute a mutation GraphQL abaixo três vezes, em sequência, uma para cada feedback:
 
-### Mutation 1: Create HIGH urgency feedback (rating 4)
+### Mutation 1: criar feedback de urgência HIGH (nota 4)
 
 ```graphql
 mutation {
@@ -30,7 +30,7 @@ mutation {
 }
 ```
 
-Expected Response:
+Resposta esperada:
 ```json
 {
   "data": {
@@ -45,7 +45,7 @@ Expected Response:
 }
 ```
 
-### Mutation 2: Create MEDIUM urgency feedback (rating 6)
+### Mutation 2: criar feedback de urgência MEDIUM (nota 6)
 
 ```graphql
 mutation {
@@ -62,7 +62,7 @@ mutation {
 }
 ```
 
-Expected Response:
+Resposta esperada:
 ```json
 {
   "data": {
@@ -77,7 +77,7 @@ Expected Response:
 }
 ```
 
-### Mutation 3: Create LOW urgency feedback (rating 9)
+### Mutation 3: criar feedback de urgência LOW (nota 9)
 
 ```graphql
 mutation {
@@ -94,7 +94,7 @@ mutation {
 }
 ```
 
-Expected Response:
+Resposta esperada:
 ```json
 {
   "data": {
@@ -109,9 +109,9 @@ Expected Response:
 }
 ```
 
-## Section 3: List All Feedbacks via Query
+## Seção 3: listar todos os feedbacks pela query
 
-Execute the following GraphQL query to retrieve all feedbacks:
+Execute a query GraphQL abaixo para buscar todos os feedbacks:
 
 ```graphql
 query {
@@ -125,7 +125,7 @@ query {
 }
 ```
 
-Expected Response (array of 3 feedbacks):
+Resposta esperada (lista com 3 feedbacks):
 ```json
 {
   "data": {
@@ -156,49 +156,49 @@ Expected Response (array of 3 feedbacks):
 }
 ```
 
-### Validation Checklist
+### Checklist de validação
 
-After running the query, verify:
-- [ ] Query returns 3 items
-- [ ] First item has urgency: "HIGH" (rating 4)
-- [ ] Second item has urgency: "MEDIUM" (rating 6)
-- [ ] Third item has urgency: "LOW" (rating 9)
-- [ ] All items have valid UUIDs in id field
-- [ ] All items have non-null createdAt timestamps
-- [ ] Descriptions match what was submitted
+Depois de rodar a query, confirme:
+- [ ] A query retorna 3 itens
+- [ ] O primeiro item tem urgency: "HIGH" (nota 4)
+- [ ] O segundo item tem urgency: "MEDIUM" (nota 6)
+- [ ] O terceiro item tem urgency: "LOW" (nota 9)
+- [ ] Todos os itens têm UUIDs válidos no campo id
+- [ ] Todos os itens têm createdAt preenchido
+- [ ] As descrições são as que foram enviadas
 
-## Section 4: Testing with Bruno or Postman
+## Seção 4: testar com o Bruno ou o Postman
 
-### Import GraphQL Endpoint
+### Configurar o endpoint GraphQL
 
-1. Create a new request in Bruno/Postman
-2. Set method to POST
-3. Set URL to `http://localhost:8080/graphql`
-4. Add header: `Content-Type: application/json`
+1. Crie uma nova requisição no Bruno/Postman
+2. Defina o método como POST
+3. Defina a URL como `http://localhost:8080/graphql`
+4. Adicione o header: `Content-Type: application/json`
 
-### Test Flow
+### Fluxo de teste
 
-1. **Run Mutation 1** (HIGH urgency): Send mutation query for "Bad experience" with rating 4
-   - Verify response contains urgency: "HIGH"
-2. **Run Mutation 2** (MEDIUM urgency): Send mutation query for "Okay service" with rating 6
-   - Verify response contains urgency: "MEDIUM"
-3. **Run Mutation 3** (LOW urgency): Send mutation query for "Excellent service" with rating 9
-   - Verify response contains urgency: "LOW"
-4. **Run Query**: Send query `listFeedbacks` to retrieve all feedbacks
-   - Verify 3 items returned
-   - Verify urgencies are correctly mapped (HIGH, MEDIUM, LOW)
-   - Verify order is preserved
+1. **Rodar a mutation 1** (urgência HIGH): envie a mutation com "Bad experience" e nota 4
+   - Confirme que a resposta contém urgency: "HIGH"
+2. **Rodar a mutation 2** (urgência MEDIUM): envie a mutation com "Okay service" e nota 6
+   - Confirme que a resposta contém urgency: "MEDIUM"
+3. **Rodar a mutation 3** (urgência LOW): envie a mutation com "Excellent service" e nota 9
+   - Confirme que a resposta contém urgency: "LOW"
+4. **Rodar a query**: envie a query `listFeedbacks` para buscar todos os feedbacks
+   - Confirme que 3 itens são retornados
+   - Confirme que as urgências foram mapeadas corretamente (HIGH, MEDIUM, LOW)
+   - Confirme que a ordem foi preservada
 
-### Success Criteria
+### Critérios de sucesso
 
-✓ All 3 mutations executed successfully
-✓ Query returns all 3 feedbacks
-✓ Urgencies correctly calculated from ratings (4→HIGH, 6→MEDIUM, 9→LOW)
-✓ All output fields populated (id, description, rating, urgency, createdAt)
+✓ As 3 mutations foram executadas com sucesso
+✓ A query retorna os 3 feedbacks
+✓ As urgências foram calculadas corretamente a partir das notas (4→HIGH, 6→MEDIUM, 9→LOW)
+✓ Todos os campos de saída estão preenchidos (id, description, rating, urgency, createdAt)
 
-## Section 5: GraphQL Query Definition (for reference)
+## Seção 5: definição da query GraphQL (referência)
 
-The `listFeedbacks` query is defined in `ReceiveFeedbackQueryResolver.java`:
+A query `listFeedbacks` está definida em `ReceiveFeedbackQueryResolver.java`:
 
 ```java
 @Query
@@ -209,12 +209,12 @@ public List<FeedbackOutput> listFeedbacks() {
 }
 ```
 
-## Troubleshooting
+## Solução de problemas
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| "Query not found" | Resolver not deployed | Rebuild with `mvn clean compile` and restart app |
-| Empty list returned | No feedbacks created | Run mutations in Section 2 first |
-| Wrong urgency value | Rating range mismatch | Verify rating is 4 (HIGH), 6 (MEDIUM), or 9 (LOW) |
-| 401/403 error | Auth required | Configure bearer token if enabled |
-| Connection refused | App not running | Start application on port 8080 |
+| Problema | Causa | Solução |
+|-------|-------|-------|
+| "Query not found" | Resolver não implantado | Recompile com `mvn clean compile` e reinicie a aplicação |
+| Lista vazia retornada | Nenhum feedback criado | Execute as mutations da Seção 2 primeiro |
+| Valor de urgência errado | Faixa de nota incompatível | Confirme que a nota é 4 (HIGH), 6 (MEDIUM) ou 9 (LOW) |
+| Erro 401/403 | Autenticação exigida | Configure o token Bearer, se estiver habilitado |
+| Connection refused | Aplicação não está rodando | Inicie a aplicação na porta 8080 |
