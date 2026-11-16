@@ -64,7 +64,7 @@ public class ReportEmailBuilder {
         html.append("<body>\n");
 
         // Report header
-        html.append("  <h1>Weekly Feedback Report</h1>\n");
+        html.append("  <h1>Relatório semanal de feedback</h1>\n");
 
         // Period information
         html.append("  <div class=\"period\">\n");

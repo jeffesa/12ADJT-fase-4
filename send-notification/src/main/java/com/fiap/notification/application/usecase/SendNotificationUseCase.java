@@ -62,7 +62,7 @@ public class SendNotificationUseCase {
      */
     public void execute(Notification notification) throws NotificationException {
         if (notification == null) {
-            throw new NullPointerException("Notification cannot be null");
+            throw new NullPointerException("Notificação não pode ser nula");
         }
 
         // Log the send attempt

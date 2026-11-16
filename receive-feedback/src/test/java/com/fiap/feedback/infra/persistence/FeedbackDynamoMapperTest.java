@@ -56,7 +56,9 @@ class FeedbackDynamoMapperTest {
         Map<String, AttributeValue> item = validItem();
         item.remove("rating");
 
-        assertThrows(IllegalArgumentException.class, () -> FeedbackDynamoMapper.toDomain(item));
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> FeedbackDynamoMapper.toDomain(item));
+        assertTrue(error.getMessage().startsWith("Erro ao converter item do DynamoDB para entidade Feedback: "));
     }
 
     @Test

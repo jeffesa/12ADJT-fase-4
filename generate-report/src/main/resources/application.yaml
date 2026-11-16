@@ -24,7 +24,7 @@ report:
   sender-email: ${SENDER_EMAIL:noreply@feedback-fase-4.com}
   dynamodb-endpoint: ${DYNAMODB_ENDPOINT:http://localhost:4566}
   table-name: ${DYNAMODB_TABLE_NAME:feedbacks}
-  report-title: ${REPORT_TITLE:Weekly Feedback Report}
+  report-title: ${REPORT_TITLE:Relatório semanal de feedback}
 
 # DynamoDB Configuration
 dynamodb:

@@ -37,7 +37,7 @@ class ReportDynamoMapperTest {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> ReportDynamoMapper.toDomain(item));
 
-        assertEquals("Error converting DynamoDB item to Feedback entity: missing required field",
+        assertEquals("Erro ao converter item do DynamoDB para entidade Feedback: campo obrigatório ausente",
                 error.getMessage());
     }
 
@@ -49,7 +49,7 @@ class ReportDynamoMapperTest {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> ReportDynamoMapper.toDomain(item));
 
-        assertEquals("Error converting DynamoDB item to Feedback entity: invalid rating format",
+        assertEquals("Erro ao converter item do DynamoDB para entidade Feedback: formato de nota inválido",
                 error.getMessage());
     }
 
@@ -61,7 +61,7 @@ class ReportDynamoMapperTest {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> ReportDynamoMapper.toDomain(item));
 
-        assertEquals("Error converting DynamoDB item to Feedback entity: invalid urgency or datetime format",
+        assertEquals("Erro ao converter item do DynamoDB para entidade Feedback: formato de urgência ou data/hora inválido",
                 error.getMessage());
     }
 

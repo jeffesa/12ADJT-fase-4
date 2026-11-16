@@ -51,7 +51,7 @@ public class FeedbackMessageBuilder {
                     feedback.getId(),
                     e.getMessage()
             );
-            throw new RuntimeException("Failed to serialize feedback to JSON", e);
+            throw new RuntimeException("Falha ao serializar feedback para JSON", e);
         }
     }
 }

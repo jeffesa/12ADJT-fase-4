@@ -94,7 +94,7 @@ public class FeedbackDynamoMapper {
             return new Feedback(id, description, rating, urgency, createdAt, notificationSent);
         } catch (Exception e) {
             throw new IllegalArgumentException(
-                    "Error converting DynamoDB item to Feedback entity: " + e.getMessage(), e
+                    "Erro ao converter item do DynamoDB para entidade Feedback: " + e.getMessage(), e
             );
         }
     }

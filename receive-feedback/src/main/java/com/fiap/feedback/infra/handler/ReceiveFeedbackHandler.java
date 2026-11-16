@@ -98,7 +98,7 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         LOGGER.log(Level.INFO, "GET /v1/feedback - listando todos os feedbacks");
         
         if (listFeedbackUseCase == null) {
-            throw new IllegalStateException("ListFeedbackUseCase not injected");
+            throw new IllegalStateException("ListFeedbackUseCase não injetado");
         }
         
         List<Feedback> feedbacks = listFeedbackUseCase.listAllFeedbacks();
@@ -130,10 +130,10 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
         LOGGER.log(Level.INFO, "POST /v1/feedback - criando feedback");
         
         if (receiveFeedbackUseCase == null) {
-            throw new IllegalStateException("ReceiveFeedbackUseCase not injected");
+            throw new IllegalStateException("ReceiveFeedbackUseCase não injetado");
         }
         if (validator == null) {
-            throw new IllegalStateException("Validator not injected");
+            throw new IllegalStateException("Validador não injetado");
         }
         
         String body = event.getBody();

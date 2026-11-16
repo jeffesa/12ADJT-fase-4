@@ -24,11 +24,11 @@ public class ReportPeriod {
      */
     public ReportPeriod(LocalDate startDate, LocalDate endDate) {
         if (startDate == null || endDate == null) {
-            throw new IllegalArgumentException("Start date and end date must not be null");
+            throw new IllegalArgumentException("Data inicial e data final não podem ser nulas");
         }
         if (startDate.isAfter(endDate)) {
             throw new IllegalArgumentException(
-                "Start date must be less than or equal to end date. Start: " + startDate + ", End: " + endDate
+                "Data inicial deve ser menor ou igual à data final. Início: " + startDate + ", Fim: " + endDate
             );
         }
         this.startDate = startDate;

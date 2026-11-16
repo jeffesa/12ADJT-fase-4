@@ -55,19 +55,19 @@ public class ReportDynamoMapper {
             return new Feedback(id, rating, urgency, createdAt);
         } catch (NullPointerException e) {
             throw new IllegalArgumentException(
-                    "Error converting DynamoDB item to Feedback entity: missing required field", e
+                    "Erro ao converter item do DynamoDB para entidade Feedback: campo obrigatório ausente", e
             );
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(
-                    "Error converting DynamoDB item to Feedback entity: invalid rating format", e
+                    "Erro ao converter item do DynamoDB para entidade Feedback: formato de nota inválido", e
             );
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(
-                    "Error converting DynamoDB item to Feedback entity: invalid urgency or datetime format", e
+                    "Erro ao converter item do DynamoDB para entidade Feedback: formato de urgência ou data/hora inválido", e
             );
         } catch (Exception e) {
             throw new IllegalArgumentException(
-                    "Error converting DynamoDB item to Feedback entity: " + e.getMessage(), e
+                    "Erro ao converter item do DynamoDB para entidade Feedback: " + e.getMessage(), e
             );
         }
     }
