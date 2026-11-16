@@ -221,7 +221,7 @@ Cada requisição inclui:
 
 ### 4. Ver os resultados
 
-**Aba Test Results:** mostra passou/falhou em cada asserção  
+**Aba de resultados dos testes:** mostra passou/falhou em cada asserção  
 **Corpo da resposta:** mostra o JSON devolvido pela API  
 **Estatísticas de teste:** resumo de testes aprovados e reprovados
 

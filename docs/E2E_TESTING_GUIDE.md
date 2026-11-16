@@ -48,7 +48,7 @@ curl -X POST http://localhost:8080/graphql \
 # Resposta esperada: {"data":{"__typename":"Query"}}
 ```
 
-Se os serviços não responderem, confira a saída dos terminais dos módulos e aguarde as mensagens "Listening on".
+Se os serviços não responderem, confira a saída dos terminais dos módulos e aguarde a mensagem de inicialização do Quarkus.
 
 ## Fluxo 1: feedback de urgência HIGH
 
@@ -256,8 +256,8 @@ isso indica que um feedback LOW disparou o e-mail por engano. É um bug.
 No módulo receive-feedback (Terminal 1), você deve ver:
 
 ```
-Received feedback: rating=9, urgency=LOW
-Saved to DynamoDB but NOT publishing to SNS (urgency is not HIGH)
+Feedback criado: 660e8400-e29b-41d4-a716-446655440001
+(gravado no DynamoDB, sem publicação no SNS, porque a urgência não é HIGH)
 ```
 
 **Verificação**:
@@ -318,10 +318,9 @@ curl -X POST http://localhost:8282/graphql \
 O módulo generate-report deve consultar o DynamoDB com um filtro de intervalo de datas (7 dias anteriores). No Terminal 3 (generate-report), procure:
 
 ```
-INFO: Querying DynamoDB for feedbacks from 2024-10-19 to 2024-10-26
-INFO: Found 2 matching feedbacks
-INFO: Aggregating statistics...
-INFO: Average rating: 6.5, HIGH: 1, MEDIUM: 0, LOW: 1
+INFO: Gerando relatório para o período 2024-10-19 a 2024-10-26
+FINE: Encontrados 2 feedbacks para o período
+FINE: Estatísticas agregadas: total=2, média=6.5, HIGH=1, MEDIUM=0, LOW=1
 ```
 
 **Verificação**:
@@ -334,13 +333,14 @@ INFO: Average rating: 6.5, HIGH: 1, MEDIUM: 0, LOW: 1
 No Terminal 3 (generate-report), procure:
 
 ```
-INFO: Sending report email to admin@feedback-fase-4.com
-INFO: Email contains HTML table with:
-  - Report generation date: 2024-10-26T15:32:00Z
-  - Date range: 2024-10-19 to 2024-10-26
-  - Total feedbacks: 2
-  - Average rating: 6.5
-  - Urgency distribution table
+INFO: Enviando relatório semanal <id> para admin@feedback-fase-4.com
+O e-mail contém tabelas HTML com:
+  - Data de geração do relatório: 2024-10-26T15:32:00Z
+  - Período: 2024-10-19 a 2024-10-26
+  - Total de feedbacks: 2
+  - Nota média: 6.5
+  - Tabela de distribuição por urgência
+INFO: Geração e envio do relatório concluídos com sucesso
 ```
 
 **Verificação**:
@@ -354,7 +354,7 @@ INFO: Email contains HTML table with:
 No Terminal 3, procure o tempo:
 
 ```
-Report generation completed in 456ms
+Geração do relatório concluída em 456 ms
 ```
 
 **Verificação**:
@@ -390,7 +390,7 @@ Flow,Status,Detail,ExecutionTime(ms),Evidence
 **Causa**: o módulo não responde (ainda está iniciando ou travou)
 
 **Solução**:
-1. Veja no terminal do módulo se aparece "Listening on port 8080" ou algo parecido
+1. Veja no terminal do módulo se aparece a mensagem de inicialização do Quarkus na porta 8080
 2. Aguarde mais de 30 segundos para o Quarkus iniciar por completo
 3. Reinicie o módulo:
    - Pressione `Ctrl+C` no terminal do módulo
