@@ -250,7 +250,7 @@ Comando: `mvn -B clean verify` na raiz do projeto, executado uma vez em modo nã
 | send-notification | 86 | 0 | 0 | SUCCESS |
 | generate-report | 159 | 0 | 0 | SUCCESS |
 
-Rodado de novo nesta revisão, depois das edições de documentação. Os números são os mesmos da primeira rodada. As edições são só em `.md`, e não alteram código. Log: `/tmp/code-audit-final-3-build.log`, `MVN_EXIT=0`.
+Rodado de novo nesta revisão, depois da restauração das cercas. Os números são os mesmos da primeira rodada. Os commits seguintes mudaram só `.md`, e não alteram código. Log: `/tmp/code-audit-final-3-build.log`, `MVN_EXIT=0`.
 
 O módulo `local-http` não faz parte do reactor da raiz e não foi executado.
 
