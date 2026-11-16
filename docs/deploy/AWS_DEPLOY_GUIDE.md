@@ -389,12 +389,12 @@ curl -i -X POST "$API_URL" \
 
 Campos do `POST /v1/feedback`: `description` (texto, não vazio) e `rating` (inteiro de 0 a 10). O contrato completo está em `docs/API.md`. Notas de 0 a 5 geram urgência alta (`HIGH`) e disparam SNS e e-mail; 6 a 7 é média e 8 a 10 é baixa.
 
-Respostas de erro (HTTP 401, header `WWW-Authenticate: Bearer`):
+Respostas de erro (HTTP 401, header `WWW-Authenticate: Bearer`; o campo `title` é `Não autorizado`):
 
 | `detail` | Causa |
 |---|---|
-| `Missing bearer token` | Header `Authorization` ausente, vazio ou com esquema diferente de `Bearer` |
-| `Invalid bearer token` | Token enviado, mas diferente do `API_TOKEN` da Lambda |
+| `Token Bearer ausente` | Header `Authorization` ausente, vazio ou com esquema diferente de `Bearer` |
+| `Token Bearer inválido` | Token enviado, mas diferente do `API_TOKEN` da Lambda |
 
 ### Recuperar o token
 
@@ -434,7 +434,7 @@ aws lambda get-function-configuration --profile fase4 --region sa-east-1 \
    ```
 
 2. Faça um novo deploy: abra o último run da `main` em **Actions** e clique em **Re-run all jobs**. O `workflow_dispatch` não serve, porque o job de deploy só roda em `push` na `main`.
-3. Só depois do deploy as Lambdas passam a aceitar o token novo. Até lá vale o token antigo, e o novo responde `Invalid bearer token`.
+3. Só depois do deploy as Lambdas passam a aceitar o token novo. Até lá vale o token antigo, e o novo responde `Token Bearer inválido`.
 4. Atualize o token nos clientes (Bruno/Postman, scripts).
 
 Em um deploy manual, passe `ApiToken=<token>` no `--parameter-overrides` (seção 7).
@@ -515,8 +515,8 @@ Aviso: o template usa `StageName: 'prod'` fixo no API Gateway, mas os outputs `A
 | Outputs, permissões das Lambdas ou `APP_REGION` apontando para `us-east-1` | Faltou `Region=sa-east-1` no `--parameter-overrides` (o default do template é `us-east-1`) |
 | E-mail de notificação ou relatório não chega | SES em sandbox: remetente **e** destinatário precisam estar verificados (`get-email-identity` com `VerificationStatus: SUCCESS`, seção 4.1). Confira `SENDER_EMAIL` e `ADMIN_EMAIL` e os logs de `prod-send-notification` |
 | Console do SES indisponível em `sa-east-1` | Limitação do console em contas do plano gratuito. Use a CLI (`aws sesv2 ...`) |
-| `401 Missing bearer token` | O header `Authorization: Bearer <token>` não foi enviado (ou o esquema não é `Bearer`) |
-| `401 Invalid bearer token` | Token diferente do `API_TOKEN` das Lambdas. Se você acabou de trocar o secret, falta o novo deploy (seção 9) |
+| `401 Token Bearer ausente` | O header `Authorization: Bearer <token>` não foi enviado (ou o esquema não é `Bearer`) |
+| `401 Token Bearer inválido` | Token diferente do `API_TOKEN` das Lambdas. Se você acabou de trocar o secret, falta o novo deploy (seção 9) |
 | `405` ao testar localmente | O módulo foi iniciado na pasta errada. Rode em `local-http` (`./run.sh local-up`) |
 | Módulo local não sobe (porta ocupada) | Libere as portas 8080 e 18081 |
 | Stack em `ROLLBACK_COMPLETE` | Remova com `sam delete --stack-name feedback-api-prod --region sa-east-1 --profile fase4` e faça um novo deploy |

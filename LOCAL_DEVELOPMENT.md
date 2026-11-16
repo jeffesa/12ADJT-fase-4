@@ -1,63 +1,63 @@
-# Local Development with Quarkus Dev Mode
+# Desenvolvimento local com Quarkus Dev Mode
 
-This guide explains how to set up local development for Fase-4 using Quarkus Dev Mode with hot reload, and how to test against AWS for integration testing.
+Este guia explica como preparar o ambiente de desenvolvimento local da Fase 4 usando o Quarkus Dev Mode, com hot reload, e como testar contra a AWS para testes de integração.
 
-## Quick Start
+## Início rápido
 
-### Prerequisites
+### Pré-requisitos
 
-- **Java 17+** (verify: `java -version`)
-- **Maven 3.8+** (verify: `mvn -version`)
-- **AWS CLI** (optional, for AWS integration testing)
+- **Java 17+** (verifique com `java -version`)
+- **Maven 3.8+** (verifique com `mvn -version`)
+- **AWS CLI** (opcional, para testes de integração com a AWS)
 
-### 1. Start Quarkus Dev Mode (3 terminals)
+### 1. Iniciar o Quarkus Dev Mode (3 terminais)
 
-Each module runs on a separate port with hot reload enabled.
+Cada módulo roda em uma porta diferente, com hot reload ativado.
 
-**Terminal 1 — receive-feedback (port 8080):**
+**Terminal 1 — receive-feedback (porta 8080):**
 ```bash
 cd /Users/jefferson/Documents/FIAP/fase-4/receive-feedback
 mvn quarkus:dev
 ```
 
-**Terminal 2 — send-notification (port 8081):**
+**Terminal 2 — send-notification (porta 8081):**
 ```bash
 cd /Users/jefferson/Documents/FIAP/fase-4/send-notification
 mvn quarkus:dev
 ```
 
-**Terminal 3 — generate-report (port 8082):**
+**Terminal 3 — generate-report (porta 8082):**
 ```bash
 cd /Users/jefferson/Documents/FIAP/fase-4/generate-report
 mvn quarkus:dev
 ```
 
-### 2. Verify Modules Are Running
+### 2. Verificar se os módulos estão rodando
 
-Once all three are running, check their health:
+Depois que os três estiverem no ar, confira a saúde de cada um:
 
 ```bash
-# Should return 200/404/405 (endpoints exist)
+# Deve retornar 200/404/405 (os endpoints existem)
 curl -v http://localhost:8080
 curl -v http://localhost:8081
 curl -v http://localhost:8082
 ```
 
-Or use the convenience script:
+Ou use o script de apoio:
 
 ```bash
 ./run.sh health
 ```
 
-### 3. Integration Testing on AWS
+### 3. Teste de integração na AWS
 
-All integration tests point to the live AWS deployment:
+Todos os testes de integração apontam para o deploy ativo na AWS:
 
 ```
 https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/
 ```
 
-Use Postman or curl to test:
+Use o Postman ou o curl para testar:
 
 ```bash
 curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback \
@@ -65,19 +65,19 @@ curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/v1/feed
   -d '{"description": "Test feedback", "rating": 5}'
 ```
 
-## Hot Reload Workflow
+## Fluxo de hot reload
 
-Quarkus Dev Mode provides instant hot reload of code changes:
+O Quarkus Dev Mode aplica as mudanças de código na hora:
 
-1. Edit a Java source file (e.g., `ReceiveFeedbackUseCase.java`)
-2. **Save the file** — Maven detects the change
-3. **Automatic compilation & reload** — Within 1-2 seconds
-4. **Test immediately** — No restart needed
+1. Edite um arquivo Java (por exemplo, `ReceiveFeedbackUseCase.java`)
+2. **Salve o arquivo**: o Maven detecta a mudança
+3. **Compilação e recarga automáticas**: em 1 a 2 segundos
+4. **Teste em seguida**: não é preciso reiniciar
 
-### Example: Adding a Log Statement
+### Exemplo: adicionar uma instrução de log
 
 ```java
-// In receive-feedback/src/main/java/com/fiap/feedback/application/usecase/ReceiveFeedbackUseCase.java
+// Em receive-feedback/src/main/java/com/fiap/feedback/application/usecase/ReceiveFeedbackUseCase.java
 @Override
 public Feedback receiveFeedback(String description, Integer rating) {
     LOGGER.info("Received feedback: " + description); // Add this line
@@ -85,11 +85,11 @@ public Feedback receiveFeedback(String description, Integer rating) {
 }
 ```
 
-Save the file → Hot reload triggered → Log appears in terminal output.
+Ao salvar o arquivo, o hot reload é disparado e o log aparece na saída do terminal.
 
-## Stopping Modules
+## Parar os módulos
 
-To stop any module, press **Ctrl+C** in its terminal.
+Para parar um módulo, pressione **Ctrl+C** no terminal dele.
 
 ```bash
 # Terminal 1
@@ -102,60 +102,60 @@ To stop any module, press **Ctrl+C** in its terminal.
 ^C
 ```
 
-To verify they've stopped:
+Para confirmar que pararam:
 
 ```bash
 curl http://localhost:8080
-# Should fail: Connection refused
+# Deve falhar: Connection refused
 ```
 
-## Troubleshooting
+## Solução de problemas
 
-### 1. Port Already in Use
+### 1. Porta já em uso
 
-If you see `Address already in use`:
+Se aparecer `Address already in use`:
 
-**Find and kill the process:**
+**Encontre e encerre o processo:**
 ```bash
 # macOS/Linux
-lsof -i :8080  # Find what's using port 8080
+lsof -i :8080  # Descobre o que está usando a porta 8080
 kill -9 <PID>
 
-# Or kill all Java processes (use with caution)
+# Ou encerre todos os processos Java (use com cuidado)
 pkill -f "java.*quarkus:dev"
 ```
 
-**Or use different ports:**
+**Ou use outras portas:**
 ```bash
 cd receive-feedback
 mvn quarkus:dev -Dquarkus.http.port=9080
 ```
 
-### 2. Memory Issues
+### 2. Falta de memória
 
-If Maven runs out of memory during compilation:
+Se o Maven ficar sem memória durante a compilação:
 
 ```bash
 export MAVEN_OPTS="-Xmx2g"
 mvn quarkus:dev
 ```
 
-### 3. Classpath or Missing Dependency
+### 3. Classpath ou dependência ausente
 
-If you see `ClassNotFoundException` or `NoClassDefFoundError`:
+Se aparecer `ClassNotFoundException` ou `NoClassDefFoundError`:
 
 ```bash
-# Clean and rebuild
+# Limpe e recompile
 cd receive-feedback
 mvn clean compile
 mvn quarkus:dev
 ```
 
-### 4. Module Won't Start (Logs Show Errors)
+### 4. O módulo não sobe (os logs mostram erros)
 
-Common causes:
+Causas comuns:
 
-- **Missing AWS credentials**: Set `AWS_REGION` and `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+- **Credenciais AWS ausentes**: defina `AWS_REGION`, `AWS_ACCESS_KEY_ID` e `AWS_SECRET_ACCESS_KEY`
   ```bash
   export AWS_REGION=us-east-1
   export AWS_ACCESS_KEY_ID=test
@@ -163,31 +163,31 @@ Common causes:
   mvn quarkus:dev
   ```
 
-- **DynamoDB table not found**: Expected when running locally without AWS—use `%dev` profile config
-  - Check `src/main/resources/application.properties` for dev config
-  - Errors are safe; service is designed for AWS
+- **Tabela do DynamoDB não encontrada**: esperado ao rodar localmente sem a AWS. Use a configuração do perfil `%dev`
+  - Veja `src/main/resources/application.properties` para a configuração de dev
+  - Os erros são seguros; o serviço foi feito para rodar na AWS
 
-- **GraphQL schema not loading**: Restart the module
+- **Schema GraphQL não carrega**: reinicie o módulo
   ```bash
   Ctrl+C
   mvn quarkus:dev
   ```
 
-## Integration Testing Against AWS
+## Teste de integração com a AWS
 
-### Using Postman
+### Usando o Postman
 
-1. Open `docs/api-collection/fase4-feedback.postman_collection.json` in Postman
-2. In the collection, set the `prodUrl` variable to:
+1. Abra `docs/api-collection/fase4-feedback.postman_collection.json` no Postman
+2. Na collection, defina a variável `prodUrl` como:
    ```
    https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod
    ```
-3. Run the `prod` folder requests
+3. Execute as requisições da pasta `prod`
 
-### Using curl
+### Usando o curl
 
 ```bash
-# Create feedback
+# Criar feedback
 curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback \
   -H "Content-Type: application/json" \
   -d '{
@@ -195,7 +195,7 @@ curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/v1/feed
     "rating": 7
   }'
 
-# Expected response (201 Created):
+# Resposta esperada (201 Created):
 # {
 #   "id": "uuid-here",
 #   "description": "Testing integration",
@@ -205,102 +205,102 @@ curl -X POST https://9799a6pv98.execute-api.sa-east-1.amazonaws.com/prod/v1/feed
 # }
 ```
 
-### Batch Testing with Newman
+### Testes em lote com o Newman
 
 ```bash
-# Install Newman (one-time)
+# Instalar o Newman (uma vez)
 npm install -g newman
 
-# Run the Postman collection against AWS
+# Rodar a collection do Postman contra a AWS
 newman run docs/api-collection/fase4-feedback.postman_collection.json \
   --folder prod \
   -r htmlextra \
   --reporter-htmlextra-export results.html
 
-# View results
+# Ver os resultados
 open results.html
 ```
 
-## Running Tests
+## Executar os testes
 
-### Unit & Integration Tests
+### Testes unitários e de integração
 
 ```bash
-# All modules
+# Todos os módulos
 mvn clean verify
 
-# Specific module
+# Um módulo específico
 mvn clean verify -pl receive-feedback
 
-# With coverage report
+# Com relatório de cobertura
 open target/site/jacoco/index.html
 ```
 
-### E2E Tests
+### Testes E2E
 
 ```bash
-# Full end-to-end test suite
+# Suíte completa de testes ponta a ponta
 ./run.sh e2e-test
 
-# Verify results
+# Verificar os resultados
 ./run.sh e2e-verify
 ```
 
-## Local Development Strategy
+## Estratégia de desenvolvimento local
 
-| Scenario | Tool | Command |
-|----------|------|---------|
-| **Edit code & test locally** | Quarkus Dev Mode | `mvn quarkus:dev` in 3 terminals |
-| **Run unit tests** | Maven/JUnit | `mvn test` or `mvn test -pl receive-feedback` |
-| **Check integration with AWS** | Postman/curl | Test against `prod` endpoint |
-| **Full E2E test** | bash script | `./run.sh e2e-test` |
-| **Code coverage** | JaCoCo | `mvn verify && open target/site/jacoco/index.html` |
+| Cenário | Ferramenta | Comando |
+|----------|------------|---------|
+| **Editar o código e testar localmente** | Quarkus Dev Mode | `mvn quarkus:dev` em 3 terminais |
+| **Rodar os testes unitários** | Maven/JUnit | `mvn test` ou `mvn test -pl receive-feedback` |
+| **Verificar a integração com a AWS** | Postman/curl | Teste contra o endpoint `prod` |
+| **Teste E2E completo** | script bash | `./run.sh e2e-test` |
+| **Cobertura de código** | JaCoCo | `mvn verify && open target/site/jacoco/index.html` |
 
-## Architecture Notes
+## Notas de arquitetura
 
-### Why Quarkus Dev Mode, Not LocalStack?
+### Por que Quarkus Dev Mode e não LocalStack?
 
-1. **Reliability**: LocalStack 3.0 crashes after ~5 operations; Quarkus dev mode is stable
-2. **No Mocking**: Tests run against real AWS, which validates the actual deployment
-3. **Simplicity**: No Docker setup needed; just `mvn quarkus:dev`
-4. **Hot Reload**: Instant feedback loop for development
-5. **Academic Standard**: For a FIAP project, using AWS directly is more authentic and demonstrates cloud-native design
+1. **Confiabilidade**: o LocalStack 3.0 trava depois de cerca de 5 operações; o Quarkus Dev Mode é estável
+2. **Sem mocks**: os testes rodam contra a AWS real, o que valida o deploy de verdade
+3. **Simplicidade**: não é preciso configurar Docker; basta `mvn quarkus:dev`
+4. **Hot reload**: ciclo de feedback instantâneo durante o desenvolvimento
+5. **Padrão acadêmico**: para um projeto da FIAP, usar a AWS diretamente é mais autêntico e demonstra o design nativo da nuvem
 
-### Local vs. Production
+### Local x produção
 
-- **Local (Dev Mode)**: Use for rapid iteration, debugging, hot reload
-- **Production (AWS)**: Use for integration testing, E2E tests, final verification
-- **Tests**: Run locally; verify against AWS before commit
+- **Local (Dev Mode)**: use para iterar rápido, depurar e aproveitar o hot reload
+- **Produção (AWS)**: use para testes de integração, testes E2E e verificação final
+- **Testes**: rode localmente e verifique contra a AWS antes do commit
 
-## Module Overview
+## Visão geral dos módulos
 
-### receive-feedback (port 8080)
+### receive-feedback (porta 8080)
 
-- **Handler**: REST endpoint for POST /v1/feedback (create)
-- **Role**: Validates feedback, calculates urgency, stores in DynamoDB, publishes to SNS
-- **Dependencies**: DynamoDB, SNS
-- **Test**: `curl -X POST http://localhost:8080/...`
+- **Handler**: endpoint REST para POST /v1/feedback (criação)
+- **Papel**: valida o feedback, calcula a urgência, grava no DynamoDB e publica no SNS
+- **Dependências**: DynamoDB, SNS
+- **Teste**: `curl -X POST http://localhost:8080/...`
 
-### send-notification (port 8081)
+### send-notification (porta 8081)
 
-- **Handler**: Consumes SNS events from receive-feedback
-- **Role**: Sends email notifications for HIGH urgency feedback
-- **Dependencies**: SNS (consume), SES (send email)
-- **Test**: Via SNS event (integration test)
+- **Handler**: consome os eventos do SNS vindos do receive-feedback
+- **Papel**: envia notificações por e-mail para feedbacks de urgência HIGH
+- **Dependências**: SNS (consumo), SES (envio de e-mail)
+- **Teste**: pelo evento do SNS (teste de integração)
 
-### generate-report (port 8082)
+### generate-report (porta 8082)
 
-- **Handler**: Consumes EventBridge events
-- **Role**: Aggregates metrics and generates summary reports
-- **Dependencies**: EventBridge, DynamoDB
-- **Test**: Via EventBridge (integration test)
+- **Handler**: consome os eventos do EventBridge
+- **Papel**: agrega métricas e gera relatórios de resumo
+- **Dependências**: EventBridge, DynamoDB
+- **Teste**: pelo EventBridge (teste de integração)
 
-## Next Steps
+## Próximos passos
 
-- Edit source code in an IDE (e.g., VS Code, IntelliJ)
-- Save changes → watch hot reload in terminal
-- Test against `http://localhost:8080` (local) or AWS endpoint (integration)
-- Run `mvn test` before committing
-- Deploy to AWS via SAM when ready
+- Edite o código-fonte em uma IDE (por exemplo, VS Code ou IntelliJ)
+- Salve as mudanças e acompanhe o hot reload no terminal
+- Teste em `http://localhost:8080` (local) ou no endpoint da AWS (integração)
+- Rode `mvn test` antes de fazer commit
+- Faça o deploy na AWS com o SAM quando estiver pronto
 
-For more details on building and deploying, see the main [README.md](README.md).
+Para mais detalhes sobre build e deploy, veja o [README.md](README.md) principal.
