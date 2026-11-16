@@ -2,6 +2,7 @@ package com.fiap.report.domain.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -19,6 +20,7 @@ public class WeeklyReport {
     private final FeedbackStatistics statistics;
     private final LocalDateTime generatedAt;
     private final String adminEmail;
+    private final List<Feedback> feedbacks;
 
     /**
      * Constructor for WeeklyReport.
@@ -31,11 +33,35 @@ public class WeeklyReport {
      * @param adminEmail the email address of the administrator to receive the report
      */
     public WeeklyReport(LocalDate startDate, LocalDate endDate, FeedbackStatistics statistics, String adminEmail) {
+        this(startDate, endDate, statistics, adminEmail, List.of());
+    }
+
+    /**
+     * Constructor for WeeklyReport with the feedbacks of the period.
+     *
+     * @param startDate the beginning of the report period (inclusive)
+     * @param endDate the end of the report period (inclusive)
+     * @param statistics the aggregated feedback statistics for the period
+     * @param adminEmail the email address of the administrator to receive the report
+     * @param feedbacks the feedbacks received in the period, listed in the report
+     */
+    public WeeklyReport(LocalDate startDate, LocalDate endDate, FeedbackStatistics statistics,
+                        String adminEmail, List<Feedback> feedbacks) {
         this.id = UUID.randomUUID();
         this.period = new ReportPeriod(startDate, endDate);
         this.statistics = statistics;
         this.generatedAt = LocalDateTime.now();
         this.adminEmail = adminEmail;
+        this.feedbacks = List.copyOf(feedbacks);
+    }
+
+    /**
+     * Retrieves the feedbacks of the period.
+     *
+     * @return an unmodifiable list of feedbacks
+     */
+    public List<Feedback> getFeedbacks() {
+        return feedbacks;
     }
 
     /**

@@ -19,6 +19,19 @@ public class Feedback {
     private final int rating;
     private final Urgency urgency;
     private final LocalDateTime createdAt;
+    private final String description;
+
+    /**
+     * Constructor for Feedback without description.
+     * 
+     * @param id unique identifier for the feedback record
+     * @param rating numeric rating value (typically 0-10)
+     * @param urgency the urgency level (HIGH, MEDIUM, or LOW)
+     * @param createdAt timestamp when the feedback was created
+     */
+    public Feedback(String id, int rating, Urgency urgency, LocalDateTime createdAt) {
+        this(id, rating, urgency, createdAt, "");
+    }
 
     /**
      * Constructor for Feedback.
@@ -27,12 +40,23 @@ public class Feedback {
      * @param rating numeric rating value (typically 0-10)
      * @param urgency the urgency level (HIGH, MEDIUM, or LOW)
      * @param createdAt timestamp when the feedback was created
+     * @param description text written by the student
      */
-    public Feedback(String id, int rating, Urgency urgency, LocalDateTime createdAt) {
+    public Feedback(String id, int rating, Urgency urgency, LocalDateTime createdAt, String description) {
         this.id = id;
         this.rating = rating;
         this.urgency = urgency;
         this.createdAt = createdAt;
+        this.description = description;
+    }
+
+    /**
+     * Retrieves the feedback description.
+     * 
+     * @return the description text
+     */
+    public String getDescription() {
+        return description;
     }
 
     /**

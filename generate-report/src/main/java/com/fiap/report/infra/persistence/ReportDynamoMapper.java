@@ -52,7 +52,9 @@ public class ReportDynamoMapper {
                     DATE_TIME_FORMATTER
             );
 
-            return new Feedback(id, rating, urgency, createdAt);
+            String description = item.get("description").s();
+
+            return new Feedback(id, rating, urgency, createdAt, description);
         } catch (NullPointerException e) {
             throw new IllegalArgumentException(
                     "Erro ao converter item do DynamoDB para entidade Feedback: campo obrigatório ausente", e

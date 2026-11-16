@@ -25,15 +25,16 @@ import com.fiap.report.infra.config.ReportConfiguration;
  * - Purpose: Generate and email feedback summary for the previous week
  *
  * Period Calculation:
- * - endDate = today().minusDays(1) → Friday of the previous week (or last working day)
- * - startDate = endDate.minusDays(6) → Monday of the previous week
- * - This captures feedback from the prior complete week
+ * - endDate = today() - 1 day (yesterday)
+ * - startDate = endDate - 6 days
+ * - The period is 7 consecutive calendar days, both ends inclusive, ending yesterday.
+ *   It does not depend on the weekday: a run on Monday covers the previous Monday to Sunday.
  *
  * Example:
  * - If handler runs on Monday 2026-10-26 at 08:00 UTC
- * - endDate = 2026-10-23 (Friday)
+ * - endDate = 2026-10-25 (Sunday)
  * - startDate = 2026-10-19 (Monday)
- * - Report covers Mon 2026-10-19 to Fri 2026-10-23
+ * - Report covers Mon 2026-10-19 to Sun 2026-10-25
  *
  * Error Handling:
  * - ReportException is caught and logged at SEVERE level without rethrowing
@@ -75,11 +76,11 @@ public class GenerateReportHandler implements RequestHandler<ScheduledEvent, Voi
         try {
             LOGGER.log(Level.INFO, "Handler Lambda invocado para geração e envio do relatório");
 
-            // Calculate period: endDate = today() - 1 day (previous Friday)
+            // Calculate period: endDate = today() - 1 day (yesterday)
             LocalDate today = LocalDate.now();
             LocalDate endDate = today.minusDays(1);
             
-            // startDate = endDate - 6 days (Monday of previous week)
+            // startDate = endDate - 6 days (7 days inclusive, ending yesterday)
             LocalDate startDate = endDate.minusDays(6);
 
             LOGGER.log(Level.FINE, "Período do relatório calculado: início=" + startDate + ", fim=" + endDate);

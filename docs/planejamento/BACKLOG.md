@@ -624,52 +624,70 @@ POST /avaliacao {"descricao":"Produto não funciona","nota":1}
 
 ---
 
-### TASK-026: Preparar entrega final
-
+### 🟡 TASK-026: Preparar entrega final — **PARCIAL**
 **Labels:** `priority: high`, `épico: documentação`, `pontos: 2`, `type: docs`
 **Milestone:** Sprint 6 - Finalização
+**Status:** 🟡 PARCIAL (verificada em 2026-11-16)
 
 ## ✅ Critérios de Aceitação
-- [ ] Repositório público no GitHub
-- [ ] README.md completo e atualizado com URL da API em produção
-- [ ] Collection Postman incluída no repositório
-- [ ] Todos os testes passando com cobertura ≥ 80%
-- [ ] Deploy funcionando na AWS
-- [ ] CloudWatch mostrando logs das 3 Lambdas
-- [ ] Documentação completa (API.md, guia de deploy, monitoramento)
-- [ ] Link do repositório pronto para envio
+- [x] Repositório público no GitHub (https://github.com/jeffesa/12ADJT-fase-4, visibilidade PUBLIC)
+- [x] README.md com a URL da API em produção (`https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod`)
+- [x] Collection Postman incluída no repositório (`docs/api-collection/fase4-feedback.postman_collection.json`, com rotas v1)
+- [x] Testes passando com cobertura ≥ 80%: `mvn clean verify` (JDK 17) passou. Cobertura de linhas (JaCoCo): receive-feedback 92,4%; send-notification 96,6%; generate-report 99,4%. O módulo local-http (só para desenvolvimento) tem 67,9%.
+- [x] Deploy funcionando na AWS (stack `feedback-api-prod` em `UPDATE_COMPLETE`, rotas v1 respondendo em produção)
+- [ ] CloudWatch mostrando logs das 3 Lambdas: receive-feedback, send-notification e graphql têm logs em produção. O generate-report não tem logs, porque roda só no cron de segunda-feira (08h UTC) ou em execução manual, e nenhuma execução foi feita.
+- [x] Documentação completa (API.md, guia de deploy e guia de monitoramento) em `docs/`
+- [x] Link do repositório pronto para envio
+
+**Pendência:** executar o generate-report uma vez, em produção, com autorização, para gerar logs no grupo `prod-generate-report`. Isso também cumpre a demonstração do relatório na TASK-027.
+
 
 ---
 
 ---
 
-### TASK-027: Criar documentação de segurança (Security Guidelines)
+### 🟡 TASK-027: Criar documentação de segurança (Security Guidelines) — **PARCIAL**
 
 **Labels:** `priority: high`, `épico: documentação`, `pontos: 2`, `type: docs`
 **Milestone:** Sprint 6 - Finalização
+**Status:** 🟡 PARCIAL (revisada em 2026-11-16)
 
 ## 📋 Descrição
 Documentar todas as decisões de segurança, configuração de IAM, governança de acesso e como explicar no vídeo de demonstração.
 
-## ✅ Critérios de Aceitação
-- [ ] Documento `docs/SECURITY.md` com:
-  - [ ] Explicação do modelo de cloud escolhido (AWS Serverless)
-  - [ ] Componentes de segurança: API Key, IAM Roles, CloudWatch Logs
-  - [ ] Descritivo de cada IAM Role (ReceiveFeedback, SendNotification, GenerateReport)
-  - [ ] Explicação de least privilege (cada Lambda só tem permissões que precisa)
-  - [ ] API Gateway com API Key obrigatória no `/graphql` (endpoint GraphQL)
-  - [ ] Usage Plan com throttling (rate limit, burst limit, quota diária)
-  - [ ] CloudWatch Logs com retenção de 30 dias
-  - [ ] Separação de ambientes (dev/prod) via CloudFormation parameters
-  - [ ] Encriptação em trânsito (HTTPS obrigatório)
-  - [ ] SES em Sandbox (dev) vs Production (prod)
-  - [ ] Como o AdminEmail é configurável (sem hardcoding)
-- [ ] Roteiro para o vídeo explicando:
-  - [ ] Como mostrar template.yaml (IAM, API Key, permissions)
-  - [ ] Como mostrar CloudWatch (logs das 3 Lambdas)
-  - [ ] Como explicar modelo serverless vs tradicional
-  - [ ] Como testar GraphQL endpoint com API Key
-  - [ ] Quais são os benefícios de segurança (escalabilidade automática, less surface area)
+## ✅ Critérios de Aceitação (revisados em 2026-11-16)
+
+Mudanças em relação ao texto original: a autenticação é por token Bearer, no lugar da API Key. O Usage Plan saiu do escopo, porque não existe no template.
+
+Documento `docs/SECURITY.md`:
+- [x] Explicação do modelo de cloud escolhido (AWS Serverless)
+- [x] Componentes de segurança: token Bearer, IAM Roles e CloudWatch Logs (a API Key foi substituída pelo Bearer)
+- [x] Descritivo de cada IAM Role (ReceiveFeedback, SendNotification, GenerateReport)
+- [x] Explicação de least privilege (cada Lambda só tem permissões que precisa)
+- [x] Autenticação obrigatória em todas as rotas (`/v1/feedback`, `/v1/graphql`), com token Bearer no lugar da API Key
+- [ ] ~~Usage Plan com throttling~~: **removido do escopo**. O template não cria Usage Plan. O documento foi corrigido em 2026-11-16 para não descrever esse controle.
+- [x] CloudWatch Logs com retenção de 30 dias
+- [x] Separação de ambientes (dev/prod) via parâmetros do CloudFormation
+- [x] Encriptação em trânsito (HTTPS obrigatório no API Gateway)
+- [x] Verificação de identidade no SES em produção (seção "Verificação de e-mail (SES)")
+- [x] Como o AdminEmail é configurável (sem hardcoding)
+
+Roteiro para o vídeo (`docs/qualidade/DEMO_GUIDE.md`):
+- [x] Como mostrar template.yaml (IAM, permissões): Segmento 1
+- [x] Como mostrar CloudWatch (logs das Lambdas): Segmento 5
+- [x] Como explicar modelo serverless vs tradicional: apêndice "Benefícios do serverless"
+- [ ] Como testar o endpoint GraphQL com token Bearer (o roteiro ainda cita API Key e precisa de ajuste)
+- [ ] Benefícios de segurança (escalabilidade, menor superfície de ataque): a verificar no roteiro
+
+Vídeo de demonstração (~5 minutos):
+- [ ] Gravar o vídeo e salvar em `docs/videos/` ou colocar o link no README
+- [ ] Demonstrar `receiveFeedback` com nota crítica e confirmar o e-mail. **Pendência técnica:** a mutation não é alcançável por HTTP, porque `POST /graphql` só executa `listFeedbacks`. Decidir: implementar a mutation ou mostrar `POST /v1/feedback` no vídeo.
+- [ ] Demonstrar `receiveFeedback` com nota normal e confirmar que não há e-mail (mesma pendência acima)
+- [ ] Execução manual do generate-report e e-mail de relatório (depende de autorização para executar em produção)
+- [ ] Mostrar CloudWatch Logs das 3 Lambdas em execução
+- [ ] Mostrar configurações da AWS (Lambda, DynamoDB, SNS, API Gateway)
+- [ ] Explicar modelo de cloud e configurações de segurança (IAM)
+- [ ] Duração de ~5 minutos
 
 ## 🔧 Dependências Técnicas
 - [TASK-004] concluída (SAM template com IAM)
@@ -788,47 +806,39 @@ Menu interativo e comandos diretos no `run.sh` para as operações comuns do pro
 
 ---
 
-### TASK-030: Code Audit — Verificar 100% Inglês
+### ✅ TASK-030: Code Audit — Verificar 100% Inglês — **CONCLUÍDA**
 
 **Labels:** `priority: high`, `épico: qualidade`, `pontos: 2`, `type: quality`
 **Milestone:** Sprint 6 - Finalização (executar no final)
+**Status:** ✅ CONCLUÍDA em 2026-11-16
 
 ## 📋 Descrição
 Audit final do projeto para garantir que **100% do código, comentários, nomes de variáveis, nomes de arquivos está em inglês**. Nenhum resquício de português no código-fonte. Task a ser executada no final do desenvolvimento (antes da entrega).
 
-## ✅ Critérios de Aceitação
-- [ ] **Código Java**: Revisar todos os `.java` files (variáveis, nomes de classe, método, constantes em inglês)
-- [ ] **Comentários**: Todos os comentários e Javadoc em inglês
-- [ ] **Package names**: Verificar pacotes sem português
-- [ ] **Nomes de arquivos**: Sem sufixos/prefixos em português (ex: `Urgencia.java` → `Urgency.java`)
-- [ ] **XML/YAML**: Comments em `pom.xml`, `application.yaml`, templates em inglês
-- [ ] **Properties files**: Sem chaves/valores em português
-- [ ] **String literals**: Mensagens de erro/log em inglês
-- [ ] **Test files**: Nomes de testes e comentários em inglês
-- [ ] **Documentação**: SECURITY.md, API.md em inglês (BACKLOG.md fica em português OK)
-- [ ] **Script shell**: Comments no `run.sh` em inglês (se houver)
-- [ ] Gerar relatório: `docs/qualidade/CODE_AUDIT.md` com:
-  - [ ] Resultado: PASS ou FAIL
-  - [ ] Total de arquivos escaneados
-  - [ ] Problemas encontrados (lista com arquivo + linha)
-  - [ ] Ações corretivas tomadas
-  - [ ] Timestamp do audit
-- [ ] Executar grep/script para buscar palavras-chave em português:
-  - [ ] descrição, descricao, descricão
-  - [ ] nota, notas
-  - [ ] urgência, urgencia, urgência
-  - [ ] avaliação, avaliacao, avaliação
-  - [ ] usuário, usuario
-  - [ ] validação, validacao, validação
-  - [ ] configuração, configuracao, configuração
-  - [ ] notificação, notificacao, notificação
-  - [ ] relatório, relatorio, relatório
-  - [ ] salvar, persistir, recuperar (em português)
-- [ ] Compilação final: `mvn clean compile` SUCCESS
-- [ ] Commit com resultado final: `fix(code-audit): Ensure 100% English codebase`
+## ✅ Critérios de Aceitação (revisados em 2026-11-16)
 
-## 🔧 Dependências Técnicas
-- Todas as tasks (001-029) concluídas
+Decisões que definiram o escopo final: código, comentários, identificadores e nomes de arquivo ficam em inglês. Mensagens para pessoas (respostas da API, logs, menus, e-mails, alarmes e workflows) e documentação em `.md` ficam em português. A API legada em português foi removida, e a v1 em inglês é a única versão.
+
+- [x] **Código Java**: identificadores internos em inglês (PRs #104 e #107). Contrato legado removido (PRs #108, #109 e #111).
+- [x] **Comentários**: Javadoc e comentários em inglês (PR #103).
+- [x] **Package names**: sem português.
+- [x] **Nomes de arquivos**: sem português. Cópias de trabalho `template.yaml.bak` e `.orig` removidas.
+- [x] **XML/YAML**: comentários em inglês (PR #103).
+- [x] **Properties files**: chaves em inglês; textos para pessoas em português.
+- [x] **Mensagens da API**: em português (PR #112).
+- [x] **Logs**: em português (PR #113).
+- [x] **Exceções internas**: em português (PR #115).
+- [x] **E-mails e assunto SNS**: em português (PR #116). O assunto SNS não tem acento, porque o SNS aceita só ASCII.
+- [x] **Test files**: nomes e comentários em inglês, sem textos em português nas asserções de comportamento.
+- [x] **Documentação**: `.md` em português, por decisão do usuário. Inclui `SECURITY.md` e `API.md`, que substituem o critério original de inglês (PR #117).
+- [x] **Script shell**: comentários do `run.sh` em inglês. As mensagens do menu continuam em português.
+- [x] **Relatório**: `docs/qualidade/CODE_AUDIT.md` gerado em PASS, com as exceções documentadas (PR #117).
+- [x] **Busca por palavras-chave**: os termos restantes estão só em mensagens para pessoas, em documentação e em exceções documentadas.
+
+**Exceções documentadas no CODE_AUDIT:**
+- Asserções negativas do teste `ReceiveFeedbackHandlerV1Test`, que confirmam que a v1 não devolve as chaves legadas.
+- Documentos históricos (relatórios, TASK-* e resultados de E2E) que citam rotas e campos removidos.
+
 
 ---
 

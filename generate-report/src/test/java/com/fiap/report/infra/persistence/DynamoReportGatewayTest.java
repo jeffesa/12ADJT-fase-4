@@ -118,12 +118,14 @@ class DynamoReportGatewayTest {
         item1.put("id", AttributeValue.builder().s("1").build());
         item1.put("rating", AttributeValue.builder().n("8").build());
         item1.put("urgency", AttributeValue.builder().s("LOW").build());
+        item1.put("description", AttributeValue.builder().s("Feedback de teste").build());
         item1.put("createdAt", AttributeValue.builder().s("2024-10-21T10:00:00").build());
 
         Map<String, AttributeValue> item2 = new HashMap<>();
         item2.put("id", AttributeValue.builder().s("2").build());
         item2.put("rating", AttributeValue.builder().n("9").build());
         item2.put("urgency", AttributeValue.builder().s("HIGH").build());
+        item2.put("description", AttributeValue.builder().s("Feedback de teste").build());
         item2.put("createdAt", AttributeValue.builder().s("2024-10-22T14:00:00").build());
 
         mockDynamoDbClient.itemsToReturn.add(item1);
@@ -208,18 +210,21 @@ class DynamoReportGatewayTest {
         item1.put("id", AttributeValue.builder().s("1").build());
         item1.put("rating", AttributeValue.builder().n("8").build());
         item1.put("urgency", AttributeValue.builder().s("LOW").build());
+        item1.put("description", AttributeValue.builder().s("Feedback de teste").build());
         item1.put("createdAt", AttributeValue.builder().s("2024-10-21T10:00:00").build());
 
         Map<String, AttributeValue> item2 = new HashMap<>();
         item2.put("id", AttributeValue.builder().s("2").build());
         item2.put("rating", AttributeValue.builder().n("9").build());
         item2.put("urgency", AttributeValue.builder().s("HIGH").build());
+        item2.put("description", AttributeValue.builder().s("Feedback de teste").build());
         item2.put("createdAt", AttributeValue.builder().s("2024-10-22T14:00:00").build());
 
         Map<String, AttributeValue> item3 = new HashMap<>();
         item3.put("id", AttributeValue.builder().s("3").build());
         item3.put("rating", AttributeValue.builder().n("7").build());
         item3.put("urgency", AttributeValue.builder().s("MEDIUM").build());
+        item3.put("description", AttributeValue.builder().s("Feedback de teste").build());
         item3.put("createdAt", AttributeValue.builder().s("2024-10-23T09:00:00").build());
 
         mockDynamoDbClient.itemsToReturn.add(item1);
@@ -261,6 +266,7 @@ class DynamoReportGatewayTest {
         item.put("id", AttributeValue.builder().s("feedback-123").build());
         item.put("rating", AttributeValue.builder().n("8").build());
         item.put("urgency", AttributeValue.builder().s("LOW").build());
+        item.put("description", AttributeValue.builder().s("Feedback de teste").build());
         item.put("createdAt", AttributeValue.builder().s("2024-10-21T10:00:00").build());
 
         mockDynamoDbClient.itemsToReturn.add(item);
@@ -282,6 +288,7 @@ class DynamoReportGatewayTest {
         item.put("id", AttributeValue.builder().s("1").build());
         item.put("rating", AttributeValue.builder().n("9").build());
         item.put("urgency", AttributeValue.builder().s("LOW").build());
+        item.put("description", AttributeValue.builder().s("Feedback de teste").build());
         item.put("createdAt", AttributeValue.builder().s("2024-10-21T10:00:00").build());
 
         mockDynamoDbClient.itemsToReturn.add(item);
@@ -303,6 +310,7 @@ class DynamoReportGatewayTest {
         item.put("id", AttributeValue.builder().s("1").build());
         item.put("rating", AttributeValue.builder().n("8").build());
         item.put("urgency", AttributeValue.builder().s("HIGH").build());
+        item.put("description", AttributeValue.builder().s("Feedback de teste").build());
         item.put("createdAt", AttributeValue.builder().s("2024-10-21T10:00:00").build());
 
         mockDynamoDbClient.itemsToReturn.add(item);
@@ -324,6 +332,7 @@ class DynamoReportGatewayTest {
         item.put("id", AttributeValue.builder().s("1").build());
         item.put("rating", AttributeValue.builder().n("8").build());
         item.put("urgency", AttributeValue.builder().s("LOW").build());
+        item.put("description", AttributeValue.builder().s("Feedback de teste").build());
         item.put("createdAt", AttributeValue.builder().s("2024-10-21T10:30:45").build());
 
         mockDynamoDbClient.itemsToReturn.add(item);
@@ -346,5 +355,36 @@ class DynamoReportGatewayTest {
 
         // Assert
         assertNotNull(feedbacks);
+    }
+
+    @Test
+    void testFindByPeriod_SkipsItemsWithoutDescription() throws ReportException {
+        // Arrange
+        LocalDate startDate = LocalDate.of(2024, 10, 21);
+        LocalDate endDate = LocalDate.of(2024, 10, 25);
+
+        Map<String, AttributeValue> withoutDescription = new HashMap<>();
+        withoutDescription.put("id", AttributeValue.builder().s("sem-descricao").build());
+        withoutDescription.put("rating", AttributeValue.builder().n("5").build());
+        withoutDescription.put("urgency", AttributeValue.builder().s("HIGH").build());
+        withoutDescription.put("createdAt", AttributeValue.builder().s("2024-10-21T10:00:00").build());
+
+        Map<String, AttributeValue> withDescription = new HashMap<>();
+        withDescription.put("id", AttributeValue.builder().s("com-descricao").build());
+        withDescription.put("description", AttributeValue.builder().s("Aula boa").build());
+        withDescription.put("rating", AttributeValue.builder().n("8").build());
+        withDescription.put("urgency", AttributeValue.builder().s("LOW").build());
+        withDescription.put("createdAt", AttributeValue.builder().s("2024-10-22T10:00:00").build());
+
+        mockDynamoDbClient.itemsToReturn.add(withoutDescription);
+        mockDynamoDbClient.itemsToReturn.add(withDescription);
+
+        // Act
+        List<Feedback> feedbacks = gateway.findByPeriod(startDate, endDate);
+
+        // Assert
+        assertEquals(1, feedbacks.size());
+        assertEquals("com-descricao", feedbacks.get(0).getId());
+        assertEquals("Aula boa", feedbacks.get(0).getDescription());
     }
 }

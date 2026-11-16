@@ -95,7 +95,7 @@ public class GenerateReportUseCase {
                 ", por urgência=" + statistics.getFeedbackByUrgency());
 
         // Create WeeklyReport
-        WeeklyReport report = new WeeklyReport(startDate, endDate, statistics, adminEmail);
+        WeeklyReport report = new WeeklyReport(startDate, endDate, statistics, adminEmail, feedbacks);
 
         // Send report
         try {
