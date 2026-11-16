@@ -147,12 +147,12 @@ public class SesNotificationSender implements NotificationSender {
      */
     private String buildHtmlBody(Notification notification) {
         return "<html><body>" +
-            "<h2>⚠️ Critical Feedback Received</h2>" +
-            "<p><strong>Feedback ID:</strong> " + notification.getFeedbackId() + "</p>" +
-            "<p><strong>Description:</strong> " + notification.getDescription() + "</p>" +
-            "<p><strong>Urgency:</strong> " + notification.getUrgency() + "</p>" +
-            "<p><strong>Received at:</strong> " + notification.getCreatedAt() + "</p>" +
-            "<p>Please review and respond as soon as possible.</p>" +
+            "<h2>⚠️ Feedback crítico recebido</h2>" +
+            "<p><strong>ID do feedback:</strong> " + notification.getFeedbackId() + "</p>" +
+            "<p><strong>Descrição:</strong> " + notification.getDescription() + "</p>" +
+            "<p><strong>Urgência:</strong> " + notification.getUrgency() + "</p>" +
+            "<p><strong>Recebido em:</strong> " + notification.getCreatedAt() + "</p>" +
+            "<p>Por favor, analise e responda o quanto antes.</p>" +
             "</body></html>";
     }
 }

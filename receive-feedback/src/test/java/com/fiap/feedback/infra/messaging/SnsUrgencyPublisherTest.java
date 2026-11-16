@@ -52,7 +52,7 @@ class SnsUrgencyPublisherTest {
         verify(snsClient).publish(captor.capture());
         PublishRequest request = captor.getValue();
         assertEquals(TOPIC_ARN, request.topicArn());
-        assertEquals("High Urgency Feedback Alert", request.subject());
+        assertEquals("Alerta de feedback de urgência alta", request.subject());
         assertEquals(FeedbackMessageBuilder.buildFeedbackJson(feedback), request.message());
     }
 
