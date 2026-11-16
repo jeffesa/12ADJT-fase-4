@@ -208,7 +208,6 @@ Cobre CloudFormation, Lambda, API Gateway, DynamoDB, SNS, SES, EventBridge, Clou
 
 O ARN da role (`arn:aws:iam::<ACCOUNT_ID>:role/github-actions-deploy-prod`) é o valor do secret `AWS_DEPLOY_ROLE_ARN`.
 
-> O arquivo `docs/AWS_DEPLOY_PERMISSIONS_REQUEST.md` descreve um pedido de permissões antigo (outra conta, outro nome de stack) e **não** deve ser usado como referência.
 
 ### 4.4. Descobrir o `sub` real do token OIDC
 

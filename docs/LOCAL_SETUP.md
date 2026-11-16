@@ -446,8 +446,8 @@ Se todos os recursos estiverem presentes e todos os endpoints estiverem UP, a co
 
 Depois de concluir esta configuração:
 
-1. **Rodar os testes E2E**: siga os passos em [E2E_TESTING_GUIDE.md](./E2E_TESTING_GUIDE.md)
-2. **Ver os resultados dos testes**: consulte [E2E_TEST_RESULTS.md](./E2E_TEST_RESULTS.md)
+1. **Rodar os testes**: `mvn clean verify` na raiz do projeto (JDK 17)
+2. **Testar a API local**: siga o passo a passo do [README](../README.md) e a [collection do Bruno](api-collection/README.md)
 3. **Desenvolver funcionalidades**: os módulos já estão prontos para o desenvolvimento com hot reload
 
 ## Referências
