@@ -24,12 +24,6 @@ Todas as rotas (`POST /v1/feedback`, `GET /v1/feedback` e `POST /v1/graphql`) ex
 - **Respostas**: `401` com `Token Bearer ausente` (header ausente, vazio ou com esquema diferente) ou `Token Bearer inválido` (token não confere), ambos com `WWW-Authenticate: Bearer`. Se `API_TOKEN` não estiver configurado, toda requisição é recusada com `500` (falha fechada).
 - **Tratamento**: a comparação é feita em tempo constante, e o token nunca é gravado em log. Nunca faça commit do token no controle de versão.
 
-O Usage Plan do API Gateway, abaixo, aplica os limites de taxa e de cota:
-
-  - **Limite de rajada (burst)**: 100 requisições por segundo
-  - **Limite de taxa (rate)**: 1.000 requisições por segundo (sustentado)
-  - **Cota diária**: 10.000 requisições por dia
-
 ### 2. Papéis IAM e acesso de privilégio mínimo
 
 Cada função Lambda roda com um papel IAM próprio, com permissões restritas aos recursos e ações de que precisa. Isso segue o princípio do privilégio mínimo e limita o impacto caso uma função seja comprometida.
@@ -74,7 +68,6 @@ Cada função Lambda roda com um papel IAM próprio, com permissões restritas a
 - Acesso somente de leitura ao DynamoDB (sem escrita, exclusão ou atualização)
 - Pode apenas fazer scan ou query, sem alterar a estrutura da tabela
 - Envio de e-mail limitado à entrega de relatórios
-- Concorrência reservada igual a 1 (evita a geração duplicada de relatórios)
 
 ### 3. Logs e monitoramento no CloudWatch
 
@@ -94,32 +87,11 @@ Cada função Lambda grava logs em um grupo de logs próprio do CloudWatch, com:
 
 ---
 
-## Limitação de taxa com Usage Plan no API Gateway
+## Limitação de taxa
 
-A API de feedback é protegida contra abuso e sobrecarga pelos Usage Plans do AWS API Gateway:
-
-### Limitação de taxa
-- **Limite de rajada (burst)**: 100 requisições por segundo (absorve picos de tráfego)
-- **Limite de taxa (rate)**: 1.000 requisições por segundo (taxa sustentada)
-- **Cota diária**: 10.000 requisições por dia
-
-### Aplicação
-- Requisições acima dos limites recebem HTTP 429 (Too Many Requests)
-- Os clientes devem implementar retentativas com backoff exponencial
-
-### Configuração
-```yaml
-ApiUsagePlan:
-  Throttle:
-    BurstLimit: 100
-    RateLimit: 1000
-  Quota:
-    Limit: 10000
-    Period: DAY
-```
+A API não usa Usage Plan nem API Key, e não há limite de taxa por cliente. A proteção contra acesso indevido é o token Bearer, exigido em todas as rotas. Os limites de taxa padrão da conta AWS continuam valendo. Um limite por cliente é uma melhoria futura.
 
 ---
-
 ## Separação de ambientes (dev/prod)
 
 A infraestrutura oferece ambientes de desenvolvimento e de produção isolados, controlados pelo parâmetro `Environment`:
@@ -135,9 +107,6 @@ Todos os recursos recebem o nome do ambiente como prefixo, para garantir isolame
 ### Implantações separadas
 - **Desenvolvimento (dev)**: usado para testes, experimentos e validação de integração
 - **Produção (prod)**: ambiente real, atendendo usuários reais
-
-### Usage Plans separados
-Cada ambiente tem o seu próprio Usage Plan, o que impede que o tráfego de dev afete as cotas ou a limitação de taxa de produção.
 
 ### Verificação de e-mail (SES)
 - Em produção, o parâmetro `AdminEmail` precisa apontar para um e-mail verificado no Amazon SES
@@ -180,12 +149,11 @@ Parameters:
 
 1. **Papéis IAM com privilégio mínimo**: cada Lambda tem somente as permissões necessárias
 2. **Autenticação por token Bearer**: todas as requisições à API exigem `Authorization: Bearer <token>`
-3. **Limitação de taxa**: os Usage Plans evitam abuso e esgotamento de recursos
+3. **Proteção contra abuso**: o token Bearer é obrigatório em todas as rotas (não há Usage Plan; ver Limitação de taxa)
 4. **Criptografia**: os dados em repouso (DynamoDB) e em trânsito (HTTPS) são criptografados
 5. **Log de auditoria**: o CloudWatch Logs registra todas as operações para conformidade e diagnóstico
 6. **Isolamento de ambientes**: stacks separadas para dev e prod impedem interferência entre ambientes
-7. **Concorrência reservada**: funções críticas (GenerateReport) têm slots reservados para evitar falta de recursos
-8. **Tratamento de erros**: os erros são registrados em log sem expor detalhes internos aos clientes
+7. **Tratamento de erros**: os erros são registrados em log sem expor detalhes internos aos clientes
 
 ---
 
@@ -219,7 +187,6 @@ sam deploy --template-file packaged.yaml \
 ### Configuração específica de cada ambiente
 - Atualize o parâmetro `AdminEmail` em cada ambiente
 - Garanta que o e-mail remetente do SES esteja verificado em produção
-- Ajuste os limites de taxa conforme o padrão de uso
 
 ---
 
