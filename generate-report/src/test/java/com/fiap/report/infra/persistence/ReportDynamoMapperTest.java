@@ -27,6 +27,19 @@ class ReportDynamoMapperTest {
         assertEquals(8, feedback.getRating());
         assertEquals(Urgency.LOW, feedback.getUrgency());
         assertEquals(LocalDateTime.of(2024, 10, 21, 10, 30, 45), feedback.getCreatedAt());
+        assertEquals("Aula clara", feedback.getDescription());
+    }
+
+    @Test
+    void toDomainRejectsItemWithoutDescription() {
+        Map<String, AttributeValue> item = validItem();
+        item.remove("description");
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> ReportDynamoMapper.toDomain(item));
+
+        assertEquals("Erro ao converter item do DynamoDB para entidade Feedback: campo obrigatório ausente",
+                error.getMessage());
     }
 
     @Test
@@ -79,6 +92,7 @@ class ReportDynamoMapperTest {
         item.put("rating", AttributeValue.builder().n("8").build());
         item.put("urgency", AttributeValue.builder().s("LOW").build());
         item.put("createdAt", AttributeValue.builder().s("2024-10-21T10:30:45").build());
+        item.put("description", AttributeValue.builder().s("Aula clara").build());
         return item;
     }
 }

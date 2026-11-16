@@ -368,4 +368,23 @@ class GenerateReportUseCaseTest {
         // Assert
         assertEquals(adminEmail, report.getAdminEmail());
     }
+
+    @Test
+    void testExecute_IncludesPeriodFeedbacksInReportWithoutSecondQuery() throws ReportException {
+        // Arrange
+        LocalDate startDate = LocalDate.of(2024, 10, 21);
+        LocalDate endDate = LocalDate.of(2024, 10, 25);
+        String adminEmail = "admin@feedback-fase-4.com";
+        List<Feedback> feedbacks = new ArrayList<>();
+        feedbacks.add(new Feedback("1", 8, Urgency.LOW, LocalDateTime.of(2024, 10, 21, 10, 0), "Ótimo curso"));
+        feedbacks.add(new Feedback("2", 3, Urgency.HIGH, LocalDateTime.of(2024, 10, 23, 10, 0), "Erro no login"));
+        when(reportGateway.findByPeriod(startDate, endDate)).thenReturn(feedbacks);
+
+        // Act
+        WeeklyReport report = useCase.execute(startDate, endDate, adminEmail);
+
+        // Assert
+        assertEquals(feedbacks, report.getFeedbacks());
+        verify(reportGateway, times(1)).findByPeriod(startDate, endDate);
+    }
 }

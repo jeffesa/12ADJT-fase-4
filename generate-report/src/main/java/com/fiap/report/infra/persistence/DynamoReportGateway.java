@@ -91,6 +91,7 @@ public class DynamoReportGateway implements ReportGateway {
             ScanResponse scanResponse = dynamoDbClient.scan(scanRequest);
 
             List<Feedback> feedbacks = scanResponse.items().stream()
+                    .filter(this::hasDescription)
                     .map(ReportDynamoMapper::toDomain)
                     .collect(Collectors.toList());
 
@@ -104,5 +105,23 @@ public class DynamoReportGateway implements ReportGateway {
                     ", erro: " + e.getMessage());
             throw e;
         }
+    }
+
+    /**
+     * Checks whether a DynamoDB item has a description. Items without one are skipped
+     * (excluded from the report) and logged at WARNING level, so the report still builds.
+     *
+     * @param item the DynamoDB item map
+     * @return true if the item has a non-null description
+     */
+    private boolean hasDescription(Map<String, AttributeValue> item) {
+        AttributeValue description = item.get("description");
+        if (description != null && description.s() != null) {
+            return true;
+        }
+        AttributeValue id = item.get("id");
+        LOGGER.log(Level.WARNING,
+                "Feedback ignorado no relatório por não ter descrição, id=" + (id != null ? id.s() : null));
+        return false;
     }
 }
