@@ -31,7 +31,8 @@ PROD_STACK="feedback-api-prod"
 DEV_STACK="feedback-api-dev"
 HTTP_PORT=8080
 MOCK_PORT=18081
-LOCAL_URL="http://localhost:${HTTP_PORT}/v1/feedback"
+LOCAL_URL="http://localhost:${HTTP_PORT}/v1/graphql"
+GRAPHQL_CHECK_BODY='{"query":"{ listFeedbacks { id } }"}'
 MODULES="receive-feedback send-notification generate-report"
 MVN_FLAGS=(-B -Dquarkus.devservices.enabled=false)
 
@@ -179,8 +180,8 @@ local_up() {
 
   info "\n🚀 Subindo local-http (AWS_PROFILE=$AWS_PROFILE, região $AWS_REGION)"
   info "   Rotas em http://localhost:${HTTP_PORT}:"
-  info "     POST /v1/feedback   cria feedback"
-  info "     GET  /v1/feedback   lista feedbacks"
+  info "     POST /v1/avaliacao  cria avaliação"
+  info "     POST /v1/graphql    consulta GraphQL (listFeedbacks)"
   info "     POST /graphql     consulta GraphQL"
   info "   Todas as rotas exigem o header Authorization: Bearer <API_TOKEN>."
   info "   Mock Event Server do Lambda na porta ${MOCK_PORT}."
@@ -197,9 +198,10 @@ local_up() {
 
 local_check() {
   require curl || return 1
-  info "\n🩺 Checando módulo local: GET $LOCAL_URL (com Authorization: Bearer)"
+  info "\n🩺 Checando módulo local: POST $LOCAL_URL (com Authorization: Bearer)"
   local code
-  code=$(curl -s -o /dev/null -m 10 -w '%{http_code}' -H "Authorization: Bearer ${API_TOKEN:-minha-chave-local}" "$LOCAL_URL" 2>/dev/null)
+  code=$(curl -s -o /dev/null -m 10 -w '%{http_code}' -X POST -H 'Content-Type: application/json' \
+    -H "Authorization: Bearer ${API_TOKEN:-minha-chave-local}" -d "$GRAPHQL_CHECK_BODY" "$LOCAL_URL" 2>/dev/null)
   if [ "$code" = "200" ]; then
     ok "  ✅ Módulo local no ar (HTTP 200)"
   else
@@ -231,14 +233,17 @@ check_prod() {
     return 1
   fi
   info "   Endpoint: $endpoint"
-  code=$(curl -s -o /dev/null -m 15 -w '%{http_code}' "$endpoint" 2>/dev/null)
+  # ApiEndpoint ends in /v1/avaliacao; dropping that last segment gives the base of /v1/graphql.
+  local graphql_url="${endpoint%/*}/graphql"
+  code=$(curl -s -o /dev/null -m 15 -w '%{http_code}' -X POST -H 'Content-Type: application/json' \
+    -d "$GRAPHQL_CHECK_BODY" "$graphql_url" 2>/dev/null)
   if [ "$code" = "401" ]; then
-    ok "  ✅ GET sem token → HTTP 401 (API protegida)"
+    ok "  ✅ POST /v1/graphql sem token → HTTP 401 (API protegida)"
   elif [ "$code" = "200" ]; then
-    err "  ❌ GET sem token → HTTP 200: a API está ABERTA (esperado 401). Faça o deploy da versão com Bearer."
+    err "  ❌ POST /v1/graphql sem token → HTTP 200: a API está ABERTA (esperado 401). Faça o deploy da versão com Bearer."
     return 1
   else
-    err "  ❌ GET sem token → HTTP ${code:-000} (esperado 401)"
+    err "  ❌ POST /v1/graphql sem token → HTTP ${code:-000} (esperado 401)"
     return 1
   fi
 
@@ -252,11 +257,12 @@ check_prod() {
   fi
   # The token goes to curl via config on stdin, so it does not appear in `ps`.
   code=$(printf 'header = "Authorization: Bearer %s"\n' "$PROD_API_TOKEN" \
-    | curl -s -o /dev/null -m 15 -w '%{http_code}' -K - "$endpoint" 2>/dev/null)
+    | curl -s -o /dev/null -m 15 -w '%{http_code}' -X POST -H 'Content-Type: application/json' \
+      -d "$GRAPHQL_CHECK_BODY" -K - "$graphql_url" 2>/dev/null)
   if [ "$code" = "200" ]; then
-    ok "  ✅ GET com token → HTTP 200"
+    ok "  ✅ POST /v1/graphql com token → HTTP 200"
   else
-    err "  ❌ GET com token → HTTP ${code:-000} (esperado 200)"
+    err "  ❌ POST /v1/graphql com token → HTTP ${code:-000} (esperado 200)"
     return 1
   fi
 }
@@ -371,9 +377,9 @@ show_help() {
   echo "  ./run.sh compile             Compilar todos os módulos"
   echo "  ./run.sh tests [módulo]      Testes de todos os módulos ou de um (${MODULES// / | })"
   echo "  ./run.sh local-up            Instalar receive-feedback e subir local-http (portas $HTTP_PORT e $MOCK_PORT)"
-  echo "  ./run.sh local-check         Checar módulo local: GET $LOCAL_URL com Bearer = 200"
+  echo "  ./run.sh local-check         Checar módulo local: POST $LOCAL_URL com Bearer = 200"
   echo "  ./run.sh sam-validate        Validar template SAM (sam validate --lint)"
-  echo "  ./run.sh prod-check          Verificar produção com GET (sem token = 401; com PROD_API_TOKEN = 200)"
+  echo "  ./run.sh prod-check          Verificar produção com POST /v1/graphql (sem token = 401; com PROD_API_TOKEN = 200)"
   echo "  ./run.sh aws-list            Listar recursos AWS (somente leitura)"
   echo "  ./run.sh help                Esta ajuda"
   echo ""
