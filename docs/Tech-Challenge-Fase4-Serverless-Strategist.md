@@ -12,7 +12,7 @@ RM371825
 
 <br><br><br><br>
 
-**PLATAFORMA SERVERLESS DE FEEDBACK: AWS LAMBDA, DYNAMODB, SNS E RELATÓRIO SEMANAL**
+**PLATAFORMA SERVERLESS DE AVALIAÇÃO: AWS LAMBDA, DYNAMODB, SNS E RELATÓRIO SEMANAL**
 
 Tech Challenge — Fase 4
 
@@ -28,7 +28,7 @@ São Paulo
 
 ## DESCRIÇÃO DO PROJETO
 
-Plataforma serverless para coleta de feedbacks de alunos sobre as aulas. O sistema recebe as avaliações por API, classifica cada uma por urgência, envia um e-mail de aviso ao administrador quando a urgência é alta, e gera um relatório semanal com as médias e as contagens do período.
+Plataforma serverless para coleta de avaliações de alunos sobre as aulas. O sistema recebe as avaliações por API, classifica cada uma por urgência, envia um e-mail de aviso ao administrador quando a urgência é alta, e gera um relatório semanal com as médias e as contagens do período.
 
 A aplicação roda na AWS, em região `sa-east-1`, sem servidores para gerenciar. Todas as funções são AWS Lambda, o armazenamento é DynamoDB, a mensageria é Amazon SNS, o agendamento é Amazon EventBridge e o envio de e-mails é Amazon SES.
 
@@ -54,7 +54,7 @@ A aplicação roda na AWS, em região `sa-east-1`, sem servidores para gerenciar
                     │                              │
                     ▼                              ▼
    LAMBDA receive-feedback                 LAMBDA graphql
-    1. valida: descrição ≥ 5 caracteres,      lê os feedbacks
+    1. valida: descrição ≥ 5 caracteres,      lê as avaliações
        nota de 0 a 10                         (listFeedbacks)
     2. urgência pela nota:
        HIGH 0–5 · MEDIUM 6–7 · LOW 8–10
@@ -81,7 +81,7 @@ A aplicação roda na AWS, em região `sa-east-1`, sem servidores para gerenciar
         LAMBDA generate-report
           lê o período (últimos 7 dias) no DynamoDB
           monta totais, média, contagem por dia,
-          contagem por urgência e a lista de feedbacks
+          contagem por urgência e a lista de avaliações
                     │
                     ▼
                   SES ──────────────────────────────► ADMINISTRADOR
@@ -102,7 +102,7 @@ A solução usa somente serviços gerenciados da AWS. A tabela mostra o papel de
 | **Amazon S3** | Guarda o pacote (zip) de cada função antes do deploy | Bucket `sam-artifacts-sa-east-1-prod` | `aws s3 ls s3://sam-artifacts-sa-east-1-prod` |
 | **AWS CloudFormation** | Cria e atualiza todos os recursos a partir do `infra/template.yaml` | Stack `feedback-api-prod` | `aws cloudformation describe-stacks --stack-name feedback-api-prod` |
 | **Amazon API Gateway** | Recebe as requisições HTTPS e encaminha às funções | API `prod-feedback-api`, com as rotas `/v1/avaliacao`, `/v1/avaliacoes`, `/v1/graphql` e `/graphql` | Acessar a URL de produção |
-| **Amazon DynamoDB** | Armazena os feedbacks | Tabela `prod-feedback-table` | `aws dynamodb describe-table --table-name prod-feedback-table` |
+| **Amazon DynamoDB** | Armazena as avaliações | Tabela `prod-feedback-table` | `aws dynamodb describe-table --table-name prod-feedback-table` |
 | **Amazon SNS** | Envia o aviso de urgência e os alarmes | Tópicos `prod-feedback-urgent-topic` e `prod-monitoring-alarms-topic` | `aws sns list-topics` |
 | **Amazon EventBridge** | Dispara o relatório toda segunda-feira, às 08h UTC | Regra `prod-generate-report-schedule` | `aws events list-rules` |
 | **Amazon SES** | Envia os e-mails de urgência, de relatório e de alarme | Identidades verificadas em `sa-east-1` | `aws ses list-identities` |
@@ -128,7 +128,7 @@ Fluxo de deploy:
 
 A solução segue o modelo serverless: cada responsabilidade é uma função Lambda própria, disparada por um evento. Não há servidor ativo esperando requisições.
 
-O Tech Challenge da Fase 4 pede a entrada de feedbacks por API REST, o envio de avisos de urgência e o relatório semanal. A consulta por GraphQL não é exigência: foi adotada como melhoria de acesso aos dados. Com ela, o cliente envia uma única requisição em JSON e recebe apenas os campos que escolheu, sem receber a lista completa de campos de cada feedback. A consulta usa a mesma tabela e o mesmo token da API REST.
+O Tech Challenge da Fase 4 pede a entrada de avaliações por API REST, o envio de avisos de urgência e o relatório semanal. A consulta por GraphQL não é exigência: foi adotada como melhoria de acesso aos dados. Com ela, o cliente envia uma única requisição em JSON e recebe apenas os campos que escolheu, sem receber a lista completa de campos de cada avaliação. A consulta usa a mesma tabela e o mesmo token da API REST.
 
 O diagrama completo, com o fluxo de cada função, está no início deste documento.
 
@@ -136,11 +136,11 @@ O diagrama completo, com o fluxo de cada função, está no início deste docume
 
 | Componente | Tipo na AWS | Responsabilidade | Gatilho | Permissões principais |
 |---|---|---|---|---|
-| **receive-feedback** | Lambda (`prod-receive-feedback`) | Valida a entrada, calcula a urgência, grava o feedback e publica o aviso no SNS quando a urgência é alta | API Gateway: `POST /v1/avaliacao` e `GET /v1/avaliacoes` | DynamoDB: gravar e ler. SNS: publicar no tópico de urgência |
+| **receive-feedback** | Lambda (`prod-receive-feedback`) | Valida a entrada, calcula a urgência, grava a avaliação e publica o aviso no SNS quando a urgência é alta | API Gateway: `POST /v1/avaliacao` e `GET /v1/avaliacoes` | DynamoDB: gravar e ler. SNS: publicar no tópico de urgência |
 | **graphql** | Lambda (`prod-graphql`) | Responde à consulta GraphQL `listFeedbacks` | API Gateway: `POST /v1/graphql` e `POST /graphql` | DynamoDB: ler |
 | **send-notification** | Lambda (`prod-send-notification`) | Envia o e-mail de aviso de urgência | SNS: `prod-feedback-urgent-topic` | SES: enviar e-mail |
 | **generate-report** | Lambda (`prod-generate-report`) | Monta o relatório do período e envia por e-mail | EventBridge: cron `seg 08h UTC` | DynamoDB: ler (Scan e Query). SES: enviar e-mail |
-| **DynamoDB** | Tabela `prod-feedback-table` | Guarda os feedbacks (chave `id`) | Acessada pelas funções | Sob demanda (PAY_PER_REQUEST) |
+| **DynamoDB** | Tabela `prod-feedback-table` | Guarda as avaliações (chave `id`) | Acessada pelas funções | Sob demanda (PAY_PER_REQUEST) |
 | **SNS** | Tópico `prod-feedback-urgent-topic` | Desacopla a coleta do envio do e-mail de urgência | Publicado por receive-feedback | — |
 | **SNS** | Tópico `prod-monitoring-alarms-topic` | Recebe os alarmes e envia e-mail ao administrador | Alarmes CloudWatch | — |
 | **EventBridge** | Regra `prod-generate-report-schedule` | Dispara o relatório toda segunda-feira às 08h UTC | Agenda (cron) | — |
@@ -150,11 +150,11 @@ O diagrama completo, com o fluxo de cada função, está no início deste docume
 
 ### Fluxos principais
 
-**1. Recebimento de feedback**
+**1. Recebimento de avaliação**
 1. O cliente envia `POST /v1/avaliacao` com `description` e `rating`, e o cabeçalho Bearer.
 2. A função valida: descrição com no mínimo 5 caracteres e nota de 0 a 10.
 3. A urgência é calculada pela nota: **HIGH** de 0 a 5, **MEDIUM** de 6 a 7 e **LOW** de 8 a 10.
-4. O feedback é gravado no DynamoDB.
+4. A avaliação é gravada no DynamoDB.
 5. Se a urgência for HIGH, a função publica o evento no SNS.
 
 **2. Aviso de urgência**
@@ -164,12 +164,15 @@ O diagrama completo, com o fluxo de cada função, está no início deste docume
 **3. Relatório semanal**
 1. O EventBridge aciona a função generate-report toda segunda-feira, às 08h UTC.
 2. O período é de 7 dias, terminando no dia anterior à execução.
-3. A função lê os feedbacks do período e monta o relatório.
+3. A função lê as avaliações do período e monta o relatório.
 4. O relatório é enviado por e-mail ao administrador.
 
 **4. Consulta**
-1. O cliente envia a query `listFeedbacks` para `POST /v1/graphql`, com o cabeçalho Bearer.
-2. A função lê o DynamoDB e devolve a lista.
+
+Há duas formas de consultar as avaliações, ambas com o cabeçalho Bearer:
+
+- **REST:** o cliente envia `GET /v1/avaliacoes`. A função receive-feedback lê o DynamoDB e devolve a lista.
+- **GraphQL:** o cliente envia a query `listFeedbacks` para `POST /v1/graphql`. A função graphql lê o DynamoDB e devolve a lista, com apenas os campos pedidos.
 
 ### Por que quatro funções
 
@@ -198,7 +201,7 @@ Módulos: `receive-feedback`, `send-notification`, `generate-report`, e `local-h
 | Framework | Quarkus 3.8 (Amazon Lambda) | Funções serverless e injeção de dependências |
 | Build | Maven (multi-módulo) | Compilação, testes e pacotes das funções |
 | Infraestrutura como código | AWS SAM (CloudFormation) | Template `infra/template.yaml` |
-| Armazenamento | Amazon DynamoDB | Feedbacks |
+| Armazenamento | Amazon DynamoDB | Avaliações |
 | Mensageria | Amazon SNS | Aviso de urgência e alarmes |
 | Agendamento | Amazon EventBridge | Relatório semanal |
 | E-mail | Amazon SES | Avisos e relatórios |
@@ -249,14 +252,14 @@ Todas as rotas exigem o cabeçalho `Authorization: Bearer <token>`.
 
 | Método | Caminho | Função | Descrição |
 |---|---|---|---|
-| POST | `/v1/avaliacao` | receive-feedback | Cria um feedback |
-| GET | `/v1/avaliacoes` | receive-feedback | Lista os feedbacks |
+| POST | `/v1/avaliacao` | receive-feedback | Cria uma avaliação |
+| GET | `/v1/avaliacoes` | receive-feedback | Lista as avaliações |
 | POST | `/v1/graphql` | graphql | Consulta GraphQL (`listFeedbacks`) |
 | POST | `/graphql` | graphql | Mesma consulta, em caminho legado |
 
 ### Exemplos de uso
 
-Criar um feedback:
+Criar uma avaliação:
 
 ```bash
 curl -X POST "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/avaliacao" \
@@ -277,7 +280,7 @@ Resposta (`201`):
 }
 ```
 
-Listar os feedbacks:
+Listar as avaliações:
 
 ```bash
 curl "https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/avaliacoes" \
@@ -452,6 +455,8 @@ Cada merge na `main` dispara o job **Deploy to prod (SAM)**. O job só roda depo
 
 As mensagens de erro são gravadas com o nível `SEVERE`.
 
+[PENDENTE: print dos quatro grupos de logs de produção no CloudWatch (Log groups, região sa-east-1), mostrando a retenção de 30 dias.]
+
 ### Alarmes
 
 | Alarme | Métrica | Quando dispara |
@@ -500,7 +505,7 @@ Quando uma função grava uma linha `SEVERE`, o alarme correspondente conta essa
 - **Quando:** toda avaliação com urgência HIGH (nota de 0 a 5).
 - **Para quem:** o administrador (`AdminEmail`).
 - **Conteúdo:** descrição, urgência e data de envio.
-- **Teste realizado:** feedback de urgência alta enviado em produção, com e-mail recebido.
+- **Teste realizado:** avaliação de urgência alta enviada em produção, com e-mail recebido.
 
 ### Relatório semanal
 
@@ -510,7 +515,7 @@ Quando uma função grava uma linha `SEVERE`, o alarme correspondente conta essa
   - total de avaliações e nota média;
   - quantidade de avaliações por dia;
   - quantidade de avaliações por urgência;
-  - lista dos feedbacks do período, com descrição, urgência e data de envio.
+  - lista das avaliações do período, com descrição, urgência e data de envio.
 - **Para quem:** o administrador (`AdminEmail`), a partir do remetente `SenderEmail`.
 
 **Execução manual:** o relatório também pode ser disparado fora do agendamento, com o comando abaixo, que executa a função de produção:
@@ -556,7 +561,7 @@ Execute `./run.sh` na raiz do projeto para abrir o menu:
 
 ```
 ╔════════════════════════════════════════════════════╗
-║   Tech Challenge Fase 4 — Feedback Serverless      ║
+║   Tech Challenge Fase 4 — Avaliação Serverless     ║
 ║   Quarkus Dev Mode + AWS (sa-east-1)               ║
 ╚════════════════════════════════════════════════════╝
 
