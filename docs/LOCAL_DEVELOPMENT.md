@@ -303,4 +303,4 @@ open target/site/jacoco/index.html
 - Rode `mvn test` antes de fazer commit
 - Faça o deploy na AWS com o SAM quando estiver pronto
 
-Para mais detalhes sobre build e deploy, veja o [README.md](README.md) principal.
+Para mais detalhes sobre build e deploy, veja o [README.md](../README.md) principal.
