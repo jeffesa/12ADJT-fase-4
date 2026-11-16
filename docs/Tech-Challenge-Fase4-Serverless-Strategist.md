@@ -78,6 +78,8 @@ Ou seja: o código fica no **S3**, e a função roda no **Lambda**.
 
 A solução segue o modelo serverless: cada responsabilidade é uma função Lambda própria, disparada por um evento. Não há servidor ativo esperando requisições.
 
+O enunciado pede a entrada de feedbacks por REST, o envio de avisos de urgência e o relatório semanal. A consulta por GraphQL não é exigência: foi adotada como melhoria de acesso aos dados. Com ela, o cliente envia uma única requisição em JSON e recebe apenas os campos que escolheu, sem receber a lista completa de campos de cada feedback. A consulta usa a mesma tabela e o mesmo token da API REST.
+
 ```
                          +-------------------------+
   Cliente (Bruno/curl)   |                         |
