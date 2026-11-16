@@ -45,33 +45,49 @@ A aplicação roda na AWS, em região `sa-east-1`, sem servidores para gerenciar
 ## DIAGRAMA DE ARQUITETURA
 
 ```
-[1] CLIENTE (Bruno, curl)
-     │ HTTPS · Authorization: Bearer <token>
-     ▼
-[2] API GATEWAY · prod-feedback-api
-     │ POST/GET /v1/feedback                 │ POST /v1/graphql
-     ▼                                       ▼
-[3] LAMBDA receive-feedback            [4] LAMBDA graphql
-     │                                       │
-     ├──► [5] DYNAMODB prod-feedback-table ◄─┤ lê (listFeedbacks)
-     │    grava todos os feedbacks
-     │
-     └──► [6] SNS prod-feedback-urgent-topic   (somente urgência HIGH)
-               │ aciona
-               ▼
-          [7] LAMBDA send-notification ──► [8] SES ──► ADMINISTRADOR
+                      ALUNO / CLIENTE
+   POST /v1/feedback   GET /v1/feedback   POST /v1/graphql
+   Authorization: Bearer <token>
+                              │
+                              ▼
+                  API GATEWAY (prod-feedback-api, HTTPS)
+                    │                              │
+                    ▼                              ▼
+   LAMBDA receive-feedback                 LAMBDA graphql
+    1. valida: descrição ≥ 5 caracteres,      lê os feedbacks
+       nota de 0 a 10                         (listFeedbacks)
+    2. urgência pela nota:
+       HIGH 0–5 · MEDIUM 6–7 · LOW 8–10
+    3. grava no DynamoDB ─────────┐
+    4. se HIGH, publica no SNS    │
+                    │             │                 │
+                    │             ▼                 ▼
+                    │      DYNAMODB prod-feedback-table
+                    │      id · description · rating · urgency · createdAt
+                    ▼
+        SNS prod-feedback-urgent-topic   (somente urgência HIGH)
+                    │
+                    ▼
+        LAMBDA send-notification
+          envia e-mail pelo SES ao AdminEmail
+                    │
+                    ▼
+                  SES ──────────────────────────────► ADMINISTRADOR
 
 
-[9] EVENTBRIDGE · cron(0 8 ? * MON *) · segunda-feira, 08h UTC
-     │ aciona
-     ▼
-[10] LAMBDA generate-report ──► lê o DynamoDB (últimos 7 dias)
-     │
-     └──────────────────────────────────────► [8] SES ──► ADMINISTRADOR
+   EVENTBRIDGE cron(0 8 ? * MON *)   (segunda-feira, 08h UTC)
+                    │
+                    ▼
+        LAMBDA generate-report
+          lê o período (últimos 7 dias) no DynamoDB
+          monta totais, média, contagem por dia,
+          contagem por urgência e a lista de feedbacks
+                    │
+                    ▼
+                  SES ──────────────────────────────► ADMINISTRADOR
 
 
-[11] CLOUDWATCH · logs (30 dias) e alarmes para linhas SEVERE
-     └──► SNS prod-monitoring-alarms-topic ──► ADMINISTRADOR
+   ALARMES CloudWatch (linhas SEVERE) ──► SNS prod-monitoring-alarms-topic ──► ADMINISTRADOR
 ```
 
 ---
