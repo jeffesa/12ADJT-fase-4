@@ -2,7 +2,7 @@
 
 **Veredito: FAIL**
 
-**Data e hora da varredura:** 2026-11-15 21:16:39 (-03:00), saída de `date` no início da etapa.
+**Data e hora da varredura:** 2026-11-15 21:29:12 (-03:00), saída de `date` no início da revisão 2 da etapa.
 **Branch:** `docs/code-audit-final-3`, criada a partir de `chore/email-messages-pt` no commit `1ed4ffb`.
 **Base de referência:** conteúdo do relatório da branch `docs/code-audit-final-2` (commit `255c83f`), usado como ponto de partida e reexecutado contra o estado atual desta branch.
 **Build:** `mvn -B clean verify` na raiz do projeto, JDK 17.0.18, Maven 3.9.11, `BUILD SUCCESS`.
@@ -62,7 +62,24 @@ git -C "$R" grep -n -I -E 'Invalid request body|at least 5|Description must' -- 
 git -C "$R" grep -c -I -E '[áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]' -- '*.java'
 ```
 
-Os comandos de documentação com mensagens (seção 7) e as contagens por arquivo estão em `verification2.md`.
+Comandos de documentação com mensagens (seção 7 do relatório):
+
+```bash
+# Mensagens em inglês em documentação e collection (saída na seção 7.1)
+git -C "$R" grep -n -I -E 'must be|cannot be|at least|Invalid request body|Description must|Email address|not verified|Missing bearer|Invalid bearer|Unauthorized|Validation Error|Rating must' -- 'docs/*' 'README.md' '*.md' ':!docs/qualidade/CODE_AUDIT.md'
+
+# Identificadores legados em código de produção, sem literais JSON (deve retornar vazio)
+git -C "$R" grep -n -I -E '"(descricao|nota|urgencia|dataCriacao)"|listarAvaliacoes|/avaliacao' -- '*/src/main/*'
+
+# Ocorrências amplas que incluem palavras comuns em português (mensagens e texto de API, não identificadores)
+git -C "$R" grep -n -I -i -E 'avaliacao|listarAvaliacoes|descricao|urgencia|dataCriacao|avaliacoes|[[:<:]]nota[[:>:]]' -- '*/src/main/*'
+```
+
+Na varredura ampla de código, as ocorrências são frases em português (`Nota deve ser no mínimo 0`, `Alerta de feedback de urgencia alta`, `Nota média:`). Elas são mensagens, e não identificadores. As únicas chaves legadas em teste são as de exceção (a).
+
+Contagem de ocorrências por arquivo em documentação, com `git -C "$R" grep -c`: ver seção 7.2.
+
+Esta revisão não alterou código. O `DEMO_GUIDE.md` e a `api-collection/README.md` foram traduzidos apenas na prosa. Os blocos de código foram restaurados ao texto original da branch `chore/email-messages-pt`. As 30 cercas do `DEMO_GUIDE.md` e as 18 da `api-collection/README.md` são idênticas à base.
 
 ---
 
@@ -167,8 +184,14 @@ A regra de português para documentação permite o texto. A regra de mensagens 
 | `docs/api-collection/fase4-feedback.postman_collection.json` | 559, 596, 736, 769, 806, 845, 1422, 1459, 1599, 1632, 1669, 1708 | Os testes de 401 fazem `pm.expect(detail).to.equal('Missing bearer token')` e `'Invalid bearer token'`. O código devolve `Token Bearer ausente` e `Token Bearer inválido`. **Os testes não batem com a API atual.** Não rodei a collection contra a API. A divergência vem da leitura de `BearerTokenAuthenticator.java`, linhas 64 e 111. |
 | `docs/qualidade/MONITORING_GUIDE.md` | 166, 180, 237, 254 | Cita `Invalid request body` e `Description must be at least 5 characters`. Esses textos não existem em `src/main`. O código emite `Descrição deve ter no mínimo 5 caracteres` e `Descrição não pode estar vazia`. A linha 254 também descreve um comportamento que o código atual não tem. |
 | `docs/qualidade/MONITORING_GUIDE.md` | 206, 258 | Cita `Email address is not verified`, texto que a AWS devolve no SES e que aparece nos logs de produção. Trecho de terceiro, marcado como observação de produção. Mantido como FAIL pela regra estrita. |
+| `docs/api-collection/README.md` | 145, 147, 263, 265, 272 | Exemplos de resposta de erro em bloco de código, com `Validation Error`, `Rating must be at least 0`, `Unauthorized`, `Missing bearer token \| Invalid bearer token`. Os blocos foram restaurados ao original, como pedido (traduzir só a prosa). Os exemplos batem com o texto em inglês da documentação, não com o que a API emite. Mantido como FAIL. Alternativa: traduzir esses quatro exemplos para o texto real da API (`Erro de validação`, `Nota deve ser no mínimo 0`, `Não autorizado`, `Token Bearer ausente \| Token Bearer inválido`). Isso muda só documentação, mas é uma tradução de bloco de código, fora do pedido. |
+| `docs/qualidade/DEMO_GUIDE.md` | — | Sem mensagem em inglês da API. Os exemplos de faixa de nota (`Rating 0-5 → HIGH`) estão em bloco de código, restaurados ao original. |
 
-Os três guias pedidos nesta etapa estão corrigidos. `docs/qualidade/DEMO_GUIDE.md` e `docs/api-collection/README.md` foram traduzidos, e `README.md` da collection usa as mensagens reais do código. `MONITORING_GUIDE.md` já estava em português, e suas linhas com texto em inglês são o FAIL listado acima.
+Sobre os três guias pedidos nesta etapa:
+
+- `docs/qualidade/DEMO_GUIDE.md`: prosa traduzida. `Urgencia` trocado por `urgency` nas duas ocorrências de prosa (linhas 400 e 409). Blocos de código idênticos à base.
+- `docs/api-collection/README.md`: prosa traduzida. Blocos de código idênticos à base (ver linhas acima).
+- `docs/qualidade/MONITORING_GUIDE.md`: não tinha prosa em inglês para traduzir. O arquivo já estava em português, e nenhuma linha foi alterada. As linhas com texto em inglês listadas acima são citações de mensagens, e ficam como FAIL.
 
 ### 7.2 Registros históricos (exceção b)
 
@@ -187,7 +210,7 @@ Estes arquivos são registros de testes, tarefas e sessões. Citam `/avaliacao`,
 | `docs/planejamento/SESSION_SUMMARY_20261026.md` | 1 | Registro de sessão com `/avaliacao` |
 | `docs/planejamento/TASK-022-023-COMPLETION-CHECKLIST.md` | 7 | Checklist histórico com `criarAvaliacao` e `POST /avaliacao` |
 
-Classificar `BACKLOG.md` e `docs/planejamento/` como históricos é uma interpretação da exceção (b), que cita "relatórios, TASK-*, E2E_TEST_RESULTS*, CODE_AUDIT antigo, guias de sessão". Se o responsável não aceitar essa leitura, esses arquivos viram FAIL.
+A exceção (b) vem da regra da etapa de auditoria, que cita "relatórios, TASK-*, E2E_TEST_RESULTS*, CODE_AUDIT antigo, guias de sessão". Essa lista não está em nenhum arquivo do repositório. Por isso, a classificação de `BACKLOG.md` e `docs/planejamento/` como históricos é possível, e não confirmada. Se o responsável não aceitar essa leitura, esses arquivos viram FAIL.
 
 ### 7.3 Falsos positivos sem ação
 
@@ -227,7 +250,7 @@ Comando: `mvn -B clean verify` na raiz do projeto, executado uma vez em modo nã
 | send-notification | 86 | 0 | 0 | SUCCESS |
 | generate-report | 159 | 0 | 0 | SUCCESS |
 
-O build rodou antes das edições de documentação. As edições são só em `.md`, e não alteram código.
+Rodado de novo nesta revisão, depois das edições de documentação. Os números são os mesmos da primeira rodada. As edições são só em `.md`, e não alteram código. Log: `/tmp/code-audit-final-3-build.log`, `MVN_EXIT=0`.
 
 O módulo `local-http` não faz parte do reactor da raiz e não foi executado.
 
@@ -240,7 +263,7 @@ O módulo `local-http` não faz parte do reactor da raiz e não foi executado.
 Itens que bloqueiam o PASS:
 
 1. **Testes de 401 da collection Postman** (seção 7.1): esperam `Missing bearer token` e `Invalid bearer token`, mas a API responde `Token Bearer ausente` e `Token Bearer inválido`. Decisão necessária: ajustar as asserções ao texto atual, ou mudar a API para a mensagem em inglês (o que muda o que o cliente vê e não é o escopo desta etapa).
-2. **Mensagens em inglês em documentação**: `docs/API.md`, `docs/api-collection/API.md`, `docs/SECURITY.md` e `docs/deploy/AWS_DEPLOY_GUIDE.md` (seção 7.1).
+2. **Mensagens em inglês em documentação**: `docs/API.md`, `docs/api-collection/API.md`, `docs/SECURITY.md`, `docs/deploy/AWS_DEPLOY_GUIDE.md` e os exemplos de erro de `docs/api-collection/README.md` (seção 7.1). Decisão aberta: manter o bloco original, ou traduzir esses exemplos para o texto real da API.
 3. **`docs/qualidade/MONITORING_GUIDE.md`**, linhas 166, 180, 237 e 254: mensagens que o código não emite. Linhas 206 e 258: texto da AWS, marcado como FAIL pela regra estrita.
 4. **Arquivos `infra/template.yaml.bak` e `infra/template.yaml.orig` rastreados** (seção 8). A remoção depende de confirmação.
 5. **Classificação de `BACKLOG.md` e `docs/planejamento/`** como históricos (seção 7.2).
@@ -250,5 +273,7 @@ Itens aceitos como exceção:
 - `ReceiveFeedbackHandlerV1Test.java`, linhas 83 e 172 (exceção a).
 - Registros históricos da seção 7.2 (exceção b).
 
-Nenhuma ocorrência de `listarAvaliacoes`, `criarAvaliacao` ou `/avaliacao` em código, configuração ou nos três guias desta etapa. A rota antiga aparece apenas nos registros históricos.
+Nenhuma ocorrência de `listarAvaliacoes`, `criarAvaliacao` ou `/avaliacao` em código, configuração ou nos três guias desta etapa. A rota antiga aparece apenas nos registros históricos da seção 7.2.
+
+Pendência de decisão, fora desta branch: a collection `fase4-feedback.postman_collection.json` espera mensagens em inglês que a API não emite. Escolhas: ajustar as asserções da collection, ou mudar a API. Nenhuma foi feita.
 

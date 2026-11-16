@@ -142,9 +142,9 @@ Todos os testes verificam esse mapeamento, comparando o campo `urgency` com a fa
 ### Exemplo de resposta de erro
 ```json
 {
-  "title": "Erro de validação",
+  "title": "Validation Error",
   "status": 400,
-  "detail": "Nota deve ser no mínimo 0"
+  "detail": "Rating must be at least 0"
 }
 ```
 
@@ -233,7 +233,7 @@ query {
 ### Endpoint
 ```
 POST /v1/feedback
-Host: {{localUrl}} ou {{prodUrl}}
+Host: {{localUrl}} or {{prodUrl}}
 Authorization: Bearer <token>
 Content-Type: application/json
 ```
@@ -241,8 +241,8 @@ Content-Type: application/json
 ### Corpo da requisição
 ```json
 {
-  "description": "string (obrigatório, não em branco)",
-  "rating": "inteiro (obrigatório, 0 a 10 inclusive)"
+  "description": "string (required, non-blank)",
+  "rating": "integer (required, 0-10 inclusive)"
 }
 ```
 
@@ -250,28 +250,28 @@ Content-Type: application/json
 ```json
 {
   "id": "UUID",
-  "description": "string (repetido da requisição)",
-  "rating": "inteiro (repetido da requisição)",
-  "urgency": "HIGH|MEDIUM|LOW (calculada)",
-  "createdAt": "timestamp ISO 8601"
+  "description": "string (echoed from request)",
+  "rating": "integer (echoed from request)",
+  "urgency": "HIGH|MEDIUM|LOW (calculated)",
+  "createdAt": "ISO 8601 timestamp"
 }
 ```
 
 ### Resposta de erro (401 Não autorizado)
 ```json
 {
-  "title": "Não autorizado",
+  "title": "Unauthorized",
   "status": 401,
-  "detail": "Token Bearer ausente | Token Bearer inválido"
+  "detail": "Missing bearer token | Invalid bearer token"
 }
 ```
 
 ### Resposta de erro (400 Bad Request)
 ```json
 {
-  "title": "Erro de validação|Violação de restrição|etc",
+  "title": "Validation Error|Constraint Violation|etc",
   "status": 400,
-  "detail": "Mensagem específica explicando a violação"
+  "detail": "Specific error message explaining the violation"
 }
 ```
 

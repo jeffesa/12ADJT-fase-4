@@ -429,9 +429,9 @@ docker compose exec localstack awslocal dynamodb scan \
 
 ### Cálculo de urgência
 ```
-Nota 0-5   → HIGH    (feedback crítico exige atenção imediata)
-Nota 6-7   → MEDIUM  (feedback moderado, enfileirado para revisão)
-Nota 8-10  → LOW     (feedback positivo, registrado para análise)
+Rating 0-5  → HIGH    (critical feedback requires immediate attention)
+Rating 6-7  → MEDIUM  (moderate feedback, queued for review)
+Rating 8-10 → LOW     (positive feedback, logged for analytics)
 ```
 
 ### Pipeline orientado a eventos
