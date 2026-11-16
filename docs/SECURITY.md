@@ -1,113 +1,113 @@
-# Security Documentation
+# Documentação de segurança
 
-## Cloud Model
+## Modelo de nuvem
 
-This system is built on **AWS Serverless**, a cloud-native architecture that leverages managed AWS services to eliminate infrastructure management overhead. All compute, storage, and integration components are fully managed by AWS, enabling rapid scaling and high availability without operational burden.
+Este sistema é construído sobre **AWS Serverless**, uma arquitetura nativa da nuvem que usa serviços gerenciados da AWS para eliminar o trabalho de gestão de infraestrutura. Todos os componentes de computação, armazenamento e integração são totalmente gerenciados pela AWS, o que permite escalar rapidamente e ter alta disponibilidade sem carga operacional.
 
-The serverless model provides:
-- **On-demand scaling**: Resources automatically scale to meet demand
-- **Pay-per-use pricing**: Costs correlate directly with actual usage
-- **Reduced operational overhead**: No server provisioning or patching required
-- **Built-in resilience**: Managed services include redundancy and failover
-
----
-
-## Security Components
-
-### 1. Bearer Token Authentication
-
-All routes (`POST /v1/feedback`, `GET /v1/feedback` and `POST /v1/graphql`) require the header `Authorization: Bearer <token>`. The token is validated inside the Lambda handlers, so the same rule applies locally and in production.
-
-- **Token source**: a single shared token, stored as the GitHub secret `API_TOKEN` and passed to the deploy as the `ApiToken` parameter (`NoEcho`, 24 to 128 characters: letters, digits, `_` and `-`). The Lambdas read it from the `API_TOKEN` environment variable.
-- **Creating the secret**: `openssl rand -hex 24 | tee >(pbcopy) | gh secret set API_TOKEN --repo jeffesa/12ADJT-fase-4`. GitHub does not show the value again, so keep a copy.
-- **Rotation**: replace the `API_TOKEN` secret and run a new deploy. The old token stops working after the deploy.
-- **Responses**: `401` with `Missing bearer token` (header absent, empty or wrong scheme) or `Invalid bearer token` (token does not match), both with `WWW-Authenticate: Bearer`. If `API_TOKEN` is not configured, every request is rejected with `500` (fail closed).
-- **Handling**: the comparison is constant-time, and the token is never logged. Never commit the token to version control.
-
-The API Gateway Usage Plan below enforces throttling and quota limits:
-
-  - **Burst Limit**: 100 requests per second
-  - **Rate Limit**: 1,000 requests per second (sustained)
-  - **Daily Quota**: 10,000 requests per day
-
-### 2. IAM Roles and Least-Privilege Access
-
-Each Lambda function runs under a dedicated IAM role with permissions scoped to only the AWS resources and actions it requires. This follows the principle of least privilege, minimizing the blast radius if a function is compromised.
-
-#### Role 1: ReceiveFeedback
-
-**Purpose**: Receives feedback submissions via API Gateway, validates input, persists to DynamoDB, and publishes urgent feedback (urgency=HIGH) to SNS.
-
-**Permissions**:
-- `dynamodb:PutItem` on DynamoDB FeedbacksTable
-- `sns:Publish` on SNS FeedbackUrgentTopic
-- `logs:*` (via AWSLambdaBasicExecutionRole) for CloudWatch Logs
-
-**Least-Privilege Rationale**:
-- Write-only access to DynamoDB (no read/delete/update)
-- SNS Publish limited to the specific urgent feedback topic
-- No access to other AWS services or resources outside its scope
-
-#### Role 2: SendNotification
-
-**Purpose**: Consumes urgent feedback events from SNS and sends email notifications to administrators via AWS SES.
-
-**Permissions**:
-- `ses:SendEmail` and `ses:SendRawEmail` on all resources
-- `logs:*` (via AWSLambdaBasicExecutionRole) for CloudWatch Logs
-
-**Least-Privilege Rationale**:
-- Email-only actions; no database or SNS access
-- Cannot read, modify, or delete feedback data
-- Scoped to email sending operations only
-
-#### Role 3: GenerateReport
-
-**Purpose**: Scheduled weekly (Monday 08:00 UTC) to read feedbacks from DynamoDB, aggregate statistics, and send reports via SES.
-
-**Permissions**:
-- `dynamodb:Scan` and `dynamodb:Query` on DynamoDB FeedbacksTable
-- `ses:SendEmail` and `ses:SendRawEmail` on all resources
-- `logs:*` (via AWSLambdaBasicExecutionRole) for CloudWatch Logs
-
-**Least-Privilege Rationale**:
-- Read-only access to DynamoDB (no write/delete/update)
-- Can only scan or query, not modify table structure
-- Email sending limited to report delivery
-- Reserved concurrency set to 1 (prevents duplicate report generation)
-
-### 3. CloudWatch Logging and Monitoring
-
-Each Lambda function logs to a dedicated CloudWatch Log Group with:
-
-- **Log Group**: `/aws/lambda/{environment}-{function-name}`
-- **Retention**: 30 days (automatic cleanup of old logs)
-- **Log Levels**: 
-  - INFO: Handler entry/exit and major operations
-  - FINE: Detailed operational information (request/response data)
-  - SEVERE: Errors and exception details
-
-**Monitoring Capabilities**:
-- All Lambda invocations are logged in CloudWatch
-- Errors are captured with full exception context
-- Log Insights queries enable troubleshooting and audit trails
+O modelo serverless oferece:
+- **Escala sob demanda**: os recursos escalam automaticamente conforme a demanda
+- **Cobrança por uso**: o custo acompanha o uso real
+- **Menos carga operacional**: não há provisionamento nem aplicação de patches em servidores
+- **Resiliência integrada**: os serviços gerenciados incluem redundância e failover
 
 ---
 
-## API Gateway + Usage Plan Throttling
+## Componentes de segurança
 
-The Feedback API is protected from abuse and overload through AWS API Gateway Usage Plans:
+### 1. Autenticação por token Bearer
 
-### Rate Limiting
-- **Burst Limit**: 100 requests per second (handles traffic spikes)
-- **Rate Limit**: 1,000 requests per second (sustained rate)
-- **Daily Quota**: 10,000 requests per day
+Todas as rotas (`POST /v1/feedback`, `GET /v1/feedback` e `POST /v1/graphql`) exigem o header `Authorization: Bearer <token>`. O token é validado dentro dos handlers Lambda, então a mesma regra vale localmente e em produção.
 
-### Enforcement
-- Requests exceeding limits receive HTTP 429 (Too Many Requests)
-- Clients must implement exponential backoff retry logic
+- **Origem do token**: um único token compartilhado, guardado como segredo do GitHub `API_TOKEN` e passado ao deploy pelo parâmetro `ApiToken` (`NoEcho`, de 24 a 128 caracteres: letras, dígitos, `_` e `-`). As Lambdas leem o valor da variável de ambiente `API_TOKEN`.
+- **Criação do segredo**: `openssl rand -hex 24 | tee >(pbcopy) | gh secret set API_TOKEN --repo jeffesa/12ADJT-fase-4`. O GitHub não mostra o valor de novo, então guarde uma cópia.
+- **Rotação**: troque o segredo `API_TOKEN` e rode um novo deploy. O token antigo deixa de funcionar depois do deploy.
+- **Respostas**: `401` com `Token Bearer ausente` (header ausente, vazio ou com esquema diferente) ou `Token Bearer inválido` (token não confere), ambos com `WWW-Authenticate: Bearer`. Se `API_TOKEN` não estiver configurado, toda requisição é recusada com `500` (falha fechada).
+- **Tratamento**: a comparação é feita em tempo constante, e o token nunca é gravado em log. Nunca faça commit do token no controle de versão.
 
-### Configuration
+O Usage Plan do API Gateway, abaixo, aplica os limites de taxa e de cota:
+
+  - **Limite de rajada (burst)**: 100 requisições por segundo
+  - **Limite de taxa (rate)**: 1.000 requisições por segundo (sustentado)
+  - **Cota diária**: 10.000 requisições por dia
+
+### 2. Papéis IAM e acesso de privilégio mínimo
+
+Cada função Lambda roda com um papel IAM próprio, com permissões restritas aos recursos e ações de que precisa. Isso segue o princípio do privilégio mínimo e limita o impacto caso uma função seja comprometida.
+
+#### Papel 1: ReceiveFeedback
+
+**Finalidade**: recebe os feedbacks pelo API Gateway, valida a entrada, grava no DynamoDB e publica feedbacks urgentes (urgency=HIGH) no SNS.
+
+**Permissões**:
+- `dynamodb:PutItem` na tabela FeedbacksTable do DynamoDB
+- `sns:Publish` no tópico FeedbackUrgentTopic do SNS
+- `logs:*` (via AWSLambdaBasicExecutionRole) para o CloudWatch Logs
+
+**Justificativa do privilégio mínimo**:
+- Acesso somente de escrita ao DynamoDB (sem leitura, exclusão ou atualização)
+- Publicação no SNS limitada ao tópico de feedback urgente
+- Sem acesso a outros serviços ou recursos fora do seu escopo
+
+#### Papel 2: SendNotification
+
+**Finalidade**: consome os eventos de feedback urgente do SNS e envia e-mails de notificação aos administradores pelo AWS SES.
+
+**Permissões**:
+- `ses:SendEmail` e `ses:SendRawEmail` em todos os recursos
+- `logs:*` (via AWSLambdaBasicExecutionRole) para o CloudWatch Logs
+
+**Justificativa do privilégio mínimo**:
+- Somente ações de e-mail; sem acesso a banco de dados nem ao SNS
+- Não pode ler, alterar nem excluir dados de feedback
+- Restrito às operações de envio de e-mail
+
+#### Papel 3: GenerateReport
+
+**Finalidade**: executado semanalmente (segunda-feira, 08:00 UTC) para ler os feedbacks do DynamoDB, agregar estatísticas e enviar relatórios pelo SES.
+
+**Permissões**:
+- `dynamodb:Scan` e `dynamodb:Query` na tabela FeedbacksTable do DynamoDB
+- `ses:SendEmail` e `ses:SendRawEmail` em todos os recursos
+- `logs:*` (via AWSLambdaBasicExecutionRole) para o CloudWatch Logs
+
+**Justificativa do privilégio mínimo**:
+- Acesso somente de leitura ao DynamoDB (sem escrita, exclusão ou atualização)
+- Pode apenas fazer scan ou query, sem alterar a estrutura da tabela
+- Envio de e-mail limitado à entrega de relatórios
+- Concorrência reservada igual a 1 (evita a geração duplicada de relatórios)
+
+### 3. Logs e monitoramento no CloudWatch
+
+Cada função Lambda grava logs em um grupo de logs próprio do CloudWatch, com:
+
+- **Grupo de logs**: `/aws/lambda/{environment}-{function-name}`
+- **Retenção**: 30 dias (limpeza automática de logs antigos)
+- **Níveis de log**:
+  - INFO: entrada e saída dos handlers e operações principais
+  - FINE: informações operacionais detalhadas (dados de requisição e resposta)
+  - SEVERE: erros e detalhes de exceções
+
+**Recursos de monitoramento**:
+- Todas as invocações Lambda são registradas no CloudWatch
+- Os erros são capturados com o contexto completo da exceção
+- As consultas do Log Insights permitem diagnóstico e trilhas de auditoria
+
+---
+
+## Limitação de taxa com Usage Plan no API Gateway
+
+A API de feedback é protegida contra abuso e sobrecarga pelos Usage Plans do AWS API Gateway:
+
+### Limitação de taxa
+- **Limite de rajada (burst)**: 100 requisições por segundo (absorve picos de tráfego)
+- **Limite de taxa (rate)**: 1.000 requisições por segundo (taxa sustentada)
+- **Cota diária**: 10.000 requisições por dia
+
+### Aplicação
+- Requisições acima dos limites recebem HTTP 429 (Too Many Requests)
+- Os clientes devem implementar retentativas com backoff exponencial
+
+### Configuração
 ```yaml
 ApiUsagePlan:
   Throttle:
@@ -120,30 +120,30 @@ ApiUsagePlan:
 
 ---
 
-## Environment Separation (dev/prod)
+## Separação de ambientes (dev/prod)
 
-The infrastructure supports isolated development and production environments controlled by the `Environment` parameter:
+A infraestrutura oferece ambientes de desenvolvimento e de produção isolados, controlados pelo parâmetro `Environment`:
 
-### Resource Naming
-All resources are prefixed with the environment name to ensure complete isolation:
-- DynamoDB Table: `{environment}-feedback-table`
-- SNS Topic: `{environment}-feedback-urgent-topic`
-- Lambda Functions: `{environment}-{function-name}`
-- Log Groups: `/aws/lambda/{environment}-{function-name}`
+### Nomenclatura dos recursos
+Todos os recursos recebem o nome do ambiente como prefixo, para garantir isolamento completo:
+- Tabela DynamoDB: `{environment}-feedback-table`
+- Tópico SNS: `{environment}-feedback-urgent-topic`
+- Funções Lambda: `{environment}-{function-name}`
+- Grupos de logs: `/aws/lambda/{environment}-{function-name}`
 - API Gateway: `{environment}-feedback-api`
 
-### Separate Deployments
-- **Development (dev)**: Used for testing, experimentation, and integration validation
-- **Production (prod)**: Live environment serving real users
+### Implantações separadas
+- **Desenvolvimento (dev)**: usado para testes, experimentos e validação de integração
+- **Produção (prod)**: ambiente real, atendendo usuários reais
 
-### Separate Usage Plans
-Each environment has its own Usage Plan, preventing dev traffic from affecting production quotas or throttling.
+### Usage Plans separados
+Cada ambiente tem o seu próprio Usage Plan, o que impede que o tráfego de dev afete as cotas ou a limitação de taxa de produção.
 
-### Email Verification (SES)
-- In production, the `AdminEmail` parameter must reference an email address verified in Amazon SES
-- In development, any email address can be used for testing
+### Verificação de e-mail (SES)
+- Em produção, o parâmetro `AdminEmail` precisa apontar para um e-mail verificado no Amazon SES
+- Em desenvolvimento, qualquer e-mail pode ser usado para testes
 
-### Deployment Parameters
+### Parâmetros de deploy
 ```yaml
 Parameters:
   Environment:
@@ -158,106 +158,106 @@ Parameters:
 
 ---
 
-## Data Security and Access Control
+## Segurança de dados e controle de acesso
 
-### DynamoDB Encryption
-- All data at rest in DynamoDB is encrypted by default using AWS managed keys
-- Point-in-time recovery is disabled in this configuration (can be enabled if needed for disaster recovery)
+### Criptografia no DynamoDB
+- Todos os dados em repouso no DynamoDB são criptografados por padrão, com chaves gerenciadas pela AWS
+- A recuperação point-in-time está desativada nesta configuração (pode ser ativada se for necessária para recuperação de desastres)
 
-### Network Security
-- All Lambda-to-AWS service communication occurs over private AWS networks
-- API Gateway enforces HTTPS for all incoming requests (TLS 1.2+)
-- No data is transmitted over unencrypted channels
+### Segurança de rede
+- Toda a comunicação entre as Lambdas e os serviços da AWS ocorre em redes privadas da AWS
+- O API Gateway exige HTTPS em todas as requisições recebidas (TLS 1.2+)
+- Nenhum dado é transmitido por canais sem criptografia
 
-### Access Audit Trail
-- CloudWatch Logs capture all function invocations and errors
-- SNS message delivery is logged
-- DynamoDB access is implicit in Lambda logs (via CloudWatch)
-
----
-
-## Security Best Practices Implemented
-
-1. **Least-Privilege IAM Roles**: Each Lambda has minimal required permissions
-2. **Bearer Token Authentication**: All API requests require `Authorization: Bearer <token>`
-3. **Rate Limiting**: Usage Plans prevent abuse and resource exhaustion
-4. **Encryption**: Data at rest (DynamoDB) and in transit (HTTPS) are encrypted
-5. **Audit Logging**: CloudWatch Logs capture all operations for compliance and debugging
-6. **Environment Isolation**: Separate stacks for dev and prod prevent cross-environment interference
-7. **Reserved Concurrency**: Critical functions (GenerateReport) have reserved slots to prevent starvation
-8. **Error Handling**: Errors are logged without exposing internal details to clients
+### Trilha de auditoria de acesso
+- O CloudWatch Logs registra todas as invocações de funções e os erros
+- A entrega de mensagens do SNS é registrada em log
+- O acesso ao DynamoDB fica registrado de forma implícita nos logs das Lambdas (via CloudWatch)
 
 ---
 
-## Deployment and Configuration
+## Boas práticas de segurança implementadas
 
-### Prerequisites
-1. AWS Account with appropriate permissions
-2. AWS SAM CLI installed
-3. SES verified email address (for production deployments)
-4. S3 bucket for storing packaged Lambda code
+1. **Papéis IAM com privilégio mínimo**: cada Lambda tem somente as permissões necessárias
+2. **Autenticação por token Bearer**: todas as requisições à API exigem `Authorization: Bearer <token>`
+3. **Limitação de taxa**: os Usage Plans evitam abuso e esgotamento de recursos
+4. **Criptografia**: os dados em repouso (DynamoDB) e em trânsito (HTTPS) são criptografados
+5. **Log de auditoria**: o CloudWatch Logs registra todas as operações para conformidade e diagnóstico
+6. **Isolamento de ambientes**: stacks separadas para dev e prod impedem interferência entre ambientes
+7. **Concorrência reservada**: funções críticas (GenerateReport) têm slots reservados para evitar falta de recursos
+8. **Tratamento de erros**: os erros são registrados em log sem expor detalhes internos aos clientes
 
-### Deployment Steps
+---
+
+## Implantação e configuração
+
+### Pré-requisitos
+1. Conta AWS com as permissões necessárias
+2. AWS SAM CLI instalado
+3. Endereço de e-mail verificado no SES (para implantações em produção)
+4. Bucket S3 para armazenar o código empacotado das Lambdas
+
+### Passos de implantação
 ```bash
-# Build all Lambda functions
+# Compilar todas as funções Lambda
 sam build
 
-# Package (substitute S3 bucket name)
+# Empacotar (substitua o nome do bucket S3)
 sam package --s3-bucket <your-s3-bucket> --output-template-file packaged.yaml
 
-# Deploy to dev environment
+# Implantar no ambiente dev
 sam deploy --template-file packaged.yaml \
   --parameter-overrides Environment=dev AdminEmail=dev@example.com \
   --stack-name fiap-fase4-dev
 
-# Deploy to prod environment
+# Implantar no ambiente prod
 sam deploy --template-file packaged.yaml \
   --parameter-overrides Environment=prod AdminEmail=admin@example.com \
   --stack-name fiap-fase4-prod
 ```
 
-### Environment-Specific Configuration
-- Update `AdminEmail` parameter per environment
-- Ensure SES sender email is verified in production
-- Adjust throttle limits as needed based on usage patterns
+### Configuração específica de cada ambiente
+- Atualize o parâmetro `AdminEmail` em cada ambiente
+- Garanta que o e-mail remetente do SES esteja verificado em produção
+- Ajuste os limites de taxa conforme o padrão de uso
 
 ---
 
-## Incident Response
+## Resposta a incidentes
 
-### Monitoring and Alerting
-- CloudWatch Logs are retained for 30 days
-- Logs should be monitored for ERROR and SEVERE level messages
-- Consider enabling CloudWatch Alarms for:
-  - Lambda error rates
-  - API Gateway 5xx errors
-  - DynamoDB throttling
+### Monitoramento e alertas
+- Os logs do CloudWatch são retidos por 30 dias
+- Os logs devem ser monitorados quanto a mensagens de nível ERROR e SEVERE
+- Considere ativar alarmes do CloudWatch para:
+  - Taxas de erro das Lambdas
+  - Erros 5xx do API Gateway
+  - Throttling do DynamoDB
 
-### Log Analysis
+### Análise de logs
 ```bash
-# Example: Query recent errors in CloudWatch Logs Insights
+# Exemplo: consultar erros recentes no CloudWatch Logs Insights
 fields @timestamp, @message, @logStream
 | filter @message like /ERROR|SEVERE/
 | stats count() by @logStream
 ```
 
-### Recovery
-- Lambda functions are stateless and automatically recover from transient failures
-- SNS retry policy (default 3 retries) ensures urgent notifications are eventually delivered
-- Scheduled reports can be manually triggered by invoking GenerateReportFunction via the AWS Lambda console
+### Recuperação
+- As funções Lambda não mantêm estado e se recuperam automaticamente de falhas transitórias
+- A política de retentativa do SNS (padrão de 3 tentativas) garante que as notificações urgentes sejam entregues
+- Relatórios agendados podem ser disparados manualmente invocando a GenerateReportFunction pelo console do AWS Lambda
 
 ---
 
-## Compliance Considerations
+## Considerações de conformidade
 
-- **Data Retention**: DynamoDB and CloudWatch Logs are retained according to configuration
-- **Audit Trail**: All operations are logged in CloudWatch for compliance audits
-- **Encryption**: Data at rest and in transit meets standard security requirements
-- **Access Control**: IAM roles enforce least-privilege access
-- **Environment Separation**: Production and development workloads are isolated
+- **Retenção de dados**: o DynamoDB e o CloudWatch Logs são retidos conforme a configuração
+- **Trilha de auditoria**: todas as operações são registradas no CloudWatch para auditorias de conformidade
+- **Criptografia**: os dados em repouso e em trânsito atendem aos requisitos de segurança padrão
+- **Controle de acesso**: os papéis IAM impõem acesso com privilégio mínimo
+- **Separação de ambientes**: as cargas de produção e de desenvolvimento são isoladas
 
 ---
 
-## Contact and Support
+## Contato e suporte
 
-For security concerns or vulnerabilities, please contact the development team immediately. Do not disclose security issues publicly.
+Para questões de segurança ou vulnerabilidades, entre em contato imediatamente com a equipe de desenvolvimento. Não divulgue problemas de segurança publicamente.
