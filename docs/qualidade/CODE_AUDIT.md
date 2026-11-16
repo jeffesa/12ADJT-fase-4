@@ -1,220 +1,254 @@
-# Code Audit Report: 100% English Compliance
+# Auditoria final de código: padrão de idiomas
 
-**Date:** 2026-10-27  
-**Scope:** Full code audit for Portuguese language removal from all source files  
-**Result:** PASSED - All Portuguese identifiers and non-contract comments translated to English
+**Veredito: FAIL**
 
----
+**Data e hora da varredura:** 2026-11-15 21:16:39 (-03:00), saída de `date` no início da etapa.
+**Branch:** `docs/code-audit-final-3`, criada a partir de `chore/email-messages-pt` no commit `1ed4ffb`.
+**Base de referência:** conteúdo do relatório da branch `docs/code-audit-final-2` (commit `255c83f`), usado como ponto de partida e reexecutado contra o estado atual desta branch.
+**Build:** `mvn -B clean verify` na raiz do projeto, JDK 17.0.18, Maven 3.9.11, `BUILD SUCCESS`.
 
-## Executive Summary
-
-This audit scanned all Java source files, XML/YAML configuration files, and properties files under `/Users/jefferson/Documents/FIAP/fase-4/.worktrees/final-docs` for Portuguese language content. A total of 104 source files were examined.
-
-**Findings:**
-- 1 public GraphQL API contract preserved (see "Public API Exceptions" section)
-- 1 internal method name renamed (Portuguese → English)
-- 7 configuration/documentation files with Portuguese comments/descriptions updated
-- All changes verified with 146 passing tests
+Este relatório substitui a versão anterior. Nesta branch, os textos de e-mail e de assunto SNS já estão em português, e a query `listarAvaliacoes` não existe mais em código. Mesmo assim, há mensagens em inglês em documentos vivos e nos testes da collection (seção 7).
 
 ---
 
-## Files Scanned and Changes Made
+## 1. Regras da auditoria
 
-### Java Files (50 scanned)
-
-**Directory:** `receive-feedback/src/main/java/`  
-**Files scanned:** 21  
-**Changes:** 2 (method name, no breaking changes to behavior)
-
-- `com/fiap/feedback/application/usecase/ReceiveFeedbackUseCase.java`
-  - **Line 64:** Method renamed `listarTodos()` → `listAll()`
-  - **Reason:** Internal use case method; Portuguese identifier
-  - **Impact:** Low (internal API only, updated all call sites)
-
-- `com/fiap/feedback/infra/graphql/ReceiveFeedbackQueryResolver.java`
-  - **Line 58:** Updated method call from `listarTodos()` to `listAll()`
-  - **Reason:** Reflects renamed internal method
-  - **Impact:** None (implementation detail change only)
-
-- `com/fiap/feedback/infra/graphql/ReceiveFeedbackQueryResolver.java`
-  - **Line 52:** GraphQL query name `listarAvaliacoes()` preserved (see exceptions)
-  - **Reason:** Public GraphQL API contract; renaming would break client queries
-  - **Impact:** Intentionally preserved for API stability
-
-**Directory:** `receive-feedback/src/test/java/`  
-**Files scanned:** 6  
-**Changes:** 0 (tests call GraphQL resolver, which preserves public query name)
-
-**Directory:** `send-notification/src/main/java/` and `src/test/java/`  
-**Files scanned:** 12  
-**Changes:** 0 (all identifiers already in English)
-
-**Directory:** `generate-report/src/main/java/` and `src/test/java/`  
-**Files scanned:** 11  
-**Changes:** 0 (all identifiers already in English)
-
-### Configuration Files (54 scanned)
-
-**POM Files (XML):** 4 scanned, 3 updated
-
-1. **receive-feedback/pom.xml**
-   - **Line 15:** Description: `"Lambda 1 - Recebe e persiste avaliações, dispara notificação SNS para urgências altas"` → `"Lambda 1 - Receives and persists feedback ratings, triggers SNS notification for high urgency"`
-   - **Line 40:** Comment: `"<!-- Jackson para serialização JSON -->"` → `"<!-- Jackson for JSON serialization -->"`
-
-2. **send-notification/pom.xml**
-   - **Line 15:** Description: `"Lambda 2 - Envia notificação por e-mail ao admin quando feedback é crítico (urgência HIGH)"` → `"Lambda 2 - Sends email notification to admin when feedback is critical (HIGH urgency)"`
-   - **Line 35:** Comment: `"<!-- Jackson para deserializar mensagem SNS -->"` → `"<!-- Jackson for deserializing SNS message -->"`
-
-3. **generate-report/pom.xml**
-   - **Line 15:** Description: `"Lambda 3 - Gera e envia relatório semanal de feedbacks (triggered por EventBridge cron)"` → `"Lambda 3 - Generates and sends weekly feedback report (triggered by EventBridge cron)"`
-
-**Properties Files:** 2 scanned, 1 updated
-
-1. **receive-feedback/src/main/resources/application.properties**
-   - **Line 2:** Comment: `"# receive-feedback — configurações da Lambda"` → `"# receive-feedback — Lambda configuration"`
-   - **Line 5:** Comment: `"# Profile ativo (dev usa LocalStack, prod usa AWS real)"` → `"# Active profile (dev uses LocalStack, prod uses real AWS)"`
-   - **Line 9-10:** Comments: `"# dev: aponta para LocalStack"` → `"# dev: points to LocalStack"`
-   - **Line 17:** Comment: `"# prod: usa credenciais da IAM Role da Lambda (sem configuração explícita)"` → `"# prod: uses IAM Role credentials from Lambda (no explicit configuration)"`
-   - **Line 20:** Comment: `"# Nome da tabela DynamoDB"` → `"# DynamoDB table name"`
-   - **Line 33:** Comment: `"# ARN do tópico SNS para notificações urgentes (injetado pelo SAM via env var)"` → `"# SNS topic ARN for urgent notifications (injected by SAM via env var)"`
-
-**YAML Files:** 3 scanned, 2 updated
-
-1. **docker-compose.yml**
-   - **Line 5:** Comment: `"# LocalStack — emula AWS services localmente"` → `"# LocalStack — emulates AWS services locally"`
-   - **Line 21:** Comment: `"# Services a serem emulados"` → `"# Services to be emulated"`
-   - **Line 22:** Comment: `"# Modo debug (opcional, descomente para troubleshooting)"` → `"# Debug mode (optional, uncomment for troubleshooting)"`
-   - **Line 26:** Comment: `"# Usar a mesma região configurada nas aplicações"` → `"# Use the same region configured in the applications"`
-   - **Line 29:** Comment: `"# LocalStack 3.x específico"` → `"# LocalStack 3.x specific"`
-   - **Line 33:** Comment: `"# Persist LocalStack state (opcional)"` → `"# Persist LocalStack state (optional)"`
-   - **Line 35:** Comment: `"# Script de inicialização para criar recursos"` → `"# Initialization script for creating resources"`
-
-2. **generate-report/src/main/resources/application.yaml** (scanned, no Portuguese found)
-
-**Properties Files (Sonar):** 1 scanned, 1 updated
-
-1. **sonar-project.properties**
-   - **Line 3:** Comment: `"# SonarCloud - Tech Challenge Fase 4 (Projeto Serverless Multi-Module)"` → `"# SonarCloud - Tech Challenge Fase 4 (Serverless Multi-Module Project)"`
-   - **Line 6:** Comment: `"# Módulos Maven (3 Lambdas independentes)"` → `"# Maven modules (3 independent Lambdas)"`
-   - **Line 8-10:** Comments: Multiple updates ("Fontes e testes" → "Sources and tests", etc.)
-   - **Line 13-14:** Comments: `"# Relatórios de cobertura JaCoCo..."` → `"# JaCoCo coverage reports..."`
-   - **Line 17:** Comment: `"# Exclusões de cobertura..."` → `"# Coverage exclusions..."`
-   - **Line 26:** Comment: `"# Exclusões de duplicação..."` → `"# Code duplication exclusions..."`
-   - **Line 32:** Comment: `"# Quality Gate (opcional...)"` → `"# Quality Gate (optional...)"`
+| Tema | Regra | Resultado |
+|---|---|---|
+| Código e identificadores | Em inglês (`*.java`, `*.properties`, `*.xml`, `*.yml`, `*.yaml`, nomes de arquivo) | PASS |
+| Comentários e Javadoc | Em inglês | PASS (ver observação em 5.3) |
+| Mensagens para pessoas em código | Em português: e-mails, assunto SNS, alarmes, menus, workflows, POM, nomes de requisição da collection, `.md` | PASS no código |
+| Logs | Em português | PASS para textos escritos no código (ver 6.1) |
+| Mensagens de API (`detail`, `title`) | Em português | PASS no código. Documentação e testes da collection com mensagens em inglês: FAIL (seção 7) |
+| Identificadores de contrato externo | Nenhum pode permanecer, exceto as exceções documentadas: rota `/avaliacao`, query `listarAvaliacoes`, chaves `descricao`, `nota`, `urgencia`, `dataCriacao`, `avaliacoes` | PASS em código e configuração. FAIL em documentos vivos: nenhum restante após a etapa (ver 7.1) |
+| Arquivos de cópia de trabalho | `infra/template.yaml.bak` e `infra/template.yaml.orig` não podem estar rastreados | FAIL: ambos continuam rastreados (seção 8) |
 
 ---
 
-## Public API Exceptions
+## 2. Comandos de varredura
 
-### GraphQL Query: `listarAvaliacoes()`
+Todos os comandos rodam com `R=/Users/jefferson/Documents/FIAP/fase-4/.worktrees/code-audit-final-3`, usando `git -C "$R"` e caminho absoluto. A busca usa `git grep`, que funciona no macOS. Não usa `\b`. Quando é preciso fronteira de palavra, usa `[[:<:]]` ou `[^A-Za-z]`.
 
-**Location:** `receive-feedback/src/main/java/com/fiap/feedback/infra/graphql/ReceiveFeedbackQueryResolver.java:52`
-
-**Status:** ✅ PRESERVED (intentional exception)
-
-**Rationale:**
-- This is a **published GraphQL API contract** exposed to clients
-- The query name appears in the GraphQL schema and is used by existing client applications
-- Renaming would constitute a **breaking change** requiring a major version bump (2.0)
-- Per TASK-033 decision: "This is acceptable because (1) the query name is in the GraphQL schema (public interface), (2) renaming would be a breaking change, (3) internal code should be 100% English, but public API contracts can be stable even if they contain Portuguese names"
-
-**Guidance for future maintenance:** Any changes to this query name must be coordinated with API versioning strategy and client notification.
-
----
-
-## Verification Results
-
-### Build Command
 ```bash
-mvn -f /Users/jefferson/Documents/FIAP/fase-4/.worktrees/final-docs/pom.xml clean verify
+# Arquivos rastreados e contagem por extensão
+git -C "$R" ls-files | wc -l
+git -C "$R" ls-files | sed -E 's/.*\.([^./]+)$/\1/' | sort | uniq -c | sort -rn
+
+# Arquivos de cópia de trabalho (deve retornar vazio)
+git -C "$R" ls-files | grep -E 'template\.yaml\.(bak|orig)'
+
+# Identificadores de contrato em código e configuração
+git -C "$R" grep -n -I -i -E 'avaliacao|listarAvaliacoes|descricao|urgencia|dataCriacao|avaliacoes|[[:<:]]nota[[:>:]]' -- '*.java' '*.properties' '*.xml' '*.yml' '*.yaml' '*.json' '*.sh' '*.toml'
+
+# Identificadores de contrato em documentação (sem o próprio relatório)
+git -C "$R" grep -c -I -E '/avaliacao|listarAvaliacoes|criarAvaliacao|dataCriacao|avaliacoes|descricao|[Uu]rgencia|Urgencia' -- '*.md' ':!docs/qualidade/CODE_AUDIT.md'
+
+# Literais JSON legados em código de produção
+git -C "$R" grep -n -I -E '"(descricao|nota|urgencia|dataCriacao)"' -- '*/src/main/*'
+
+# Chaves legadas em testes
+git -C "$R" grep -n -I -E 'descricao|"nota"' -- 'receive-feedback/src/test/*'
+
+# Palavras em inglês dentro de literais de código de produção
+git -C "$R" grep -n -I -E '"[^"]*[[:<:]](Feedback|Report|Notification|Urgency|Description|Rating|Error|Total|Average|Date|Period|Count|Admin|Email|Subject|Alert|Failed|Please|Critical|Received|High|Low|Medium)[[:>:]][^"]*"' -- '*/src/main/*.java'
+
+# Mensagens em inglês em documentação e collection
+git -C "$R" grep -n -I -E 'must be|cannot be|at least|Invalid request body|Description must|Email address|not verified|Missing bearer|Invalid bearer|Unauthorized|Validation Error|Rating must' -- 'docs/*' 'README.md' '*.md' ':!docs/qualidade/CODE_AUDIT.md'
+
+# Mensagens em inglês citadas em código de produção (deve retornar só o que o código atual emite)
+git -C "$R" grep -n -I -E 'Invalid request body|at least 5|Description must' -- '*/src/main/*'
+
+# Caracteres acentuados e comentários Java
+git -C "$R" grep -c -I -E '[áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]' -- '*.java'
 ```
 
-### Test Results
-```
-Tests run: 146, Failures: 0, Errors: 0, Skipped: 0
-```
-
-**Modules tested:**
-- receive-feedback: ✅ PASS (46 tests)
-- send-notification: ✅ PASS (44 tests)
-- generate-report: ✅ PASS (56 tests)
-
-**Build status:** ✅ SUCCESS
-
-**Total build time:** 41.386 seconds
-
-**Conclusion:** All code changes are functionally correct. No regressions detected.
+Os comandos de documentação com mensagens (seção 7) e as contagens por arquivo estão em `verification2.md`.
 
 ---
 
-## Summary of Changes by Category
+## 3. Arquivos varridos por extensão
 
-| Category | Count | Examples |
-|----------|-------|----------|
-| Method names (internal) | 1 | `listarTodos()` → `listAll()` |
-| POM descriptions | 3 | Lambda descriptions in `<description>` tags |
-| POM comments | 2 | Jackson dependency comments |
-| Properties comments | 6 | Configuration section headers and variable descriptions |
-| YAML comments | 7 | Docker Compose service and configuration comments |
-| Sonar config comments | 5 | SonarCloud project configuration |
-| **GraphQL contracts (preserved)** | **1** | `listarAvaliacoes()` query name |
-| **Total changes** | **25** | All non-contract Portuguese → English |
+Contagem com `git ls-files` nesta branch. Não houve remoção de arquivos nesta etapa.
 
----
+| Extensão | Arquivos | Escopo da regra |
+|---|---|---|
+| `java` | 115 | Código: identificadores, comentários, nomes de arquivo |
+| `md` | 28 | Documentação: português obrigatório, identificadores de contrato e mensagens sujeitos à seção 7 |
+| `properties` | 6 | Configuração: chaves e comentários em inglês. Textos de e-mail em português |
+| `xml` | 5 | POM: `<description>` em português permitido |
+| `yml` | 3 | Configuração e workflows |
+| `yaml` | 3 | Configuração e template |
+| `toml` | 2 | `build.toml`, `infra/samconfig.toml` |
+| `sh` | 2 | `run.sh`, `monitor-stack.sh`: menus e mensagens em português |
+| `json` | 2 | Collection e registro de review: nomes de requisição em português. Os testes da collection têm mensagens em inglês (seção 7.1) |
+| `pdf` | 1 | Documento de entrega, fora da varredura |
+| `orig` | 1 | `infra/template.yaml.orig`, rastreado (seção 8) |
+| `bak` | 1 | `infra/template.yaml.bak`, rastreado (seção 8) |
+| `gitignore` | 1 | Fora da varredura |
+| `dockerignore` | 1 | Fora da varredura |
 
-## Files Reviewed
-
-### Source Files (Java)
-- ✅ receive-feedback: 27 files (21 src + 6 test)
-- ✅ send-notification: 12 files
-- ✅ generate-report: 11 files
-- ✅ Total Java files: 50
-
-### Configuration Files
-- ✅ POM files: 4 (receive-feedback, send-notification, generate-report, parent)
-- ✅ Properties: 2 (application.properties files)
-- ✅ YAML: 3 (docker-compose.yml, application.yaml files)
-- ✅ SonarCloud: 1 (sonar-project.properties)
-- ✅ Total config files: 10
-
-### Infrastructure & Workflow Files
-- ✅ GitHub Actions: 3 workflow files (scanned, all in English)
-- ✅ Template: 1 (AWS SAM template, scanned, all in English)
-- ✅ Other: docs, infra scripts (in scope but contained no Portuguese)
+Total rastreado: 171 arquivos.
 
 ---
 
-## Audit Metadata
+## 4. Nomes de arquivo
 
-| Field | Value |
-|-------|-------|
-| Audit Type | First Iteration - Full Scan |
-| Scope | `/Users/jefferson/Documents/FIAP/fase-4/.worktrees/final-docs` |
-| Total Files Scanned | 104 |
-| Portuguese Occurrences Found | 25 |
-| Occurrences Fixed | 24 |
-| Occurrences Preserved (exceptions) | 1 (public API contract) |
-| Test Coverage | 146 tests, all passing |
-| Build Result | ✅ SUCCESS |
-| Timestamp | 2026-10-27T23:54:47-03:00 |
-| Build Time | 41.386 seconds |
+Os 115 arquivos `.java`, os 6 `.properties`, os 5 `.xml`, os 3 `.yml` e os 3 `.yaml` têm nome em inglês. Os nomes de documentos `.md` com termos em português (`BACKLOG.md`, `HANDOFF_SESSION.md`, `RESUMO_CONVERSA.md`, `TASK-019-AWS-DEPLOYMENT-BLOQUEADO.md`) estão fora da regra de nomes de código e são permitidos.
+
+**Resultado: PASS.**
 
 ---
 
-## Recommendations
+## 5. Identificadores e contrato em código
 
-1. **Code Review:** All identifier renames and comment translations have been reviewed for accuracy. No semantic changes were made.
+### 5.1 Identificadores e comentários
 
-2. **API Documentation:** Document the `listarAvaliacoes()` query name in API.md with a note that it is a stable public contract and should not be changed without a major version bump.
+- Não há identificador em português. As ocorrências de `urgency` e `description` são palavras em inglês.
+- Os campos JSON atuais são `description`, `rating`, `urgency`, `createdAt` e `id`, em inglês.
+- Os valores `HIGH`, `MEDIUM` e `LOW` são valores do contrato de urgência.
 
-3. **Continuous Compliance:** Going forward, enforce English-only identifiers in code reviews via lint rules or CI/CD checks to prevent future Portuguese identifiers from entering the codebase.
+**Resultado: PASS.**
 
-4. **Legacy Support:** The preserved `listarAvaliacoes()` query should be considered for eventual replacement with `listFeedbacks()` or `listRatings()` in a future 2.0 API release with proper deprecation messaging.
+### 5.2 Contrato legado em código e configuração
+
+| Arquivo | Linha | Ocorrência | Situação |
+|---|---|---|---|
+| `receive-feedback/src/test/java/com/fiap/feedback/infra/handler/ReceiveFeedbackHandlerV1Test.java` | 83 | Corpo de requisição com `"descricao"` e `"nota"`, esperando 400 "Nota é obrigatória" | Exceção (a): teste negativo que confirma que a v1 rejeita o formato legado |
+| `receive-feedback/src/test/java/com/fiap/feedback/infra/handler/ReceiveFeedbackHandlerV1Test.java` | 172 | `assertFalse(item.has("descricao"))` | Exceção (a): asserção negativa que confirma que a v1 não devolve a chave legada |
+
+Nenhuma ocorrência em código de produção (`src/main`), `.properties`, `.xml`, `.yml`, `.yaml`, `infra/template.yaml`, `docs/api-collection/*.json`, `run.sh`, `monitor-stack.sh` ou `infra/samconfig.toml`. A rota atual é `/v1/feedback`.
+
+**Resultado: PASS, com as duas exceções (a) documentadas.**
+
+### 5.3 Comentários stale em Javadoc
+
+Dois comentários Javadoc em inglês citam o assunto de e-mail com o texto antigo em inglês, mas o código envia o texto em português:
+
+- `generate-report/src/main/java/com/fiap/report/infra/messaging/SesReportSender.java`, linha 37: `Subject: "Weekly Feedback Report — ..."`. O código usa `"Relatório semanal de feedback — ..."`.
+- `generate-report/src/main/java/com/fiap/report/infra/messaging/ReportEmailBuilder.java`, linha 33: `"Weekly Feedback Report" title`. O código usa `Relatório semanal de feedback`.
+
+A regra de comentários (em inglês) é atendida. Os comentários estão desatualizados, e não há mudança de comportamento. Não entram como FAIL. A correção fica como pendência opcional.
 
 ---
 
-## Conclusion
+## 6. Logs, mensagens de API e textos para pessoas
 
-✅ **AUDIT COMPLETE**
+### 6.1 Logs e exceções
 
-The codebase now complies with 100% English code policy with one documented exception for the published GraphQL API contract. All changes have been tested and verified. The build passes with all 146 tests succeeding.
+- Os textos de log escritos no código estão em português. Termos técnicos (`Handler`, `Lambda`, `GraphQL`, `SNS`, `SES`, `DynamoDB`, `MessageId`, `receiveFeedback`, `listFeedbacks`) permanecem em inglês, como nomes de tecnologia ou de operação.
+- Os e-mails e assuntos SNS estão em português: `Relatório semanal de feedback`, `Alerta de feedback de urgencia alta`, `Feedback crítico recebido`, `Total de feedbacks:`, `Nota média:`, `Descrição:`, `Urgência:`.
+- Os rótulos `High`, `Medium` e `Low` no `Urgency` de `receive-feedback` e de `generate-report` são o parâmetro de construtor de `description`, e não são lidos em nenhum caminho que vá para pessoas. Não entram como FAIL.
+- Os textos `toString()` (`Feedback{`, `Notification{`) são de depuração e não entram como FAIL.
+- Observação, sem contagem como FAIL: `e.getMessage()` concatenado em logs e exceções produz texto da biblioteca ou do SDK da AWS. Esse texto pode estar em inglês.
+
+**Resultado: PASS.**
+
+### 6.2 Mensagens de API no código
+
+Os valores de `title` e `detail` emitidos pelo código estão em português: `Erro de validação`, `Erro interno do servidor`, `Requisição inválida`, `Método não permitido`, `Não autorizado`, `Token Bearer ausente`, `Token Bearer inválido`, `Nota deve ser no mínimo 0`, `Descrição não pode estar vazia`.
+
+**Resultado: PASS no código.**
+
+---
+
+## 7. Documentação e testes com mensagens em inglês
+
+A regra de português para documentação permite o texto. A regra de mensagens de API exige que a documentação mostre a mensagem que a API realmente emite. Nesta branch, a API emite mensagens em português. Os textos abaixo não correspondem ao que o código emite.
+
+### 7.1 Documentos vivos e testes com FAIL
+
+| Arquivo | Linhas | Problema |
+|---|---|---|
+| `docs/API.md` | 39, 415, 417, 422, 424, 425, 426, 439, 441, 444, 684, 685 | Mensagens em inglês (`Missing bearer token`, `Invalid bearer token`, `Validation Error`, `Rating must be ...`, `Description cannot be empty`, `Unauthorized` como `title`). A API emite textos em português. |
+| `docs/api-collection/API.md` | 92, 94, 126, 127, 142, 144, 150, 151 | `Validation Error`, `Rating must be between 0 and 10`, `Rating must be at least 0`, `Rating must be at most 10`. Mensagens que o código não emite. |
+| `docs/SECURITY.md` | 24 | `Missing bearer token` e `Invalid bearer token` em inglês. |
+| `docs/SECURITY.md` | 154 | Rótulo `Description:` em inglês dentro de exemplo de variável de ambiente. Palavra em inglês em documento vivo. |
+| `docs/deploy/AWS_DEPLOY_GUIDE.md` | 396, 397, 437, 518, 519 | `Missing bearer token` e `Invalid bearer token` em tabelas de erro e em instruções. |
+| `docs/api-collection/fase4-feedback.postman_collection.json` | 559, 596, 736, 769, 806, 845, 1422, 1459, 1599, 1632, 1669, 1708 | Os testes de 401 fazem `pm.expect(detail).to.equal('Missing bearer token')` e `'Invalid bearer token'`. O código devolve `Token Bearer ausente` e `Token Bearer inválido`. **Os testes não batem com a API atual.** Não rodei a collection contra a API. A divergência vem da leitura de `BearerTokenAuthenticator.java`, linhas 64 e 111. |
+| `docs/qualidade/MONITORING_GUIDE.md` | 166, 180, 237, 254 | Cita `Invalid request body` e `Description must be at least 5 characters`. Esses textos não existem em `src/main`. O código emite `Descrição deve ter no mínimo 5 caracteres` e `Descrição não pode estar vazia`. A linha 254 também descreve um comportamento que o código atual não tem. |
+| `docs/qualidade/MONITORING_GUIDE.md` | 206, 258 | Cita `Email address is not verified`, texto que a AWS devolve no SES e que aparece nos logs de produção. Trecho de terceiro, marcado como observação de produção. Mantido como FAIL pela regra estrita. |
+
+Os três guias pedidos nesta etapa estão corrigidos. `docs/qualidade/DEMO_GUIDE.md` e `docs/api-collection/README.md` foram traduzidos, e `README.md` da collection usa as mensagens reais do código. `MONITORING_GUIDE.md` já estava em português, e suas linhas com texto em inglês são o FAIL listado acima.
+
+### 7.2 Registros históricos (exceção b)
+
+Estes arquivos são registros de testes, tarefas e sessões. Citam `/avaliacao`, `POST /avaliacao`, `listarAvaliacoes`, `criarAvaliacao`, `descricao`, `nota`, `urgencia` ou `dataCriacao`:
+
+| Arquivo | Ocorrências | Tipo |
+|---|---|---|
+| `TEST_RESULTS.md` | 14 | Registro de testes do `/avaliacao`. Mensagens em inglês nas linhas 32–34 também são histórico. |
+| `TASK_018_COMPLETION_SUMMARY.md` | 3 | Registro de tarefa |
+| `docs/E2E_TEST_RESULTS.md` | 19 | Registro de testes |
+| `docs/E2E_TEST_RESULTS_SAMPLE.md` | 26 | Registro de testes |
+| `docs/TASK-019-AWS-DEPLOYMENT-BLOQUEADO.md` | 1 | Registro de deploy, cita `POST /avaliacao` |
+| `docs/planejamento/BACKLOG.md` | 27 | Especificação de tarefas antigas. Não foi alterado, conforme pedido. |
+| `docs/planejamento/HANDOFF_SESSION.md` | 3 | Guia de sessão. Inclui `descricao` em nomes de branch, falso positivo. |
+| `docs/planejamento/RESUMO_CONVERSA.md` | 2 | Guia de sessão com `POST /avaliacao` |
+| `docs/planejamento/SESSION_SUMMARY_20261026.md` | 1 | Registro de sessão com `/avaliacao` |
+| `docs/planejamento/TASK-022-023-COMPLETION-CHECKLIST.md` | 7 | Checklist histórico com `criarAvaliacao` e `POST /avaliacao` |
+
+Classificar `BACKLOG.md` e `docs/planejamento/` como históricos é uma interpretação da exceção (b), que cita "relatórios, TASK-*, E2E_TEST_RESULTS*, CODE_AUDIT antigo, guias de sessão". Se o responsável não aceitar essa leitura, esses arquivos viram FAIL.
+
+### 7.3 Falsos positivos sem ação
+
+- `README.md`: "descrição" e "nota" em português. Não são identificadores.
+- `docs/api-collection/README.md`: "descrição" é texto em português.
+- `docs/api-collection/fase4-feedback.postman_collection.json`: `urgência HIGH` e "nota de 0 a 5" em descrições de requisição são português.
+- Dados de exemplo em comandos do `DEMO_GUIDE.md` (`Critical issue: System crashes on login` e similares) são payload de entrada, não mensagens de sistema.
+
+### 7.4 Prosa em inglês fora do escopo
+
+Os demais `.md` que não são os três guias desta etapa têm prosa em inglês que não é mensagem nem identificador (por exemplo, descrições de variáveis em `docs/API.md`, linha 651). Esta auditoria não os classifica. Se a regra de "`.md` em português" for estendida à prosa, a lista de FAIL cresce.
+
+**Resultado: FAIL.** Veja 7.1 e 10.
+
+---
+
+## 8. Arquivos de cópia de trabalho
+
+| Arquivo | Estado nesta branch | Verificação |
+|---|---|---|
+| `infra/template.yaml.bak` | Rastreado | `git ls-files` lista o arquivo |
+| `infra/template.yaml.orig` | Rastreado | `git ls-files` lista o arquivo |
+
+Nesta etapa não houve remoção. A remoção de arquivos rastreados está fora do escopo de documentação pedido, e exige decisão antes de ser feita.
+
+**Resultado: FAIL.**
+
+---
+
+## 9. Testes
+
+Comando: `mvn -B clean verify` na raiz do projeto, executado uma vez em modo não interativo. Log completo: `/tmp/code-audit-final-3-build.log`.
+
+| Módulo | Testes | Falhas | Erros | Resultado |
+|---|---|---|---|---|
+| receive-feedback | 147 | 0 | 0 | SUCCESS |
+| send-notification | 86 | 0 | 0 | SUCCESS |
+| generate-report | 159 | 0 | 0 | SUCCESS |
+
+O build rodou antes das edições de documentação. As edições são só em `.md`, e não alteram código.
+
+O módulo `local-http` não faz parte do reactor da raiz e não foi executado.
+
+---
+
+## 10. Veredito e pendências
+
+**Veredito: FAIL.**
+
+Itens que bloqueiam o PASS:
+
+1. **Testes de 401 da collection Postman** (seção 7.1): esperam `Missing bearer token` e `Invalid bearer token`, mas a API responde `Token Bearer ausente` e `Token Bearer inválido`. Decisão necessária: ajustar as asserções ao texto atual, ou mudar a API para a mensagem em inglês (o que muda o que o cliente vê e não é o escopo desta etapa).
+2. **Mensagens em inglês em documentação**: `docs/API.md`, `docs/api-collection/API.md`, `docs/SECURITY.md` e `docs/deploy/AWS_DEPLOY_GUIDE.md` (seção 7.1).
+3. **`docs/qualidade/MONITORING_GUIDE.md`**, linhas 166, 180, 237 e 254: mensagens que o código não emite. Linhas 206 e 258: texto da AWS, marcado como FAIL pela regra estrita.
+4. **Arquivos `infra/template.yaml.bak` e `infra/template.yaml.orig` rastreados** (seção 8). A remoção depende de confirmação.
+5. **Classificação de `BACKLOG.md` e `docs/planejamento/`** como históricos (seção 7.2).
+
+Itens aceitos como exceção:
+
+- `ReceiveFeedbackHandlerV1Test.java`, linhas 83 e 172 (exceção a).
+- Registros históricos da seção 7.2 (exceção b).
+
+Nenhuma ocorrência de `listarAvaliacoes`, `criarAvaliacao` ou `/avaliacao` em código, configuração ou nos três guias desta etapa. A rota antiga aparece apenas nos registros históricos.
+
