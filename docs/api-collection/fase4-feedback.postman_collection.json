@@ -346,6 +346,105 @@
                   }
                 }
               }
+            },
+            {
+              "name": "✅ 200 — GET /v1/avaliacoes com token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                      "const response = pm.response.json();",
+                      "pm.test('Has avaliacoes array', () => pm.expect(response.avaliacoes).to.be.an('array'));",
+                      "pm.test('Has total number', () => pm.expect(response.total).to.be.a('number'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{localToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{localUrl}}/v1/avaliacoes",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacoes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — GET /v1/avaliacoes sem token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Token Bearer ausente', () => pm.expect(pm.response.json().detail).to.equal('Token Bearer ausente'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{localUrl}}/v1/avaliacoes",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacoes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — GET /v1/avaliacoes token inválido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Token Bearer inválido', () => pm.expect(pm.response.json().detail).to.equal('Token Bearer inválido'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer token-invalido-teste"
+                  }
+                ],
+                "url": {
+                  "raw": "{{localUrl}}/v1/avaliacoes",
+                  "host": [
+                    "{{localUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacoes"
+                  ]
+                }
+              }
             }
           ]
         }
@@ -668,6 +767,105 @@
                   "graphql": {
                     "query": "query {\n  listFeedbacks {\n    id\n    description\n    rating\n    urgency\n    createdAt\n  }\n}"
                   }
+                }
+              }
+            },
+            {
+              "name": "✅ 200 — GET /v1/avaliacoes com token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 200', () => pm.expect(pm.response.code).to.equal(200));",
+                      "const response = pm.response.json();",
+                      "pm.test('Has avaliacoes array', () => pm.expect(response.avaliacoes).to.be.an('array'));",
+                      "pm.test('Has total number', () => pm.expect(response.total).to.be.a('number'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{prodToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacoes",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacoes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — GET /v1/avaliacoes sem token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Token Bearer ausente', () => pm.expect(pm.response.json().detail).to.equal('Token Bearer ausente'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacoes",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacoes"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "🔒 401 — GET /v1/avaliacoes token inválido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Status code is 401', () => pm.expect(pm.response.code).to.equal(401));",
+                      "pm.test('detail é Token Bearer inválido', () => pm.expect(pm.response.json().detail).to.equal('Token Bearer inválido'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer token-invalido-teste"
+                  }
+                ],
+                "url": {
+                  "raw": "{{prodUrl}}/v1/avaliacoes",
+                  "host": [
+                    "{{prodUrl}}"
+                  ],
+                  "path": [
+                    "v1",
+                    "avaliacoes"
+                  ]
                 }
               }
             }
