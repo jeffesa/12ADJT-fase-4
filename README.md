@@ -374,7 +374,6 @@ fase-4/
 │
 ├── receive-feedback/              # Lambda 1: Recebe e persiste feedbacks
 │   ├── pom.xml
-│   ├── GRAPHQL_TEST_GUIDE.md
 │   └── src/
 │       ├── main/java/com/fiap/feedback/
 │       │   ├── domain/            # Clean Architecture: Camada de domínio
@@ -416,8 +415,7 @@ fase-4/
 │   │
 ├── docs/                          # Documentação
 │   ├── planejamento/              # Planejamento e backlog
-│   │   ├── BACKLOG.md
-│   │   └── HANDOFF_SESSION.md
+│   │   └── BACKLOG.md
 │   ├── qualidade/                 # Documentação de qualidade e testes
 │   ├── deploy/                    # Guias de deployment
 │   ├── api-collection/            # Coleções de requisições GraphQL/REST
