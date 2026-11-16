@@ -83,7 +83,7 @@ class GraphQLHandlerListFeedbacksTest {
         APIGatewayProxyResponseEvent response = handle(null, LIST_FEEDBACKS);
 
         assertEquals(401, response.getStatusCode());
-        assertEquals("Missing bearer token", objectMapper.readTree(response.getBody()).get("detail").asText());
+        assertEquals("Token Bearer ausente", objectMapper.readTree(response.getBody()).get("detail").asText());
         verifyNoInteractions(useCase);
     }
 

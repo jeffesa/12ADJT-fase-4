@@ -59,8 +59,8 @@ public class SesNotificationSender implements NotificationSender {
     public void send(Notification notification) throws NotificationException {
         try {
             LOGGER.log(Level.INFO,
-                "Sending email notification for feedback " + notification.getFeedbackId() +
-                " to " + notification.getAdminEmail()
+                "Enviando notificação por e-mail para o feedback " + notification.getFeedbackId() +
+                " para " + notification.getAdminEmail()
             );
 
             String subject = renderSubject(notification.getDescription(), notification.getUrgency());
@@ -80,24 +80,24 @@ public class SesNotificationSender implements NotificationSender {
             sesClient.sendEmail(request);
 
             LOGGER.log(Level.INFO,
-                "Email sent successfully for feedback " + notification.getFeedbackId()
+                "E-mail enviado com sucesso para o feedback " + notification.getFeedbackId()
             );
 
         } catch (SesException e) {
             LOGGER.log(Level.SEVERE,
-                "SES error sending email for feedback " + notification.getFeedbackId() +
+                "Erro do SES ao enviar e-mail para o feedback " + notification.getFeedbackId() +
                 ": " + sesErrorMessage(e)
             );
             throw new NotificationException(
-                "Failed to send email via SES: " + sesErrorMessage(e),
+                "Falha ao enviar e-mail via SES: " + sesErrorMessage(e),
                 e
             );
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,
-                "Error sending email for feedback " + notification.getFeedbackId() +
+                "Erro ao enviar e-mail para o feedback " + notification.getFeedbackId() +
                 ": " + e.getMessage()
             );
-            throw new NotificationException("Failed to send email: " + e.getMessage(), e);
+            throw new NotificationException("Falha ao enviar e-mail: " + e.getMessage(), e);
         }
     }
 
@@ -147,12 +147,12 @@ public class SesNotificationSender implements NotificationSender {
      */
     private String buildHtmlBody(Notification notification) {
         return "<html><body>" +
-            "<h2>⚠️ Critical Feedback Received</h2>" +
-            "<p><strong>Feedback ID:</strong> " + notification.getFeedbackId() + "</p>" +
-            "<p><strong>Description:</strong> " + notification.getDescription() + "</p>" +
-            "<p><strong>Urgency:</strong> " + notification.getUrgency() + "</p>" +
-            "<p><strong>Received at:</strong> " + notification.getCreatedAt() + "</p>" +
-            "<p>Please review and respond as soon as possible.</p>" +
+            "<h2>⚠️ Feedback crítico recebido</h2>" +
+            "<p><strong>ID do feedback:</strong> " + notification.getFeedbackId() + "</p>" +
+            "<p><strong>Descrição:</strong> " + notification.getDescription() + "</p>" +
+            "<p><strong>Urgência:</strong> " + notification.getUrgency() + "</p>" +
+            "<p><strong>Recebido em:</strong> " + notification.getCreatedAt() + "</p>" +
+            "<p>Por favor, analise e responda o quanto antes.</p>" +
             "</body></html>";
     }
 }

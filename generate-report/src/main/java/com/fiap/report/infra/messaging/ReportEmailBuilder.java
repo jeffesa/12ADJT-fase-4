@@ -64,40 +64,40 @@ public class ReportEmailBuilder {
         html.append("<body>\n");
 
         // Report header
-        html.append("  <h1>Weekly Feedback Report</h1>\n");
+        html.append("  <h1>Relatório semanal de feedback</h1>\n");
 
         // Period information
         html.append("  <div class=\"period\">\n");
-        html.append("    <strong>Period:</strong> ");
+        html.append("    <strong>Período:</strong> ");
         html.append(period.getStartDate());
-        html.append(" to ");
+        html.append(" a ");
         html.append(period.getEndDate());
         html.append("\n");
         html.append("  </div>\n");
 
         // Summary section
         html.append("  <div class=\"summary\">\n");
-        html.append("    <h2>Summary</h2>\n");
-        html.append("    <p><strong>Total Feedback:</strong> ");
+        html.append("    <h2>Resumo</h2>\n");
+        html.append("    <p><strong>Total de feedbacks:</strong> ");
         html.append(statistics.getTotalFeedback());
         html.append("</p>\n");
 
-        // Average rating (formatted to 2 decimals, or "N/A" if null)
-        String averageRatingStr = "N/A";
+        // Average rating (formatted to 2 decimals, or "N/D" if null)
+        String averageRatingStr = "N/D";
         if (statistics.getAverageRating() != null) {
             averageRatingStr = String.format("%.2f", statistics.getAverageRating());
         }
-        html.append("    <p><strong>Average Rating:</strong> ");
+        html.append("    <p><strong>Nota média:</strong> ");
         html.append(averageRatingStr);
         html.append("</p>\n");
         html.append("  </div>\n");
 
         // Feedback by Day table
-        html.append("  <h2>Feedback by Day</h2>\n");
+        html.append("  <h2>Feedbacks por dia</h2>\n");
         html.append("  <table>\n");
         html.append("    <tr>\n");
-        html.append("      <th>Date</th>\n");
-        html.append("      <th>Count</th>\n");
+        html.append("      <th>Data</th>\n");
+        html.append("      <th>Quantidade</th>\n");
         html.append("    </tr>\n");
 
         Map<LocalDate, Integer> feedbackByDay = statistics.getFeedbackByDay();
@@ -118,11 +118,11 @@ public class ReportEmailBuilder {
         html.append("  </table>\n");
 
         // Feedback by Urgency table
-        html.append("  <h2>Feedback by Urgency</h2>\n");
+        html.append("  <h2>Feedbacks por urgência</h2>\n");
         html.append("  <table>\n");
         html.append("    <tr>\n");
-        html.append("      <th>Urgency</th>\n");
-        html.append("      <th>Count</th>\n");
+        html.append("      <th>Urgência</th>\n");
+        html.append("      <th>Quantidade</th>\n");
         html.append("    </tr>\n");
 
         Map<String, Integer> feedbackByUrgency = statistics.getFeedbackByUrgency();

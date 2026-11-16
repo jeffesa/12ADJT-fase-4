@@ -54,10 +54,10 @@ public class ReceiveFeedbackResolver {
      */
     @Mutation
     public ReceiveFeedbackOutput receiveFeedback(ReceiveFeedbackInput input) {
-        LOGGER.log(Level.INFO, "GraphQL mutation receiveFeedback called");
+        LOGGER.log(Level.INFO, "Mutation GraphQL receiveFeedback chamada");
         
         if (input.rating() == null) {
-            throw new IllegalArgumentException("Rating is required");
+            throw new IllegalArgumentException("Nota é obrigatória");
         }
         try {
             Feedback feedback = receiveFeedbackUseCase.receiveFeedback(
@@ -66,13 +66,13 @@ public class ReceiveFeedbackResolver {
             );
             
             ReceiveFeedbackOutput output = InputOutputMapper.toOutput(feedback);
-            LOGGER.log(Level.INFO, "Feedback processed successfully: " + output.id());
+            LOGGER.log(Level.INFO, "Feedback processado com sucesso: " + output.id());
             return output;
         } catch (IllegalArgumentException e) {
-            LOGGER.log(Level.WARNING, "Validation error in receiveFeedback: " + e.getMessage());
+            LOGGER.log(Level.WARNING, "Erro de validação em receiveFeedback: " + e.getMessage());
             throw e;
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Unexpected error in receiveFeedback", e);
+            LOGGER.log(Level.SEVERE, "Erro inesperado na mutation receiveFeedback", e);
             throw e;
         }
     }

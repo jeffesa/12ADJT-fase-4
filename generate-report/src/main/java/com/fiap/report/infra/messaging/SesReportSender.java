@@ -67,7 +67,7 @@ public class SesReportSender implements ReportSender {
     public void send(WeeklyReport report, String adminEmail) throws ReportException {
         try {
             LOGGER.log(Level.INFO,
-                    "Sending weekly report " + report.getId() + " to " + adminEmail);
+                    "Enviando relatório semanal " + report.getId() + " para " + adminEmail);
 
             // Build HTML body
             String htmlBody = ReportEmailBuilder.buildHtmlBody(report);
@@ -75,7 +75,7 @@ public class SesReportSender implements ReportSender {
             // Construct subject line
             LocalDate startDate = report.getPeriod().getStartDate();
             LocalDate endDate = report.getPeriod().getEndDate();
-            String subject = "Weekly Feedback Report — " + startDate + " to " + endDate;
+            String subject = "Relatório semanal de feedback — " + startDate + " a " + endDate;
 
             // Build SES request
             SendEmailRequest request = SendEmailRequest.builder()
@@ -93,7 +93,7 @@ public class SesReportSender implements ReportSender {
             sesClient.sendEmail(request);
 
             LOGGER.log(Level.INFO,
-                    "Weekly report " + report.getId() + " sent successfully to " + adminEmail);
+                    "Relatório semanal " + report.getId() + " enviado com sucesso para " + adminEmail);
 
         } catch (SesException e) {
             String errorMsg = e.awsErrorDetails() != null && e.awsErrorDetails().errorMessage() != null
@@ -101,20 +101,20 @@ public class SesReportSender implements ReportSender {
                     : e.getMessage();
 
             LOGGER.log(Level.SEVERE,
-                    "SES error sending report " + report.getId() + " to " + adminEmail +
+                    "Erro do SES ao enviar relatório " + report.getId() + " para " + adminEmail +
                     ": " + errorMsg);
 
             throw new ReportException(
-                    "Failed to send report via SES: " + errorMsg,
+                    "Falha ao enviar relatório via SES: " + errorMsg,
                     e
             );
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE,
-                    "Error sending report " + report.getId() + " to " + adminEmail +
+                    "Erro ao enviar relatório " + report.getId() + " para " + adminEmail +
                     ": " + e.getMessage());
 
             throw new ReportException(
-                    "Failed to send report: " + e.getMessage(),
+                    "Falha ao enviar relatório: " + e.getMessage(),
                     e
             );
         }

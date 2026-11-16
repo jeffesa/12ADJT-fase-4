@@ -47,11 +47,11 @@ public class FeedbackMessageBuilder {
             return OBJECT_MAPPER.writeValueAsString(jsonNode);
         } catch (JsonProcessingException e) {
             LOGGER.errorf(
-                    "Error building JSON message for feedback %s: %s",
+                    "Erro ao montar mensagem JSON do feedback %s: %s",
                     feedback.getId(),
                     e.getMessage()
             );
-            throw new RuntimeException("Failed to serialize feedback to JSON", e);
+            throw new RuntimeException("Falha ao serializar feedback para JSON", e);
         }
     }
 }

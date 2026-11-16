@@ -62,7 +62,7 @@ class UrgencyEnumTest {
             () -> Urgency.fromRating(-1)
         );
         
-        assertTrue(exception.getMessage().contains("Rating must be between 0 and 10"));
+        assertTrue(exception.getMessage().contains("Nota deve estar entre 0 e 10"));
     }
 
     @Test
@@ -73,7 +73,7 @@ class UrgencyEnumTest {
             () -> Urgency.fromRating(11)
         );
         
-        assertTrue(exception.getMessage().contains("Rating must be between 0 and 10"));
+        assertTrue(exception.getMessage().contains("Nota deve estar entre 0 e 10"));
     }
 
     @Test

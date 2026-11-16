@@ -13,11 +13,11 @@ import jakarta.validation.constraints.NotBlank;
  * @param rating the numeric rating; must be between 0 and 10 (inclusive)
  */
 public record FeedbackInput(
-        @NotBlank(message = "Description cannot be empty")
+        @NotBlank(message = "Descrição não pode estar vazia")
         String description,
 
-        @Min(value = 0, message = "Rating must be at least 0")
-        @Max(value = 10, message = "Rating must be at most 10")
+        @Min(value = 0, message = "Nota deve ser no mínimo 0")
+        @Max(value = 10, message = "Nota deve ser no máximo 10")
         Integer rating
 ) {
 }

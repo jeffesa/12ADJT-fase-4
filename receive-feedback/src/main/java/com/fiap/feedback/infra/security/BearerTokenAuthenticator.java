@@ -40,8 +40,8 @@ public final class BearerTokenAuthenticator {
      */
     public Optional<APIGatewayProxyResponseEvent> authenticate(APIGatewayProxyRequestEvent event) {
         if (expectedToken == null || expectedToken.isBlank()) {
-            LOGGER.log(Level.SEVERE, "API_TOKEN is not configured; rejecting all requests");
-            return Optional.of(error(500, "Internal Server Error", "Authentication is not configured", false));
+            LOGGER.log(Level.SEVERE, "API_TOKEN não configurado; rejeitando todas as requisições");
+            return Optional.of(error(500, "Erro interno do servidor", "Autenticação não configurada", false));
         }
 
         String headerValue = findAuthorizationHeader(event.getHeaders());
@@ -60,8 +60,8 @@ public final class BearerTokenAuthenticator {
         }
 
         if (!MessageDigest.isEqual(sha256(token), sha256(expectedToken))) {
-            LOGGER.log(Level.WARNING, "Unauthorized request: invalid bearer token");
-            return Optional.of(error(401, "Unauthorized", "Invalid bearer token", true));
+            LOGGER.log(Level.WARNING, "Requisição não autorizada: token Bearer inválido");
+            return Optional.of(error(401, "Não autorizado", "Token Bearer inválido", true));
         }
         return Optional.empty();
     }
@@ -102,13 +102,13 @@ public final class BearerTokenAuthenticator {
         try {
             return MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8));
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 not available");
+            throw new IllegalStateException("SHA-256 não disponível");
         }
     }
 
     private static APIGatewayProxyResponseEvent missing() {
-        LOGGER.log(Level.WARNING, "Unauthorized request: missing bearer token");
-        return error(401, "Unauthorized", "Missing bearer token", true);
+        LOGGER.log(Level.WARNING, "Requisição não autorizada: token Bearer ausente");
+        return error(401, "Não autorizado", "Token Bearer ausente", true);
     }
 
     private static APIGatewayProxyResponseEvent error(int status, String title, String detail, boolean challenge) {

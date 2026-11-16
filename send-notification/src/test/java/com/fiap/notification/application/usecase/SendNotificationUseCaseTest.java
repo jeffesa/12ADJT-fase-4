@@ -94,7 +94,7 @@ class SendNotificationUseCaseTest {
             () -> useCase.execute(null)
         );
 
-        assertTrue(exception.getMessage().contains("cannot be null"));
+        assertTrue(exception.getMessage().contains("não pode ser nula"));
 
         // Verify sender was never called
         try {

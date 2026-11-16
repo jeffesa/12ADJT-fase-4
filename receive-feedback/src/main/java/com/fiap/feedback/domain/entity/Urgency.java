@@ -32,7 +32,7 @@ public enum Urgency {
      */
     public static Urgency fromRating(int rating) {
         if (rating < 0 || rating > 10) {
-            throw new IllegalArgumentException("Rating must be between 0 and 10, received: " + rating);
+            throw new IllegalArgumentException("Nota deve estar entre 0 e 10; recebido: " + rating);
         }
         
         if (rating <= 5) {

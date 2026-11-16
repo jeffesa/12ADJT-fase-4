@@ -64,7 +64,7 @@ public class SnsUrgencyPublisher implements UrgencyPublisher {
             // Only publish if urgency is HIGH
             if (feedback.getUrgency() != Urgency.HIGH) {
                 LOGGER.debugf(
-                        "Feedback %s has urgency %s, not publishing to SNS (only HIGH urgency is published)",
+                        "Feedback %s tem urgência %s, não publicado no SNS (somente urgência HIGH é publicada)",
                         feedback.getId(),
                         feedback.getUrgency()
                 );
@@ -81,19 +81,19 @@ public class SnsUrgencyPublisher implements UrgencyPublisher {
             PublishRequest publishRequest = PublishRequest.builder()
                     .topicArn(topicArn)
                     .message(messageBody)
-                    .subject("High Urgency Feedback Alert")
+                    .subject("Alerta de feedback de urgencia alta")
                     .build();
 
             PublishResponse publishResponse = snsClient.publish(publishRequest);
 
             LOGGER.infof(
-                    "Published feedback %s to SNS topic. MessageId: %s",
+                    "Feedback %s publicado no tópico SNS. MessageId: %s",
                     feedback.getId(),
                     publishResponse.messageId()
             );
         } catch (SnsException e) {
             LOGGER.errorf(
-                    "Error publishing feedback %s to SNS: %s",
+                    "Erro ao publicar feedback %s no SNS: %s",
                     feedback.getId(),
                     e.getMessage()
             );

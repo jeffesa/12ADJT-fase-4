@@ -47,12 +47,12 @@ public class Notification {
             String adminEmail,
             LocalDateTime createdAt) {
         
-        this.id = Objects.requireNonNull(id, "id must not be null");
-        this.feedbackId = Objects.requireNonNull(feedbackId, "feedbackId must not be null");
+        this.id = Objects.requireNonNull(id, "id não pode ser nulo");
+        this.feedbackId = Objects.requireNonNull(feedbackId, "feedbackId não pode ser nulo");
         this.description = validateDescription(description);
         this.urgency = validateUrgency(urgency);
         this.adminEmail = validateAdminEmail(adminEmail);
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
+        this.createdAt = Objects.requireNonNull(createdAt, "createdAt não pode ser nulo");
     }
 
     /**
@@ -91,7 +91,7 @@ public class Notification {
      */
     private static String validateDescription(String description) {
         if (description == null || description.trim().isEmpty()) {
-            throw new IllegalArgumentException("Description cannot be empty or null");
+            throw new IllegalArgumentException("Descrição não pode ser vazia ou nula");
         }
         return description.trim();
     }
@@ -105,13 +105,13 @@ public class Notification {
      */
     private static String validateUrgency(String urgency) {
         if (urgency == null || urgency.trim().isEmpty()) {
-            throw new IllegalArgumentException("Urgency cannot be empty or null");
+            throw new IllegalArgumentException("Urgência não pode ser vazia ou nula");
         }
         
         String upper = urgency.trim().toUpperCase();
         if (!upper.equals("HIGH") && !upper.equals("MEDIUM") && !upper.equals("LOW")) {
             throw new IllegalArgumentException(
-                "Urgency must be one of HIGH, MEDIUM, or LOW, received: " + urgency
+                "Urgência deve ser HIGH, MEDIUM ou LOW; recebido: " + urgency
             );
         }
         return upper;
@@ -126,7 +126,7 @@ public class Notification {
      */
     private static String validateAdminEmail(String adminEmail) {
         if (adminEmail == null || adminEmail.trim().isEmpty()) {
-            throw new IllegalArgumentException("Admin email cannot be empty or null");
+            throw new IllegalArgumentException("E-mail do administrador não pode ser vazio ou nulo");
         }
         return adminEmail.trim();
     }

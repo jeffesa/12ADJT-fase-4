@@ -64,8 +64,8 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             APIGatewayProxyRequestEvent event,
             Context context) {
         
-        LOGGER.log(Level.INFO, "Lambda handler invoked - POST /graphql (internal GraphQL)");
-        LOGGER.log(Level.FINE, "Request method: " + event.getHttpMethod() + ", path: " + event.getPath());
+        LOGGER.log(Level.INFO, "Handler Lambda invocado - POST /graphql (GraphQL interno)");
+        LOGGER.log(Level.FINE, "Método da requisição: " + event.getHttpMethod() + ", caminho: " + event.getPath());
         
         try {
             var denied = authenticator.authenticate(event);
@@ -74,12 +74,12 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             }
 
             if (receiveFeedbackUseCase == null) {
-                throw new IllegalStateException("ReceiveFeedbackUseCase not injected");
+                throw new IllegalStateException("ReceiveFeedbackUseCase não injetado");
             }
             
             String body = event.getBody();
             if (body == null || body.isEmpty()) {
-                return badRequest("Request body cannot be empty");
+                return badRequest("O corpo da requisição não pode estar vazio");
             }
             
             // Parse GraphQL request
@@ -88,10 +88,10 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             String query = (String) graphqlRequest.get("query");
             
             if (query == null || query.isEmpty()) {
-                return badRequest("GraphQL query cannot be empty");
+                return badRequest("A consulta GraphQL não pode estar vazia");
             }
             
-            LOGGER.log(Level.INFO, "GraphQL query received: " + query.substring(0, Math.min(100, query.length())));
+            LOGGER.log(Level.INFO, "Consulta GraphQL recebida: " + query.substring(0, Math.min(100, query.length())));
             
             // English v1 query: listFeedbacks
             if (query.toLowerCase().contains("listfeedbacks")) {
@@ -108,7 +108,7 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
                         .build())
                     .build();
                 
-                LOGGER.log(Level.INFO, "GraphQL query executed successfully, returned " + feedbacks.size() + " feedbacks");
+                LOGGER.log(Level.INFO, "Consulta GraphQL executada com sucesso, retornados " + feedbacks.size() + " feedbacks");
                 
                 APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
                 response.setStatusCode(200);
@@ -120,7 +120,7 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
             return badRequest("Consulta GraphQL não suportada. Use a consulta listFeedbacks.");
             
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error in GraphQL handler: " + e.getMessage(), e);
+            LOGGER.log(Level.SEVERE, "Erro no handler GraphQL: " + e.getMessage(), e);
             return internalServerError();
         }
     }
@@ -147,7 +147,7 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
      */
     private APIGatewayProxyResponseEvent badRequest(String detail) {
         JsonObject errorDetail = Json.createObjectBuilder()
-            .add("title", "Bad Request")
+            .add("title", "Requisição inválida")
             .add("status", 400)
             .add("detail", detail)
             .build();
@@ -164,9 +164,9 @@ public class GraphQLHandler implements RequestHandler<APIGatewayProxyRequestEven
      */
     private APIGatewayProxyResponseEvent internalServerError() {
         JsonObject errorDetail = Json.createObjectBuilder()
-            .add("title", "Internal Server Error")
+            .add("title", "Erro interno do servidor")
             .add("status", 500)
-            .add("detail", "An unexpected error occurred. Please try again later.")
+            .add("detail", "Ocorreu um erro inesperado. Tente novamente mais tarde.")
             .build();
         
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();

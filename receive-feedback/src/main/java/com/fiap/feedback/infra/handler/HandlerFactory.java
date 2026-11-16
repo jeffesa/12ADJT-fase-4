@@ -42,17 +42,17 @@ public class HandlerFactory {
                     var instance = Arc.container().instance(ReceiveFeedbackUseCase.class);
                     if (instance != null) {
                         useCaseInstance = instance.get();
-                        LOGGER.log(Level.FINE, "ReceiveFeedbackUseCase obtained from Arc CDI");
+                        LOGGER.log(Level.FINE, "ReceiveFeedbackUseCase obtido do Arc CDI");
                         return useCaseInstance;
                     }
                 }
             } catch (Exception e) {
-                LOGGER.log(Level.FINE, "Arc lookup failed: " + e.getMessage());
+                LOGGER.log(Level.FINE, "Falha na busca no Arc: " + e.getMessage());
             }
             
             // If we get here, CDI is not available or failed
             // This shouldn't happen in normal Quarkus/Lambda execution
-            LOGGER.log(Level.WARNING, "Could not obtain ReceiveFeedbackUseCase from Arc CDI - CDI may not be initialized");
+            LOGGER.log(Level.WARNING, "Não foi possível obter ReceiveFeedbackUseCase do Arc CDI - o CDI pode não estar inicializado");
             
             return null;
         }

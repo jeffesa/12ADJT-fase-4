@@ -146,6 +146,12 @@ class SesNotificationSenderTest {
         assertTrue(htmlBody.contains("System down"), "HTML should contain description");
         assertTrue(htmlBody.contains("HIGH"), "HTML should contain urgency");
         assertTrue(htmlBody.contains("2024-10-22"), "HTML should contain createdAt date");
+        assertTrue(htmlBody.contains("Feedback crítico recebido"), "HTML should contain heading");
+        assertTrue(htmlBody.contains("ID do feedback:"), "HTML should contain feedback ID label");
+        assertTrue(htmlBody.contains("Descrição:"), "HTML should contain description label");
+        assertTrue(htmlBody.contains("Urgência:"), "HTML should contain urgency label");
+        assertTrue(htmlBody.contains("Recebido em:"), "HTML should contain received-at label");
+        assertTrue(htmlBody.contains("Por favor, analise e responda o quanto antes."), "HTML should contain closing sentence");
     }
 
     @Test
@@ -237,7 +243,7 @@ class SesNotificationSenderTest {
             () -> sender.send(notification)
         );
 
-        assertTrue(exception.getMessage().contains("SES") || exception.getMessage().contains("Failed"));
+        assertTrue(exception.getMessage().startsWith("Falha ao enviar e-mail: "));
     }
 
     @Test

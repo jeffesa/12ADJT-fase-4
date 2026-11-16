@@ -26,7 +26,7 @@ class ReportEmailBuilderTest {
 
         String html = ReportEmailBuilder.buildHtmlBody(report);
 
-        String table = html.substring(html.indexOf("<h2>Feedback by Urgency</h2>"));
+        String table = html.substring(html.indexOf("<h2>Feedbacks por urgência</h2>"));
         int high = table.indexOf("<td>HIGH</td>");
         int medium = table.indexOf("<td>MEDIUM</td>");
         int low = table.indexOf("<td>LOW</td>");
@@ -49,7 +49,7 @@ class ReportEmailBuilderTest {
 
         String html = ReportEmailBuilder.buildHtmlBody(report);
 
-        String table = html.substring(html.indexOf("<h2>Feedback by Day</h2>"), html.indexOf("<h2>Feedback by Urgency</h2>"));
+        String table = html.substring(html.indexOf("<h2>Feedbacks por dia</h2>"), html.indexOf("<h2>Feedbacks por urgência</h2>"));
         int first = table.indexOf("<td>2024-10-21</td>\n      <td>4</td>");
         int second = table.indexOf("<td>2024-10-23</td>\n      <td>1</td>");
         assertTrue(first > 0 && first < second);
@@ -65,7 +65,7 @@ class ReportEmailBuilderTest {
 
         String html = ReportEmailBuilder.buildHtmlBody(report);
 
-        assertTrue(html.contains("<strong>Average Rating:</strong> N/A"));
+        assertTrue(html.contains("<strong>Nota média:</strong> N/D"));
     }
 
     private static WeeklyReport reportWith(Map<String, Integer> byUrgency) {

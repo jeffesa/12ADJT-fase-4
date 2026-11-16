@@ -102,8 +102,8 @@ O template `infra/template.yaml` cria um tópico SNS de alarmes, três filtros d
 | Alarme | Métrica | O que mede | Quando dispara | O que fazer |
 |---|---|---|---|---|
 | `prod-severe-errors-receive-feedback` | `FeedbackPlatform/prod` / `SevereErrors-ReceiveFeedback` | Linhas SEVERE no grupo `prod-receive-feedback` | Pelo menos 1 linha SEVERE em 5 minutos | Ver o log com `aws logs tail /aws/lambda/prod-receive-feedback --since 1h --region sa-east-1 --profile fase4`. Descrição com menos de 5 caracteres também gera SEVERE (seção 7). |
-| `prod-severe-errors-send-notification` | `FeedbackPlatform/prod` / `SevereErrors-SendNotification` | Linhas SEVERE no grupo `prod-send-notification` | Pelo menos 1 linha SEVERE em 5 minutos | Ver o log e checar a mensagem `SES error sending email`. Na produção observada, a causa foi identidade de e-mail não verificada no SES (seção 7). |
-| `prod-severe-errors-generate-report` | `FeedbackPlatform/prod` / `SevereErrors-GenerateReport` | Linhas SEVERE no grupo `prod-generate-report` | Pelo menos 1 linha SEVERE em 5 minutos | Ver o log e checar `Report generation failed` ou `SES error sending report`. |
+| `prod-severe-errors-send-notification` | `FeedbackPlatform/prod` / `SevereErrors-SendNotification` | Linhas SEVERE no grupo `prod-send-notification` | Pelo menos 1 linha SEVERE em 5 minutos | Ver o log e checar a mensagem `Erro do SES ao enviar e-mail`. Na produção observada, a causa foi identidade de e-mail não verificada no SES (seção 7). |
+| `prod-severe-errors-generate-report` | `FeedbackPlatform/prod` / `SevereErrors-GenerateReport` | Linhas SEVERE no grupo `prod-generate-report` | Pelo menos 1 linha SEVERE em 5 minutos | Ver o log e checar `Falha na geração do relatório` ou `Erro ao enviar relatório`. |
 
 Configuração comum dos alarmes:
 - Estatística `Sum`, período de 300 segundos, 1 período de avaliação, limite 1, comparação `>=`.
@@ -163,7 +163,7 @@ O alarme volta ao estado calculado na próxima avaliação, em até 5 minutos. P
 
 **Só com autorização. Este teste gera um SEVERE em produção, e o alarme envia um e-mail ao administrador depois que a assinatura estiver confirmada.**
 
-Uma requisição com JSON inválido não serve para este teste. O JSON inválido gera WARNING (`Invalid request body`), e o alarme conta só SEVERE. Para gerar SEVERE, use uma descrição com menos de 5 caracteres e um corpo JSON válido. A validação recusa a descrição e o handler registra SEVERE com status 500.
+Uma requisição com JSON inválido não serve para este teste. O JSON inválido gera WARNING (`Corpo da requisição inválido`), e o alarme conta só SEVERE. Para gerar SEVERE, use uma descrição com menos de 5 caracteres e um corpo JSON válido. A validação recusa a descrição e o handler registra SEVERE com status 500.
 
 ```bash
 curl -X POST "<ApiEndpoint>" -H "Authorization: Bearer $API_TOKEN" -H "Content-Type: application/json" -d '{"description":"abc","rating":5}'
@@ -177,7 +177,7 @@ Depois do disparo, confira o log:
 aws logs tail /aws/lambda/prod-receive-feedback --since 10m --region sa-east-1 --profile fase4
 ```
 
-Essa mensagem aparece no log: `SEVERE ... Error: Description must be at least 5 characters`. Em produção, essa mensagem já apareceu em logs de testes anteriores (verificado, leitura).
+Essa mensagem aparece no log: `SEVERE ... Erro: Descrição deve ter no mínimo 5 caracteres`, que é o texto atual do código (`ReceiveFeedbackUseCase`). Em produção, a versão em inglês dessa mensagem (`Error: Description must be at least 5 characters`) já apareceu em logs de testes anteriores (verificado, leitura).
 
 ### Passo 4: conferir o alarme
 
@@ -197,51 +197,51 @@ Todas as mensagens abaixo existem no código. As citações de produção vêm d
 
 Fluxo normal, na ordem:
 
-1. `Lambda handler invoked for sending notifications` (INFO)
-2. `Sending email notification for feedback <id> to <e-mail>` (INFO). Esta linha só aparece quando o envio começa.
-3. `Lambda handler completed` (INFO). Esta linha também aparece quando o envio falhou, porque o handler captura a exceção. Ela mostra que a invocação terminou, não que o e-mail foi enviado. Para saber se o envio deu certo, procure SEVERE na mesma invocação.
+1. `Handler Lambda invocado para envio de notificações` (INFO)
+2. `Enviando notificação por e-mail para o feedback <id> para <e-mail>` (INFO). Esta linha só aparece quando o envio começa.
+3. `Handler Lambda concluído` (INFO). Esta linha também aparece quando o envio falhou, porque o handler captura a exceção. Ela mostra que a invocação terminou, não que o e-mail foi enviado. Para saber se o envio deu certo, procure SEVERE na mesma invocação.
 
 Falha de envio via SES:
 
-- `SES error sending email for feedback <id>: <mensagem>` (SEVERE). Em produção, a mensagem foi `Email address is not verified`.
-- `Failed to send notification for feedback <id>: ...` (SEVERE), gerada pela camada de caso de uso.
-- `Notification sending failed: ...` (SEVERE), gerada pelo handler.
+- `Erro do SES ao enviar e-mail para o feedback <id>: <mensagem>` (SEVERE). Em produção, a mensagem do SES disse que o endereço não estava verificado.
+- `Falha ao enviar notificação para o feedback <id>: <mensagem>` (SEVERE), gerada pela camada de caso de uso.
+- `Falha no envio da notificação: <mensagem>` (SEVERE), gerada pelo handler.
 
 Uma única falha gera as três linhas SEVERE. O alarme conta linhas, não falhas. Por isso uma falha pode ser contada mais de uma vez.
 
 Outras linhas SEVERE:
 
-- `Error processing SNS record: ...` (SEVERE), do tratamento de cada registro SNS que lança exceção não prevista.
-- `Unexpected error in Lambda handler: ...` (SEVERE), do tratamento geral do handler.
+- `Erro ao processar registro SNS: <mensagem>` (SEVERE), do tratamento de cada registro SNS que lança exceção não prevista.
+- `Erro inesperado no handler Lambda: <mensagem>` (SEVERE), do tratamento geral do handler.
 
 ### generate-report
 
 Fluxo normal, na ordem:
 
-1. `Lambda handler invoked for generating and sending report` (INFO)
-2. `Report period calculated: startDate=..., endDate=...` (FINE). Esta linha só aparece porque o nível `com.fiap` está em DEBUG (`generate-report/src/main/resources/application.properties`, linha 14). Para vê-la, o nível de log precisa estar nesse valor.
-3. `Report generation and sending completed successfully` (INFO)
+1. `Handler Lambda invocado para geração e envio do relatório` (INFO)
+2. `Período do relatório calculado: início=..., fim=...` (FINE). Esta linha só aparece porque o nível `com.fiap` está em DEBUG (`generate-report/src/main/resources/application.properties`, linha 14). Para vê-la, o nível de log precisa estar nesse valor.
+3. `Geração e envio do relatório concluídos com sucesso` (INFO)
 
 Falhas:
 
-- `Report generation failed with ReportException: ...` (SEVERE), gerada pelo handler.
-- `Error generating report: ...` (SEVERE), gerada pelo caso de uso.
-- `SES error sending report <id> to <e-mail>: ...` (SEVERE), gerada pelo envio de e-mail.
-- `Unexpected error in Lambda handler: ...` (SEVERE), para exceções não previstas.
+- `Falha na geração do relatório (ReportException): <mensagem>` (SEVERE), gerada pelo handler.
+- `Erro ao gerar relatório: <mensagem>` (SEVERE), gerada pelo caso de uso.
+- `Erro ao enviar relatório <id> para <e-mail>: <mensagem>` (SEVERE), gerada pelo envio de e-mail.
+- `Erro inesperado no handler Lambda: <mensagem>` (SEVERE), para exceções não previstas.
 
 O grupo `prod-generate-report` não tem logs em produção até agora (`storedBytes: 0`, verificado, leitura). Os textos acima foram conferidos no código, não em produção.
 
 ### receive-feedback (POST e GET)
 
-- `Lambda handler invoked - POST /v1/feedback` (INFO) ou `Lambda handler invoked - GET /v1/feedback` (INFO).
-- `Invalid request body: ...` (WARNING). Não gera alarme.
-- `Error: <mensagem>` (SEVERE), com a exceção. Gera alarme e resposta 500.
-- `API_TOKEN is not configured; rejecting all requests` (SEVERE). Indica que a variável `API_TOKEN` está vazia no deploy.
+- `Handler Lambda invocado - POST /v1/feedback` (INFO) ou `Handler Lambda invocado - GET /v1/feedback` (INFO).
+- `Corpo da requisição inválido: <mensagem>` (WARNING). Não gera alarme.
+- `Erro: <mensagem>` (SEVERE), com a exceção. Gera alarme e resposta 500.
+- `API_TOKEN não configurado; rejeitando todas as requisições` (SEVERE). Indica que a variável `API_TOKEN` está vazia no deploy.
 
 ### graphql
 
-- `Lambda handler invoked - POST /graphql (internal GraphQL)` (INFO).
-- `Error in GraphQL handler: ...` (SEVERE), com a exceção. O código grava esta linha, mas não há alarme para este grupo (seção 7).
+- `Handler Lambda invocado - POST /graphql (GraphQL interno)` (INFO).
+- `Erro no handler GraphQL: <mensagem>` (SEVERE), com a exceção. O código grava esta linha, mas não há alarme para este grupo (seção 7).
 
 ---
 
@@ -251,8 +251,8 @@ O grupo `prod-generate-report` não tem logs em produção até agora (`storedBy
 - **Sem reserved concurrency.** As funções não têm limite de concorrência reservada, então throttling depende do limite da conta.
 - **Sem log estruturado em JSON.** Os logs são texto. Os filtros usam o padrão `SEVERE`, que casa com a linha de texto.
 - **X-API-Key, Usage Plan e Docker foram removidos.** O guia não descreve esses itens. A autenticação é feita por Bearer token.
-- **Descrição com menos de 5 caracteres gera SEVERE.** O `ReceiveFeedbackUseCase` lança `IllegalArgumentException` (`Description must be at least 5 characters`). O handler registra SEVERE e responde 500. Por isso o alarme `prod-severe-errors-receive-feedback` também dispara por erro do cliente. Campos inválidos pelo Bean Validation, como JSON malformado ou nota fora de 0 a 10, respondem 400 com WARNING e não disparam o alarme. Corrigir o status para 400 exige mudar `ReceiveFeedbackHandler.java`, o que não faz parte do monitoramento.
+- **Descrição com menos de 5 caracteres gera SEVERE.** O `ReceiveFeedbackUseCase` lança `IllegalArgumentException` com a mensagem `Descrição deve ter no mínimo 5 caracteres`. O handler registra SEVERE e responde 500. Por isso o alarme `prod-severe-errors-receive-feedback` também dispara por erro do cliente. Campos inválidos pelo Bean Validation, como JSON malformado ou nota fora de 0 a 10, respondem 400 com WARNING e não disparam o alarme. Corrigir o status para 400 exige mudar `ReceiveFeedbackHandler.java`, o que não faz parte do monitoramento.
 - **GraphQL sem alarme.** O código de `prod-graphql` grava SEVERE (`GraphQLHandler.java`, linha 134), mas nenhuma linha SEVERE apareceu na janela consultada. O projeto configura só três alarmes, e este grupo não tem alarme.
 - **Alarme de relatório sem teste real.** O grupo `prod-generate-report` não tem logs em produção. O padrão SEVERE desse grupo nunca foi visto em produção. Depois do deploy, teste com o passo 2 ou 3 da seção 5.
 - **Sem alarme para erros 5xx do API Gateway.** Os alarmes contam logs das funções, não respostas HTTP.
-- **Envio de e-mail depende das identidades do SES.** Em produção, o log mostra `Email address is not verified` para o endereço remetente e para o administrador. Até que as identidades estejam verificadas no SES de `sa-east-1`, o alarme de send-notification dispara no primeiro envio. Verifique as identidades antes do deploy ou aceite esse alarme como ruído.
+- **Envio de e-mail depende das identidades do SES.** Em produção, o log mostra que o endereço remetente e o endereço do administrador não estão verificados no SES. Até que as identidades estejam verificadas no SES de `sa-east-1`, o alarme de send-notification dispara no primeiro envio. Verifique as identidades antes do deploy ou aceite esse alarme como ruído.

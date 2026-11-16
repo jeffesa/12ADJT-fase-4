@@ -58,12 +58,12 @@ class ReceiveFeedbackResolverTest {
     @Test
     void receiveFeedbackRethrowsValidationError() {
         when(receiveFeedbackUseCase.receiveFeedback(anyString(), anyInt()))
-                .thenThrow(new IllegalArgumentException("Rating must be at most 10"));
+                .thenThrow(new IllegalArgumentException("Nota deve ser no máximo 10"));
 
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> resolver.receiveFeedback(new ReceiveFeedbackInput("Good service", 11)));
 
-        assertEquals("Rating must be at most 10", error.getMessage());
+        assertEquals("Nota deve ser no máximo 10", error.getMessage());
     }
 
     @Test
@@ -81,7 +81,7 @@ class ReceiveFeedbackResolverTest {
     void receiveFeedbackRejectsMissingRating() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> resolver.receiveFeedback(new ReceiveFeedbackInput("Good service", null)));
-        assertEquals("Rating is required", error.getMessage());
+        assertEquals("Nota é obrigatória", error.getMessage());
         verifyNoInteractions(receiveFeedbackUseCase);
     }
 }

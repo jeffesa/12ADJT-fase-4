@@ -30,7 +30,7 @@ import org.mockito.MockedStatic;
  */
 class GlobalExceptionHandlerTest {
 
-    private static final String GENERIC_DETAIL = "An unexpected error occurred. Please try again later.";
+    private static final String GENERIC_DETAIL = "Ocorreu um erro inesperado. Tente novamente mais tarde.";
 
     private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
@@ -41,13 +41,13 @@ class GlobalExceptionHandlerTest {
         try (MockedStatic<Response> responses = mockStatic(Response.class)) {
             Response.ResponseBuilder builder = stubBuilder(responses, Response.Status.BAD_REQUEST, expected);
 
-            Response result = handler.toResponse(new IllegalArgumentException("Rating must be between 0 and 10"));
+            Response result = handler.toResponse(new IllegalArgumentException("Nota deve estar entre 0 e 10"));
 
             assertSame(expected, result);
             JsonObject body = capturedEntity(builder);
-            assertEquals("Validation Error", body.getString("title"));
+            assertEquals("Erro de validação", body.getString("title"));
             assertEquals(400, body.getInt("status"));
-            assertEquals("Rating must be between 0 and 10", body.getString("detail"));
+            assertEquals("Nota deve estar entre 0 e 10", body.getString("detail"));
         }
     }
 
@@ -59,18 +59,18 @@ class GlobalExceptionHandlerTest {
             Response.ResponseBuilder builder = stubBuilder(responses, Response.Status.BAD_REQUEST, expected);
 
             Set<ConstraintViolation<?>> violations = new LinkedHashSet<>();
-            violations.add(violation("Description cannot be empty"));
-            violations.add(violation("Rating must be at most 10"));
+            violations.add(violation("Descrição não pode estar vazia"));
+            violations.add(violation("Nota deve ser no máximo 10"));
 
             Response result = handler.toResponse(new ConstraintViolationException(violations));
 
             assertSame(expected, result);
             JsonObject body = capturedEntity(builder);
-            assertEquals("Validation Error", body.getString("title"));
+            assertEquals("Erro de validação", body.getString("title"));
             assertEquals(400, body.getInt("status"));
             String detail = body.getString("detail");
-            assertTrue(detail.contains("Description cannot be empty"));
-            assertTrue(detail.contains("Rating must be at most 10"));
+            assertTrue(detail.contains("Descrição não pode estar vazia"));
+            assertTrue(detail.contains("Nota deve ser no máximo 10"));
         }
     }
 
@@ -85,7 +85,7 @@ class GlobalExceptionHandlerTest {
 
             assertSame(expected, result);
             JsonObject body = capturedEntity(builder);
-            assertEquals("Internal Server Error", body.getString("title"));
+            assertEquals("Erro interno do servidor", body.getString("title"));
             assertEquals(500, body.getInt("status"));
             assertEquals(GENERIC_DETAIL, body.getString("detail"));
             assertFalse(body.getString("detail").contains("Database"));
