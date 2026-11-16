@@ -664,7 +664,7 @@ Documento `docs/SECURITY.md`:
 - [x] Componentes de segurança: token Bearer, IAM Roles e CloudWatch Logs (a API Key foi substituída pelo Bearer)
 - [x] Descritivo de cada IAM Role (ReceiveFeedback, SendNotification, GenerateReport)
 - [x] Explicação de least privilege (cada Lambda só tem permissões que precisa)
-- [x] Autenticação obrigatória em todas as rotas (`/v1/feedback`, `/v1/graphql`), com token Bearer no lugar da API Key
+- [x] Autenticação obrigatória em todas as rotas (`/v1/avaliacao`, `/v1/graphql`), com token Bearer no lugar da API Key
 - [ ] ~~Usage Plan com throttling~~: **removido do escopo**. O template não cria Usage Plan. O documento foi corrigido em 2026-11-16 para não descrever esse controle.
 - [x] CloudWatch Logs com retenção de 30 dias
 - [x] Separação de ambientes (dev/prod) via parâmetros do CloudFormation
@@ -681,7 +681,7 @@ Roteiro para o vídeo (`docs/qualidade/DEMO_GUIDE.md`):
 
 Vídeo de demonstração (~5 minutos):
 - [ ] Gravar o vídeo e salvar em `docs/videos/` ou colocar o link no README
-- [ ] Demonstrar `receiveFeedback` com nota crítica e confirmar o e-mail. **Pendência técnica:** a mutation não é alcançável por HTTP, porque `POST /graphql` só executa `listFeedbacks`. Decidir: implementar a mutation ou mostrar `POST /v1/feedback` no vídeo.
+- [ ] Demonstrar `receiveFeedback` com nota crítica e confirmar o e-mail. **Pendência técnica:** a mutation não é alcançável por HTTP, porque `POST /graphql` só executa `listFeedbacks`. Decidir: implementar a mutation ou mostrar `POST /v1/avaliacao` no vídeo.
 - [ ] Demonstrar `receiveFeedback` com nota normal e confirmar que não há e-mail (mesma pendência acima)
 - [ ] Execução manual do generate-report e e-mail de relatório (depende de autorização para executar em produção)
 - [ ] Mostrar CloudWatch Logs das 3 Lambdas em execução

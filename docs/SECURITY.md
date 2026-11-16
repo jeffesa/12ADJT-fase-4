@@ -16,7 +16,7 @@ O modelo serverless oferece:
 
 ### 1. Autenticação por token Bearer
 
-Todas as rotas (`POST /v1/feedback`, `GET /v1/feedback` e `POST /v1/graphql`) exigem o header `Authorization: Bearer <token>`. O token é validado dentro dos handlers Lambda, então a mesma regra vale localmente e em produção.
+Todas as rotas (`POST /v1/avaliacao` e `POST /v1/graphql`) exigem o header `Authorization: Bearer <token>`. O token é validado dentro dos handlers Lambda, então a mesma regra vale localmente e em produção.
 
 - **Origem do token**: um único token compartilhado, guardado como segredo do GitHub `API_TOKEN` e passado ao deploy pelo parâmetro `ApiToken` (`NoEcho`, de 24 a 128 caracteres: letras, dígitos, `_` e `-`). As Lambdas leem o valor da variável de ambiente `API_TOKEN`.
 - **Criação do segredo**: `openssl rand -hex 24 | tee >(pbcopy) | gh secret set API_TOKEN --repo jeffesa/12ADJT-fase-4`. O GitHub não mostra o valor de novo, então guarde uma cópia.

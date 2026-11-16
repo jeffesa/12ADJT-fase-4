@@ -5,15 +5,14 @@
 Esta coleção do Postman cobre os endpoints da Feedback API da FIAP Fase-4, com casos de teste para criar feedbacks e validar o cálculo de urgência com base na nota. A coleção inclui os ambientes local (LocalStack) e produção (AWS API Gateway), permitindo alternar entre os cenários de teste.
 
 ### Cobertura da API
-- **POST `/v1/feedback`**: cria um feedback com classificação automática de urgência
+- **POST `/v1/avaliacao`**: cria um feedback com classificação automática de urgência
   - Casos de sucesso: 3 faixas de urgência (HIGH, MEDIUM, LOW) com teste de valores limite
   - Casos de erro: 9 cenários de validação e violação de restrições
-- **GET `/v1/feedback`**: lista todos os feedbacks
-- **POST `/v1/graphql`**: consulta GraphQL `listFeedbacks`
+- **POST `/v1/graphql`**: consulta GraphQL `listFeedbacks`, que lista todos os feedbacks
 
 ### Arquitetura
 - **Baseada em REST**, com uma consulta GraphQL (`listFeedbacks`)
-- **Contrato da requisição:** JSON com `description` (string) e `rating` (inteiro de 0 a 10)
+- **Contrato da requisição:** JSON com `descricao` (string) e `nota` (inteiro de 0 a 10)
 - **Formato da resposta:** RFC 7807 Problem Detail para erros; objeto JSON simples (sem wrapper) para a resposta de sucesso da v1
 - **Códigos de status:** 201 Created (sucesso), 400 Bad Request (erros de validação)
 
@@ -58,12 +57,12 @@ A coleção tem duas pastas: **local** e **prod**. Cada uma contém os mesmos ca
 ### Para testar o LOCAL (local-http):
 1. Expanda a pasta **"local"**
 2. Execute qualquer requisição em **"Criar Avaliação"**
-3. Todas as requisições vão para `{{localUrl}}/v1/feedback` = `http://localhost:8080/v1/feedback`
+3. Todas as requisições vão para `{{localUrl}}/v1/avaliacao` = `http://localhost:8080/v1/avaliacao`
 
 ### Para testar a PRODUÇÃO (AWS):
 1. Expanda a pasta **"prod"**
 2. Execute qualquer requisição em **"Criar Avaliação"**
-3. Todas as requisições vão para `{{prodUrl}}/v1/feedback` = `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback`
+3. Todas as requisições vão para `{{prodUrl}}/v1/avaliacao` = `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/avaliacao`
 
 ### Casos de teste em "Criar Avaliação"
 | Requisição | Nota | Urgência | Observação |
@@ -198,7 +197,7 @@ query {
 ### Pré-requisitos
 1. Credenciais da AWS com o perfil `fase4` (o módulo local grava na tabela `dev-feedback-table`)
 2. Inicie o módulo: na pasta `local-http`, execute `./run.sh local-up`
-3. Rotas disponíveis em `http://localhost:8080` (`/v1/feedback` e `/v1/graphql`)
+3. Rotas disponíveis em `http://localhost:8080` (`/v1/avaliacao` e `/v1/graphql`)
 
 ### Passos
 1. Mantenha o `localToken` padrão (ou exporte `API_TOKEN` antes de `./run.sh local-up` e defina o mesmo valor em `localToken`)
@@ -211,7 +210,7 @@ query {
 
 ### Pré-requisitos
 1. Função AWS Lambda implantada e acessível
-2. Endpoint do API Gateway ativo: `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/feedback`
+2. Endpoint do API Gateway ativo: `https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod/v1/avaliacao`
 3. Tabela DynamoDB `prod-feedback-table` disponível em sa-east-1
 4. SES com identidades verificadas (se as notificações por e-mail estiverem habilitadas)
 5. `prodToken` definido com o valor do segredo `API_TOKEN`
@@ -232,7 +231,7 @@ query {
 
 ### Endpoint
 ```
-POST /v1/feedback
+POST /v1/avaliacao
 Host: {{localUrl}} or {{prodUrl}}
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -241,8 +240,8 @@ Content-Type: application/json
 ### Corpo da requisição
 ```json
 {
-  "description": "string (required, non-blank)",
-  "rating": "integer (required, 0-10 inclusive)"
+  "descricao": "string (required, non-blank)",
+  "nota": "integer (required, 0-10 inclusive)"
 }
 ```
 
@@ -250,10 +249,10 @@ Content-Type: application/json
 ```json
 {
   "id": "UUID",
-  "description": "string (echoed from request)",
-  "rating": "integer (echoed from request)",
-  "urgency": "HIGH|MEDIUM|LOW (calculated)",
-  "createdAt": "ISO 8601 timestamp"
+  "descricao": "string (echoed from request)",
+  "nota": "integer (echoed from request)",
+  "urgencia": "HIGH|MEDIUM|LOW (calculated)",
+  "dataCriacao": "ISO 8601 timestamp"
 }
 ```
 
@@ -285,7 +284,7 @@ Content-Type: application/json
 - **Causa:** `localToken`/`prodToken` vazio ou diferente do token configurado na API (`API_TOKEN`)
 - **Correção:** Defina a variável em Collection > Variables; localmente, use o mesmo valor passado ao `./run.sh local-up`
 
-#### 404/405 em {{localUrl}}/v1/feedback
+#### 404/405 em {{localUrl}}/v1/avaliacao
 - **Causa:** o local-http não está em execução, ou foi iniciado na pasta errada (o módulo `receive-feedback` não tem rotas HTTP)
 - **Correção:** Execute `./run.sh local-up` na pasta `local-http` e mantenha-o em execução
 
@@ -309,8 +308,8 @@ Depois de importar, verifique se a coleção carregou corretamente:
 
 1. **Variáveis:** Collection > Variables mostra `localUrl`, `prodUrl`, `localToken`, `prodToken`, `feedbackId` e `timestamp`
 2. **Pastas:** apenas `local` e `prod`, com 20 requisições cada
-3. **Execute um caso 401:** "🔒 401 — GET /v1/feedback sem token" → HTTP 401
-4. **Execute um caso de sucesso:** "✅ 200 — GET /v1/feedback com token" (local) → HTTP 200
+3. **Execute um caso 401:** "🔒 401 — POST /v1/graphql sem token" → HTTP 401
+4. **Execute um caso de sucesso:** "✅ 200 — POST /v1/graphql com token" (local) → HTTP 200
 
 ---
 
