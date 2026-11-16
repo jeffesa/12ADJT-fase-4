@@ -177,7 +177,7 @@ Depois do disparo, confira o log:
 aws logs tail /aws/lambda/prod-receive-feedback --since 10m --region sa-east-1 --profile fase4
 ```
 
-A mensagem esperada no log é `SEVERE ... Erro: Descrição deve ter no mínimo 5 caracteres`, que vem do código atual (`ReceiveFeedbackUseCase`). Os logs de testes anteriores à tradução mostravam a versão em inglês dessa mensagem (verificado, leitura).
+Essa mensagem aparece no log: `SEVERE ... Erro: Descrição deve ter no mínimo 5 caracteres`, que é o texto atual do código (`ReceiveFeedbackUseCase`). Em produção, a versão em inglês dessa mensagem (`Error: Description must be at least 5 characters`) já apareceu em logs de testes anteriores (verificado, leitura).
 
 ### Passo 4: conferir o alarme
 
@@ -211,6 +211,7 @@ Uma única falha gera as três linhas SEVERE. O alarme conta linhas, não falhas
 
 Outras linhas SEVERE:
 
+- `Erro ao processar registro SNS: <mensagem>` (SEVERE), do tratamento de cada registro SNS que lança exceção não prevista.
 - `Erro inesperado no handler Lambda: <mensagem>` (SEVERE), do tratamento geral do handler.
 
 ### generate-report
