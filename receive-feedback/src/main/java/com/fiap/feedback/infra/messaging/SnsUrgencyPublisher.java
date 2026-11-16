@@ -81,7 +81,7 @@ public class SnsUrgencyPublisher implements UrgencyPublisher {
             PublishRequest publishRequest = PublishRequest.builder()
                     .topicArn(topicArn)
                     .message(messageBody)
-                    .subject("Alerta de feedback de urgência alta")
+                    .subject("Alerta de feedback de urgencia alta")
                     .build();
 
             PublishResponse publishResponse = snsClient.publish(publishRequest);

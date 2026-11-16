@@ -3,6 +3,7 @@ package com.fiap.feedback.infra.messaging;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -52,7 +53,10 @@ class SnsUrgencyPublisherTest {
         verify(snsClient).publish(captor.capture());
         PublishRequest request = captor.getValue();
         assertEquals(TOPIC_ARN, request.topicArn());
-        assertEquals("Alerta de feedback de urgência alta", request.subject());
+        assertEquals("Alerta de feedback de urgencia alta", request.subject());
+        assertTrue(request.subject().chars().allMatch(c -> c < 128), "SNS subject must be ASCII");
+        assertTrue(request.subject().length() <= 100, "SNS subject must be at most 100 characters");
+        assertTrue(!request.subject().contains("\n") && !request.subject().contains("\r"), "SNS subject must not contain line breaks");
         assertEquals(FeedbackMessageBuilder.buildFeedbackJson(feedback), request.message());
     }
 
