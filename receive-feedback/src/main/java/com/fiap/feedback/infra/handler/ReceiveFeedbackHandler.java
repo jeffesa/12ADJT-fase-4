@@ -1,6 +1,7 @@
 package com.fiap.feedback.infra.handler;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -8,6 +9,7 @@ import java.util.logging.Logger;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
@@ -20,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 
+import com.fiap.feedback.application.usecase.ListFeedbackUseCase;
 import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
 import com.fiap.feedback.infra.dto.AvaliacaoInput;
@@ -29,12 +32,13 @@ import com.fiap.feedback.infra.dto.InputOutputMapper;
 import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
 
 /**
- * AWS Lambda handler for REST API: POST /v1/avaliacao.
+ * AWS Lambda handler for REST API: POST /v1/avaliacao and GET /v1/avaliacoes.
  *
  * Requires "Authorization: Bearer <token>" (token from the API_TOKEN environment variable).
  * Without a valid token the request is rejected with 401 before any other processing.
  * 
  * POST /v1/avaliacao → Create evaluation (ReceiveFeedbackUseCase)
+ * GET /v1/avaliacoes → List all evaluations (ListFeedbackUseCase)
  */
 @Named("receiveFeedback")
 public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -50,6 +54,9 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
 
     @Inject
     private ReceiveFeedbackUseCase receiveFeedbackUseCase;
+
+    @Inject
+    private ListFeedbackUseCase listFeedbackUseCase;
 
     @Inject
     private Validator validator;
@@ -68,7 +75,9 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
                 return denied.get();
             }
 
-            if ("POST".equals(method)) {
+            if ("GET".equals(method)) {
+                return handleGetAvaliacoes();
+            } else if ("POST".equals(method)) {
                 return handlePostAvaliacao(event);
             } else {
                 return methodNotAllowed();
@@ -81,6 +90,37 @@ public class ReceiveFeedbackHandler implements RequestHandler<APIGatewayProxyReq
 
     void setAuthenticator(BearerTokenAuthenticator authenticator) {
         this.authenticator = authenticator;
+    }
+
+    /**
+     * Handles GET /v1/avaliacoes: list all evaluations with the same field names as POST /v1/avaliacao.
+     */
+    private APIGatewayProxyResponseEvent handleGetAvaliacoes() {
+        LOGGER.log(Level.INFO, "GET /v1/avaliacoes - listando avaliações");
+
+        if (listFeedbackUseCase == null) {
+            throw new IllegalStateException("ListFeedbackUseCase não injetado");
+        }
+
+        List<Feedback> feedbacks = listFeedbackUseCase.listAllFeedbacks();
+
+        JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+        for (Feedback feedback : feedbacks) {
+            arrayBuilder.add(toAvaliacaoJson(InputOutputMapper.toFeedbackOutput(feedback)));
+        }
+
+        JsonObject responseBody = Json.createObjectBuilder()
+            .add("avaliacoes", arrayBuilder.build())
+            .add("total", feedbacks.size())
+            .build();
+
+        LOGGER.log(Level.INFO, "Retornadas " + feedbacks.size() + " avaliações");
+
+        APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
+        response.setStatusCode(200);
+        response.setBody(responseBody.toString());
+        response.setHeaders(defaultHeaders());
+        return response;
     }
 
     /**

@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,29 +28,34 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.fiap.feedback.application.usecase.ListFeedbackUseCase;
 import com.fiap.feedback.application.usecase.ReceiveFeedbackUseCase;
 import com.fiap.feedback.domain.entity.Feedback;
 import com.fiap.feedback.domain.entity.Urgency;
 import com.fiap.feedback.infra.security.BearerTokenAuthenticator;
 
 /**
- * Unit tests for ReceiveFeedbackHandler route POST /v1/avaliacao.
+ * Unit tests for ReceiveFeedbackHandler routes POST /v1/avaliacao and GET /v1/avaliacoes.
  */
 class ReceiveFeedbackHandlerV1Test {
 
     private static final Validator VALIDATOR = Validation.buildDefaultValidatorFactory().getValidator();
     private static final String AVALIACAO_PATH = "/v1/avaliacao";
+    private static final String AVALIACOES_PATH = "/v1/avaliacoes";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private ReceiveFeedbackHandler handler;
     private ReceiveFeedbackUseCase receiveFeedbackUseCase;
+    private ListFeedbackUseCase listFeedbackUseCase;
 
     @BeforeEach
     void setUp() throws ReflectiveOperationException {
         handler = new ReceiveFeedbackHandler();
         receiveFeedbackUseCase = mock(ReceiveFeedbackUseCase.class);
+        listFeedbackUseCase = mock(ListFeedbackUseCase.class);
         setField(handler, "receiveFeedbackUseCase", receiveFeedbackUseCase);
+        setField(handler, "listFeedbackUseCase", listFeedbackUseCase);
         setField(handler, "validator", VALIDATOR);
         handler.setAuthenticator(new BearerTokenAuthenticator("test-token"));
     }
@@ -169,6 +175,55 @@ class ReceiveFeedbackHandlerV1Test {
         assertEquals(401, response.getStatusCode());
         assertEquals("Token Bearer inválido", objectMapper.readTree(response.getBody()).get("detail").asText());
         verifyNoInteractions(receiveFeedbackUseCase);
+    }
+
+    @Test
+    void avaliacoesGetReturns200WithListInPortugueseFields() throws Exception {
+        LocalDateTime createdAt = LocalDateTime.of(2024, 3, 15, 10, 30);
+        Feedback stored = new Feedback(UUID.randomUUID().toString(), "Bom atendimento", 8, Urgency.LOW, createdAt, false);
+        when(listFeedbackUseCase.listAllFeedbacks()).thenReturn(List.of(stored));
+
+        APIGatewayProxyResponseEvent response = handle("GET", AVALIACOES_PATH, null, "Bearer test-token");
+
+        assertEquals(200, response.getStatusCode());
+        JsonNode body = objectMapper.readTree(response.getBody());
+        assertEquals(1, body.get("total").asInt());
+        JsonNode item = body.get("avaliacoes").get(0);
+        assertEquals(stored.getId(), item.get("id").asText());
+        assertEquals("Bom atendimento", item.get("descricao").asText());
+        assertEquals(8, item.get("nota").asInt());
+        assertEquals("LOW", item.get("urgencia").asText());
+        assertEquals(createdAt.toString(), item.get("dataCriacao").asText());
+        assertFalse(item.has("description"));
+        assertFalse(body.has("feedbacks"));
+    }
+
+    @Test
+    void avaliacoesGetEmptyListReturns200WithZeroTotal() throws Exception {
+        when(listFeedbackUseCase.listAllFeedbacks()).thenReturn(List.of());
+
+        APIGatewayProxyResponseEvent response = handle("GET", AVALIACOES_PATH, null, "Bearer test-token");
+
+        assertEquals(200, response.getStatusCode());
+        JsonNode body = objectMapper.readTree(response.getBody());
+        assertEquals(0, body.get("total").asInt());
+        assertEquals(0, body.get("avaliacoes").size());
+    }
+
+    @Test
+    void avaliacoesGetWithoutTokenReturns401AndTouchesNothing() throws Exception {
+        APIGatewayProxyResponseEvent response = handle("GET", AVALIACOES_PATH, null, null);
+        assertEquals(401, response.getStatusCode());
+        assertEquals("Token Bearer ausente", objectMapper.readTree(response.getBody()).get("detail").asText());
+        verifyNoInteractions(listFeedbackUseCase);
+    }
+
+    @Test
+    void avaliacoesGetWithInvalidTokenReturns401AndTouchesNothing() throws Exception {
+        APIGatewayProxyResponseEvent response = handle("GET", AVALIACOES_PATH, null, "Bearer nope");
+        assertEquals(401, response.getStatusCode());
+        assertEquals("Token Bearer inválido", objectMapper.readTree(response.getBody()).get("detail").asText());
+        verifyNoInteractions(listFeedbackUseCase);
     }
 
     private void assertBadRequest(APIGatewayProxyResponseEvent response, String detail) throws Exception {
