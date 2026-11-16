@@ -643,33 +643,48 @@ POST /avaliacao {"descricao":"Produto não funciona","nota":1}
 
 ---
 
-### TASK-027: Criar documentação de segurança (Security Guidelines)
+### 🟡 TASK-027: Criar documentação de segurança (Security Guidelines) — **PARCIAL**
 
 **Labels:** `priority: high`, `épico: documentação`, `pontos: 2`, `type: docs`
 **Milestone:** Sprint 6 - Finalização
+**Status:** 🟡 PARCIAL (revisada em 2026-11-16)
 
 ## 📋 Descrição
 Documentar todas as decisões de segurança, configuração de IAM, governança de acesso e como explicar no vídeo de demonstração.
 
-## ✅ Critérios de Aceitação
-- [ ] Documento `docs/SECURITY.md` com:
-  - [ ] Explicação do modelo de cloud escolhido (AWS Serverless)
-  - [ ] Componentes de segurança: API Key, IAM Roles, CloudWatch Logs
-  - [ ] Descritivo de cada IAM Role (ReceiveFeedback, SendNotification, GenerateReport)
-  - [ ] Explicação de least privilege (cada Lambda só tem permissões que precisa)
-  - [ ] API Gateway com API Key obrigatória no `/graphql` (endpoint GraphQL)
-  - [ ] Usage Plan com throttling (rate limit, burst limit, quota diária)
-  - [ ] CloudWatch Logs com retenção de 30 dias
-  - [ ] Separação de ambientes (dev/prod) via CloudFormation parameters
-  - [ ] Encriptação em trânsito (HTTPS obrigatório)
-  - [ ] SES em Sandbox (dev) vs Production (prod)
-  - [ ] Como o AdminEmail é configurável (sem hardcoding)
-- [ ] Roteiro para o vídeo explicando:
-  - [ ] Como mostrar template.yaml (IAM, API Key, permissions)
-  - [ ] Como mostrar CloudWatch (logs das 3 Lambdas)
-  - [ ] Como explicar modelo serverless vs tradicional
-  - [ ] Como testar GraphQL endpoint com API Key
-  - [ ] Quais são os benefícios de segurança (escalabilidade automática, less surface area)
+## ✅ Critérios de Aceitação (revisados em 2026-11-16)
+
+Mudanças em relação ao texto original: a autenticação é por token Bearer, no lugar da API Key. O Usage Plan saiu do escopo, porque não existe no template.
+
+Documento `docs/SECURITY.md`:
+- [x] Explicação do modelo de cloud escolhido (AWS Serverless)
+- [x] Componentes de segurança: token Bearer, IAM Roles e CloudWatch Logs (a API Key foi substituída pelo Bearer)
+- [x] Descritivo de cada IAM Role (ReceiveFeedback, SendNotification, GenerateReport)
+- [x] Explicação de least privilege (cada Lambda só tem permissões que precisa)
+- [x] Autenticação obrigatória em todas as rotas (`/v1/feedback`, `/v1/graphql`), com token Bearer no lugar da API Key
+- [x] ~~Usage Plan com throttling~~: **removido do escopo**. O template não cria Usage Plan. O documento foi corrigido em 2026-11-16 para não descrever esse controle.
+- [x] CloudWatch Logs com retenção de 30 dias
+- [x] Separação de ambientes (dev/prod) via parâmetros do CloudFormation
+- [x] Encriptação em trânsito (HTTPS obrigatório no API Gateway)
+- [x] Verificação de identidade no SES em produção (seção "Verificação de e-mail (SES)")
+- [x] Como o AdminEmail é configurável (sem hardcoding)
+
+Roteiro para o vídeo (`docs/qualidade/DEMO_GUIDE.md`):
+- [x] Como mostrar template.yaml (IAM, permissões): Segmento 1
+- [x] Como mostrar CloudWatch (logs das Lambdas): Segmento 5
+- [x] Como explicar modelo serverless vs tradicional: apêndice "Benefícios do serverless"
+- [ ] Como testar o endpoint GraphQL com token Bearer (o roteiro ainda cita API Key e precisa de ajuste)
+- [ ] Benefícios de segurança (escalabilidade, menor superfície de ataque): a verificar no roteiro
+
+Vídeo de demonstração (~5 minutos):
+- [ ] Gravar o vídeo e salvar em `docs/videos/` ou colocar o link no README
+- [ ] Demonstrar `receiveFeedback` com nota crítica e confirmar o e-mail. **Pendência técnica:** a mutation não é alcançável por HTTP, porque `POST /graphql` só executa `listFeedbacks`. Decidir: implementar a mutation ou mostrar `POST /v1/feedback` no vídeo.
+- [ ] Demonstrar `receiveFeedback` com nota normal e confirmar que não há e-mail (mesma pendência acima)
+- [ ] Execução manual do generate-report e e-mail de relatório (depende de autorização para executar em produção)
+- [ ] Mostrar CloudWatch Logs das 3 Lambdas em execução
+- [ ] Mostrar configurações da AWS (Lambda, DynamoDB, SNS, API Gateway)
+- [ ] Explicar modelo de cloud e configurações de segurança (IAM)
+- [ ] Duração de ~5 minutos
 
 ## 🔧 Dependências Técnicas
 - [TASK-004] concluída (SAM template com IAM)
