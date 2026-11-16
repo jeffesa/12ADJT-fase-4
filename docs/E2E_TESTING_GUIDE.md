@@ -1,70 +1,70 @@
-# End-to-End Testing Guide
+# Guia de testes ponta a ponta (E2E)
 
-This guide provides step-by-step instructions for testing all three critical flows of the feedback platform with LocalStack.
+Este guia traz instruções passo a passo para testar os três fluxos críticos da plataforma de feedback com o LocalStack.
 
-**Performance Metrics**: The test scripts now capture and validate execution times. All Lambda endpoints (receiveFeedback, generateWeeklyReport) must complete in < 1000ms (1 second). Actual measurements are logged and included in the results CSV.
+**Métricas de desempenho**: os scripts de teste capturam e validam os tempos de execução. Todos os endpoints das Lambdas (receiveFeedback, generateWeeklyReport) precisam terminar em menos de 1000 ms (1 segundo). As medições reais são registradas e incluídas no CSV de resultados.
 
-## Prerequisites
+## Pré-requisitos
 
-Before starting, ensure:
+Antes de começar, confirme que:
 
-1. LocalStack is running and healthy:
+1. O LocalStack está rodando e saudável:
    ```bash
    ./run.sh health
    ```
-   Expected output: `✅ LocalStack (edge:4566): UP`
+   Saída esperada: `✅ LocalStack (edge:4566): UP`
 
-2. All three modules are running in dev mode:
+2. Os três módulos estão rodando em modo de desenvolvimento:
    - Terminal 1: `cd receive-feedback && mvn quarkus:dev`
    - Terminal 2: `cd send-notification && mvn quarkus:dev`
    - Terminal 3: `cd generate-report && mvn quarkus:dev`
 
-3. Resources are created:
+3. Os recursos foram criados:
    ```bash
    ./run.sh resources
    ```
-   Should show `feedbacks` table, `feedback-urgent-topic`, `feedback-report-topic`, and queues
+   Deve mostrar a tabela `feedbacks`, os tópicos `feedback-urgent-topic` e `feedback-report-topic`, e as filas
 
-4. Tools available:
-   - `curl` (for HTTP requests)
-   - `jq` (for JSON parsing)
-   - `aws` CLI (recommended, but optional if using `awslocal` via docker)
+4. Ferramentas disponíveis:
+   - `curl` (para requisições HTTP)
+   - `jq` (para ler JSON)
+   - CLI `aws` (recomendada, mas opcional se você usar o `awslocal` via Docker)
 
-## Setup: Verify Resources
+## Configuração: verificar os recursos
 
-Warm up services and confirm all endpoints are accessible:
+Aqueça os serviços e confirme que todos os endpoints estão acessíveis:
 
 ```bash
-# Check health
+# Verificar a saúde
 curl -v http://localhost:4566
 
-# Expected response: 200 OK with metadata
+# Resposta esperada: 200 OK com metadados
 
-# Test GraphQL endpoint for receive-feedback module
+# Testar o endpoint GraphQL do módulo receive-feedback
 curl -X POST http://localhost:8080/graphql \
   -H "Content-Type: application/json" \
   -d '{"query": "{ __typename }"}'
 
-# Expected response: {"data":{"__typename":"Query"}}
+# Resposta esperada: {"data":{"__typename":"Query"}}
 ```
 
-If services aren't responding, check the module terminal outputs for errors and wait for "Listening on" messages.
+Se os serviços não responderem, confira a saída dos terminais dos módulos e aguarde as mensagens "Listening on".
 
-## Flow 1: HIGH Urgency Feedback
+## Fluxo 1: feedback de urgência HIGH
 
-**Objective**: Test that HIGH-urgency feedback (rating 0-5) triggers SNS publish → send-notification Lambda → SES email
+**Objetivo**: testar se um feedback de urgência HIGH (nota de 0 a 5) dispara a publicação no SNS → a Lambda send-notification → o e-mail pelo SES
 
-**Expected Behavior**:
-- Feedback saved to DynamoDB with `urgency: HIGH`
-- SNS message published to `feedback-urgent-topic`
-- Send-notification Lambda triggered
-- Email sent via SES to `admin@feedback-fase-4.com`
-- CloudWatch logs show execution < 1 second
-- No errors in logs
+**Comportamento esperado**:
+- O feedback é gravado no DynamoDB com `urgency: HIGH`
+- A mensagem é publicada no `feedback-urgent-topic`
+- A Lambda send-notification é disparada
+- O e-mail é enviado pelo SES para `admin@feedback-fase-4.com`
+- Os logs do CloudWatch mostram execução em menos de 1 segundo
+- Nenhum erro nos logs
 
-### Step 1: Submit HIGH Urgency Feedback
+### Passo 1: enviar um feedback de urgência HIGH
 
-Using curl:
+Usando curl:
 
 ```bash
 curl -X POST http://localhost:8080/graphql \
@@ -74,7 +74,7 @@ curl -X POST http://localhost:8080/graphql \
   }'
 ```
 
-**Expected Response**:
+**Resposta esperada**:
 
 ```json
 {
@@ -90,19 +90,19 @@ curl -X POST http://localhost:8080/graphql \
 }
 ```
 
-**Record the feedback ID** for later verification: `550e8400-e29b-41d4-a716-446655440000`
+**Anote o ID do feedback** para a verificação seguinte: `550e8400-e29b-41d4-a716-446655440000`
 
-### Step 2: Verify Feedback in DynamoDB
+### Passo 2: verificar o feedback no DynamoDB
 
 ```bash
-# Using docker compose (from fase-4 root directory)
+# Usando docker compose (a partir da raiz do fase-4)
 docker compose exec localstack awslocal dynamodb scan \
   --table-name feedbacks \
   --region us-east-1 \
   --output json | jq '.Items[] | {id: .id.S, rating: .rating.N, urgency: .urgency.S}'
 ```
 
-**Expected Output**:
+**Saída esperada**:
 
 ```json
 {
@@ -112,22 +112,22 @@ docker compose exec localstack awslocal dynamodb scan \
 }
 ```
 
-**Verification**: 
-- ✅ Feedback found in table
-- ✅ `rating` is 4
-- ✅ `urgency` is HIGH
+**Verificação**:
+- ✅ Feedback encontrado na tabela
+- ✅ `rating` é 4
+- ✅ `urgency` é HIGH
 
-### Step 3: Verify SNS Message Published
+### Passo 3: verificar a publicação da mensagem no SNS
 
 ```bash
-# Check SNS topic attributes
+# Consultar os atributos do tópico SNS
 docker compose exec localstack awslocal sns get-topic-attributes \
   --topic-arn arn:aws:sns:us-east-1:000000000000:feedback-urgent-topic \
   --region us-east-1 \
   --output json
 ```
 
-**Expected Output** (sample):
+**Saída esperada** (exemplo):
 
 ```json
 {
@@ -145,55 +145,55 @@ docker compose exec localstack awslocal sns get-topic-attributes \
 }
 ```
 
-**Verification**:
-- ✅ Topic exists
-- ✅ At least 1 subscription (send-notification Lambda)
+**Verificação**:
+- ✅ O tópico existe
+- ✅ Há pelo menos 1 assinatura (a Lambda send-notification)
 
-### Step 4: Verify Email Sent via SES
+### Passo 4: verificar o envio do e-mail pelo SES
 
 ```bash
-# Check SES sent emails
+# Consultar o status de envio do SES
 docker compose exec localstack awslocal ses get-account-sending-enabled \
   --region us-east-1 \
   --output json
 ```
 
-Check module logs (Terminal 2, send-notification):
+Confira os logs do módulo (Terminal 2, send-notification):
 
-Look for log entries like:
+Procure entradas como:
 ```
-INFO: Sending email notification for feedback 550e8400-e29b-41d4-a716-446655440000 to admin@feedback-fase-4.com
-INFO: Email sent successfully for feedback 550e8400-e29b-41d4-a716-446655440000
-```
-
-**Verification**:
-- ✅ Log shows email sent
-- ✅ Recipient is `admin@feedback-fase-4.com`
-- ✅ No SEVERE/ERROR logs
-
-### Step 5: Check Performance
-
-In the send-notification module terminal, look for execution timing:
-
-```
-Invocation: 550e8400-e29b-41d4-a716-446655440000 completed in 234ms
+INFO: Enviando notificação por e-mail para o feedback 550e8400-e29b-41d4-a716-446655440000 para admin@feedback-fase-4.com
+INFO: E-mail enviado com sucesso para o feedback 550e8400-e29b-41d4-a716-446655440000
 ```
 
-**Verification**:
-- ✅ Execution time < 1000ms (1 second)
+**Verificação**:
+- ✅ O log mostra o e-mail enviado
+- ✅ O destinatário é `admin@feedback-fase-4.com`
+- ✅ Nenhum log SEVERE ou ERROR
 
-## Flow 2: LOW Urgency Feedback
+### Passo 5: conferir o desempenho
 
-**Objective**: Test that LOW-urgency feedback (rating 8-10) does NOT trigger SNS or email
+No terminal do módulo send-notification, procure o tempo de execução:
 
-**Expected Behavior**:
-- Feedback saved to DynamoDB with `urgency: LOW`
-- NO SNS message published
-- NO send-notification Lambda triggered
-- NO email sent
-- No errors in logs
+```
+Invocação: 550e8400-e29b-41d4-a716-446655440000 concluída em 234ms
+```
 
-### Step 1: Submit LOW Urgency Feedback
+**Verificação**:
+- ✅ Tempo de execução abaixo de 1000 ms (1 segundo)
+
+## Fluxo 2: feedback de urgência LOW
+
+**Objetivo**: testar se um feedback de urgência LOW (nota de 8 a 10) NÃO dispara o SNS nem o e-mail
+
+**Comportamento esperado**:
+- O feedback é gravado no DynamoDB com `urgency: LOW`
+- NENHUMA mensagem é publicada no SNS
+- A Lambda send-notification NÃO é disparada
+- NENHUM e-mail é enviado
+- Nenhum erro nos logs
+
+### Passo 1: enviar um feedback de urgência LOW
 
 ```bash
 curl -X POST http://localhost:8080/graphql \
@@ -203,7 +203,7 @@ curl -X POST http://localhost:8080/graphql \
   }'
 ```
 
-**Expected Response**:
+**Resposta esperada**:
 
 ```json
 {
@@ -219,7 +219,7 @@ curl -X POST http://localhost:8080/graphql \
 }
 ```
 
-### Step 2: Verify Feedback in DynamoDB (but no email)
+### Passo 2: verificar o feedback no DynamoDB (e que não houve e-mail)
 
 ```bash
 docker compose exec localstack awslocal dynamodb scan \
@@ -228,7 +228,7 @@ docker compose exec localstack awslocal dynamodb scan \
   --output json | jq '.Items[] | select(.urgency.S == "LOW") | {id: .id.S, rating: .rating.N, urgency: .urgency.S}'
 ```
 
-**Expected Output**:
+**Saída esperada**:
 
 ```json
 {
@@ -238,47 +238,47 @@ docker compose exec localstack awslocal dynamodb scan \
 }
 ```
 
-### Step 3: Verify NO SNS Publish
+### Passo 3: verificar que NÃO houve publicação no SNS
 
-Check the send-notification module logs (Terminal 2):
+Confira os logs do módulo send-notification (Terminal 2):
 
-**Expected**: No new log entries for the LOW urgency feedback (no email sent)
+**Esperado**: nenhuma nova entrada de log para o feedback de urgência LOW (nenhum e-mail enviado)
 
-If you see lines like:
+Se aparecerem linhas como:
 ```
-INFO: Sending email notification for feedback 660e8400-...
+INFO: Enviando notificação por e-mail para o feedback 660e8400-...
 ```
 
-That indicates LOW urgency feedback incorrectly triggered email. This is a bug.
+isso indica que um feedback LOW disparou o e-mail por engano. É um bug.
 
-### Step 4: Check Module State
+### Passo 4: verificar o estado do módulo
 
-In the receive-feedback module (Terminal 1), you should see:
+No módulo receive-feedback (Terminal 1), você deve ver:
 
 ```
 Received feedback: rating=9, urgency=LOW
 Saved to DynamoDB but NOT publishing to SNS (urgency is not HIGH)
 ```
 
-**Verification**:
-- ✅ Feedback saved to DynamoDB
-- ✅ NO SNS publish occurred
-- ✅ NO email sent
-- ✅ No errors
+**Verificação**:
+- ✅ Feedback gravado no DynamoDB
+- ✅ Nenhuma publicação no SNS
+- ✅ Nenhum e-mail enviado
+- ✅ Nenhum erro
 
-## Flow 3: Generate Weekly Report
+## Fluxo 3: gerar o relatório semanal
 
-**Objective**: Test that generate-report Lambda queries prior-week feedbacks, aggregates stats, and sends HTML email
+**Objetivo**: testar se a Lambda generate-report consulta os feedbacks da semana anterior, agrega as estatísticas e envia um e-mail HTML
 
-**Expected Behavior**:
-- Query DynamoDB for feedbacks from prior 7 days
-- Aggregate: total count, average rating, per-urgency counts
-- Send HTML email to `admin@feedback-fase-4.com` with formatted table
-- Report includes: date range, urgency distribution, rating statistics
-- CloudWatch logs show execution < 1 second
-- No errors
+**Comportamento esperado**:
+- Consulta no DynamoDB os feedbacks dos 7 dias anteriores
+- Agrega: total, nota média e contagem por urgência
+- Envia um e-mail HTML para `admin@feedback-fase-4.com` com uma tabela formatada
+- O relatório inclui: período, distribuição de urgência e estatísticas de nota
+- Os logs do CloudWatch mostram execução em menos de 1 segundo
+- Nenhum erro
 
-### Step 1: Trigger Weekly Report Generation
+### Passo 1: disparar a geração do relatório semanal
 
 ```bash
 curl -X POST http://localhost:8282/graphql \
@@ -288,7 +288,7 @@ curl -X POST http://localhost:8282/graphql \
   }'
 ```
 
-**Expected Response** (example):
+**Resposta esperada** (exemplo):
 
 ```json
 {
@@ -306,18 +306,16 @@ curl -X POST http://localhost:8282/graphql \
 }
 ```
 
-**Expected Metrics**:
-- `totalFeedbacks`: 2 (one HIGH from Flow 1, one LOW from Flow 2)
+**Métricas esperadas**:
+- `totalFeedbacks`: 2 (um HIGH do Fluxo 1 e um LOW do Fluxo 2)
 - `averageRating`: 6.5 ((4 + 9) / 2)
 - `highCount`: 1
 - `lowCount`: 1
 - `mediumCount`: 0
 
-### Step 2: Verify DynamoDB Query
+### Passo 2: verificar a consulta no DynamoDB
 
-The generate-report module should query DynamoDB with a date range filter (prior 7 days):
-
-In Terminal 3 (generate-report), look for:
+O módulo generate-report deve consultar o DynamoDB com um filtro de intervalo de datas (7 dias anteriores). No Terminal 3 (generate-report), procure:
 
 ```
 INFO: Querying DynamoDB for feedbacks from 2024-10-19 to 2024-10-26
@@ -326,14 +324,14 @@ INFO: Aggregating statistics...
 INFO: Average rating: 6.5, HIGH: 1, MEDIUM: 0, LOW: 1
 ```
 
-**Verification**:
-- ✅ Query date range is 7 days back from today
-- ✅ Found 2 feedbacks (exact match from Flows 1 & 2)
-- ✅ Statistics calculated correctly
+**Verificação**:
+- ✅ O intervalo da consulta vai 7 dias para trás a partir de hoje
+- ✅ Foram encontrados 2 feedbacks (exatamente os dos Fluxos 1 e 2)
+- ✅ As estatísticas foram calculadas corretamente
 
-### Step 3: Verify Report Email Sent
+### Passo 3: verificar o envio do e-mail do relatório
 
-In Terminal 3 (generate-report), look for:
+No Terminal 3 (generate-report), procure:
 
 ```
 INFO: Sending report email to admin@feedback-fase-4.com
@@ -345,32 +343,32 @@ INFO: Email contains HTML table with:
   - Urgency distribution table
 ```
 
-**Verification**:
-- ✅ Report email sent
-- ✅ Recipient is `admin@feedback-fase-4.com`
-- ✅ Email contains HTML tables with aggregation data
-- ✅ Date range is correct (7-day window)
+**Verificação**:
+- ✅ E-mail do relatório enviado
+- ✅ O destinatário é `admin@feedback-fase-4.com`
+- ✅ O e-mail contém tabelas HTML com os dados agregados
+- ✅ O intervalo de datas está correto (janela de 7 dias)
 
-### Step 4: Check Performance
+### Passo 4: conferir o desempenho
 
-In Terminal 3, look for timing:
+No Terminal 3, procure o tempo:
 
 ```
 Report generation completed in 456ms
 ```
 
-**Verification**:
-- ✅ Execution time < 1000ms
+**Verificação**:
+- ✅ Tempo de execução abaixo de 1000 ms
 
-## Verification: All Flows Complete
+## Verificação: todos os fluxos concluídos
 
-Run the comprehensive verification script:
+Rode o script de verificação completo:
 
 ```bash
 ./run.sh e2e-verify
 ```
 
-This produces a CSV file at `/tmp/e2e-results.csv` with:
+Ele gera um arquivo CSV em `/tmp/e2e-results.csv` com:
 
 ```
 Flow,Status,Detail,ExecutionTime(ms),Evidence
@@ -381,35 +379,35 @@ Flow,Status,Detail,ExecutionTime(ms),Evidence
 "Data Persistence","PASS","DynamoDB data persists across queries","0","Consistent item count: 2"
 ```
 
-**All rows should show Status: PASS**
+**Todas as linhas devem mostrar Status: PASS**
 
-## Troubleshooting Tests
+## Solução de problemas nos testes
 
-### Test Hangs on GraphQL Request
+### O teste trava na requisição GraphQL
 
-**Problem**: curl request times out or hangs
+**Problema**: a requisição curl expira ou fica travada
 
-**Cause**: Module not responding (still starting up or crashed)
+**Causa**: o módulo não responde (ainda está iniciando ou travou)
 
-**Solution**:
-1. Check module terminal for "Listening on port 8080" or similar
-2. Wait 30+ seconds for Quarkus to fully start
-3. Restart the module:
-   - Press `Ctrl+C` in the module terminal
-   - Run `mvn quarkus:dev` again
-   - Wait for full startup
+**Solução**:
+1. Veja no terminal do módulo se aparece "Listening on port 8080" ou algo parecido
+2. Aguarde mais de 30 segundos para o Quarkus iniciar por completo
+3. Reinicie o módulo:
+   - Pressione `Ctrl+C` no terminal do módulo
+   - Rode `mvn quarkus:dev` de novo
+   - Aguarde a inicialização completa
 
-**Quick test**:
+**Teste rápido**:
 ```bash
 curl -v http://localhost:8080/q/health
-# Should return 200 OK
+# Deve retornar 200 OK
 ```
 
-### GraphQL Query Error
+### Erro de consulta GraphQL
 
-**Problem**: Returns GraphQL error, not data
+**Problema**: retorna erro GraphQL, e não dados
 
-**Example Error**:
+**Exemplo de erro**:
 ```json
 {
   "errors": [
@@ -420,52 +418,52 @@ curl -v http://localhost:8080/q/health
 }
 ```
 
-**Cause**: Schema not updated or field name incorrect
+**Causa**: o schema não foi atualizado ou o nome do campo está errado
 
-**Solution**:
-1. Verify field names are exactly: `description`, `rating`, `urgency`, `createdAt`
-2. Verify urgency is calculated correctly (0-5=HIGH, 6-7=MEDIUM, 8-10=LOW)
-3. Restart the module to reload schema
+**Solução**:
+1. Confirme que os nomes dos campos são exatamente: `description`, `rating`, `urgency`, `createdAt`
+2. Confirme que a urgência é calculada corretamente (0-5=HIGH, 6-7=MEDIUM, 8-10=LOW)
+3. Reinicie o módulo para recarregar o schema
 
-### Feedback Not Saved to DynamoDB
+### Feedback não gravado no DynamoDB
 
-**Problem**: GraphQL returns success but DynamoDB scan shows 0 items
+**Problema**: o GraphQL retorna sucesso, mas o scan do DynamoDB mostra 0 itens
 
-**Cause**: Module not connected to LocalStack or saving failed silently
+**Causa**: o módulo não está conectado ao LocalStack, ou a gravação falhou sem aviso
 
-**Solution**:
-1. Check module logs for connection errors
-2. Verify DynamoDB endpoint in `application.properties`
-3. Verify table exists: `./run.sh resources`
-4. Check module logs for DynamoDB exceptions
+**Solução**:
+1. Confira os logs do módulo quanto a erros de conexão
+2. Confirme o endpoint do DynamoDB em `application.properties`
+3. Confirme que a tabela existe: `./run.sh resources`
+4. Confira os logs do módulo quanto a exceções do DynamoDB
 
-### SNS Not Triggered for HIGH Urgency
+### SNS não disparado para urgência HIGH
 
-**Problem**: Flow 1 feedback created but send-notification not invoked
+**Problema**: o feedback do Fluxo 1 foi criado, mas o send-notification não foi invocado
 
-**Cause**: SNS subscription not set up or urgency calculation wrong
+**Causa**: a assinatura do SNS não foi configurada, ou o cálculo da urgência está errado
 
-**Solution**:
-1. Verify SNS topic exists: `./run.sh resources`
-2. Check urgency calculation: rating 4 should = HIGH
-3. Check send-notification module logs for subscription errors
-4. Verify SNS event source mapping in send-notification config
+**Solução**:
+1. Confirme que o tópico SNS existe: `./run.sh resources`
+2. Confira o cálculo da urgência: nota 4 deve resultar em HIGH
+3. Confira os logs do módulo send-notification quanto a erros de assinatura
+4. Confirme o event source mapping do SNS na configuração do send-notification
 
-### Performance > 1 Second
+### Desempenho acima de 1 segundo
 
-**Problem**: Lambda execution times are slow (> 1000ms)
+**Problema**: os tempos de execução das Lambdas estão altos (acima de 1000 ms)
 
-**Cause**: DynamoDB throttling, network latency, or inefficient code
+**Causa**: throttling do DynamoDB, latência de rede ou código ineficiente
 
-**Solution**:
-1. Check LocalStack resource usage: `docker stats`
-2. Check module logs for DynamoDB timeout errors
-3. Try restarting LocalStack: `./run.sh clean && ./run.sh docker`
-4. Profile code for inefficient queries
+**Solução**:
+1. Verifique o uso de recursos do LocalStack: `docker stats`
+2. Confira os logs do módulo quanto a timeouts do DynamoDB
+3. Tente reiniciar o LocalStack: `./run.sh clean && ./run.sh docker`
+4. Faça o profiling do código para achar consultas ineficientes
 
-## Manual Testing with AWS CLI
+## Testes manuais com a CLI da AWS
 
-### Query DynamoDB Directly
+### Consultar o DynamoDB diretamente
 
 ```bash
 aws dynamodb scan \
@@ -475,7 +473,7 @@ aws dynamodb scan \
   --output json | jq '.'
 ```
 
-### List SNS Messages
+### Listar os tópicos do SNS
 
 ```bash
 aws sns list-topics \
@@ -484,7 +482,7 @@ aws sns list-topics \
   --output json | jq '.Topics'
 ```
 
-### Check SES Identities
+### Verificar as identidades do SES
 
 ```bash
 aws ses list-verified-email-addresses \
@@ -493,27 +491,27 @@ aws ses list-verified-email-addresses \
   --output json
 ```
 
-## Testing Tips
+## Dicas para os testes
 
-1. **Test in sequence**: Always test Flow 1 before Flow 2, to have valid test data
-2. **Wait for async processing**: After Flow 1 submission, wait 2-3 seconds before checking SNS/SES
-3. **Check timestamps**: Verify `createdAt` is recent (within seconds of your test time)
-4. **Reset state**: Use `./run.sh clean` between test cycles to get a fresh database
-5. **Monitor all terminals**: Keep Terminals 1, 2, 3 visible to catch errors immediately
-6. **Save responses**: Copy GraphQL responses to a file for your test results documentation
+1. **Teste em sequência**: sempre rode o Fluxo 1 antes do Fluxo 2, para ter dados de teste válidos
+2. **Aguarde o processamento assíncrono**: depois do envio do Fluxo 1, espere 2 a 3 segundos antes de consultar o SNS e o SES
+3. **Confira os timestamps**: verifique se o `createdAt` é recente (de poucos segundos atrás do seu teste)
+4. **Zere o estado**: use `./run.sh clean` entre os ciclos de teste para ter um banco novo
+5. **Acompanhe todos os terminais**: mantenha os Terminais 1, 2 e 3 visíveis para ver os erros na hora
+6. **Salve as respostas**: copie as respostas do GraphQL para um arquivo, para documentar os resultados dos testes
 
-## Next Steps
+## Próximos passos
 
-After completing all three flows successfully:
+Depois de concluir os três fluxos com sucesso:
 
-1. **Document results**: Record test outputs in [E2E_TEST_RESULTS.md](./E2E_TEST_RESULTS.md)
-2. **Performance tuning**: If execution times > 1s, optimize queries or increase resources
-3. **Load testing**: Run multiple feedbacks to test under load
-4. **Integration testing**: Test error cases (invalid input, network failures)
-5. **Deploy to AWS**: Use the same Lambda functions in production with real AWS credentials
+1. **Documente os resultados**: registre a saída dos testes em [E2E_TEST_RESULTS.md](./E2E_TEST_RESULTS.md)
+2. **Ajuste de desempenho**: se os tempos passarem de 1 s, otimize as consultas ou aumente os recursos
+3. **Teste de carga**: rode vários feedbacks para testar sob carga
+4. **Teste de integração**: teste os casos de erro (entrada inválida, falhas de rede)
+5. **Deploy na AWS**: use as mesmas funções Lambda em produção, com credenciais reais da AWS
 
-## Related Documentation
+## Documentação relacionada
 
-- [LOCAL_SETUP.md](./LOCAL_SETUP.md) - Setup instructions
-- [E2E_TEST_RESULTS.md](./E2E_TEST_RESULTS.md) - Test results template
-- [../LOCALSTACK_SETUP.md](../LOCALSTACK_SETUP.md) - LocalStack configuration details
+- [LOCAL_SETUP.md](./LOCAL_SETUP.md) - instruções de configuração
+- [E2E_TEST_RESULTS.md](./E2E_TEST_RESULTS.md) - modelo de resultados dos testes
+- [../LOCALSTACK_SETUP.md](../LOCALSTACK_SETUP.md) - detalhes da configuração do LocalStack
