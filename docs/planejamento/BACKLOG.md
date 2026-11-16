@@ -624,20 +624,23 @@ POST /avaliacao {"descricao":"Produto não funciona","nota":1}
 
 ---
 
-### TASK-026: Preparar entrega final
-
+### 🟡 TASK-026: Preparar entrega final — **PARCIAL**
 **Labels:** `priority: high`, `épico: documentação`, `pontos: 2`, `type: docs`
 **Milestone:** Sprint 6 - Finalização
+**Status:** 🟡 PARCIAL (verificada em 2026-11-16)
 
 ## ✅ Critérios de Aceitação
-- [ ] Repositório público no GitHub
-- [ ] README.md completo e atualizado com URL da API em produção
-- [ ] Collection Postman incluída no repositório
-- [ ] Todos os testes passando com cobertura ≥ 80%
-- [ ] Deploy funcionando na AWS
-- [ ] CloudWatch mostrando logs das 3 Lambdas
-- [ ] Documentação completa (API.md, guia de deploy, monitoramento)
-- [ ] Link do repositório pronto para envio
+- [x] Repositório público no GitHub (https://github.com/jeffesa/12ADJT-fase-4, visibilidade PUBLIC)
+- [x] README.md com a URL da API em produção (`https://v32wl8xbtk.execute-api.sa-east-1.amazonaws.com/prod`)
+- [x] Collection Postman incluída no repositório (`docs/api-collection/fase4-feedback.postman_collection.json`, com rotas v1)
+- [x] Testes passando com cobertura ≥ 80%: `mvn clean verify` (JDK 17) passou. Cobertura de linhas (JaCoCo): receive-feedback 92,4%; send-notification 96,6%; generate-report 99,4%. O módulo local-http (só para desenvolvimento) tem 67,9%.
+- [x] Deploy funcionando na AWS (stack `feedback-api-prod` em `UPDATE_COMPLETE`, rotas v1 respondendo em produção)
+- [ ] CloudWatch mostrando logs das 3 Lambdas: receive-feedback, send-notification e graphql têm logs em produção. O generate-report não tem logs, porque roda só no cron de segunda-feira (08h UTC) ou em execução manual, e nenhuma execução foi feita.
+- [x] Documentação completa (API.md, guia de deploy e guia de monitoramento) em `docs/`
+- [x] Link do repositório pronto para envio
+
+**Pendência:** executar o generate-report uma vez, em produção, com autorização, para gerar logs no grupo `prod-generate-report`. Isso também cumpre a demonstração do relatório na TASK-027.
+
 
 ---
 
