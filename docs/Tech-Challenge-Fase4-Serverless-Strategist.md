@@ -485,6 +485,8 @@ Quando uma função grava uma linha `SEVERE`, o alarme correspondente conta essa
 
 ### Aviso de urgência
 
+**Regra de envio:** o e-mail é enviado somente quando a urgência é **HIGH**, ou seja, quando a nota está entre 0 e 5. A função `receive-feedback` só publica no SNS nesse caso. Avaliações MEDIUM (nota 6 e 7) e LOW (nota 8 a 10) não geram e-mail e aparecem apenas no relatório semanal.
+
 - **Quando:** toda avaliação com urgência HIGH (nota de 0 a 5).
 - **Para quem:** o administrador (`AdminEmail`).
 - **Conteúdo:** descrição, urgência e data de envio.
