@@ -346,7 +346,7 @@ aws cloudformation describe-stacks --stack-name feedback-api-prod --region sa-ea
   --output text
 ```
 
-Os outputs do stack são `ApiEndpoint`, `GraphQLEndpoint`, `DynamoDBTableName` (`prod-feedback-table`), `SNSTopicArn` e o ARN de cada Lambda. As URLs têm o formato `https://<api-id>.execute-api.sa-east-1.amazonaws.com/prod/v1/avaliacao` `.../prod/v1/graphql` e a listagem REST em `.../prod/v1/avaliacoes`.
+Os outputs do stack são `ApiEndpoint`, `GraphQLEndpoint`, `DynamoDBTableName` (`prod-feedback-table`), `SNSTopicArn` e o ARN de cada Lambda. As URLs têm o formato `https://<api-id>.execute-api.sa-east-1.amazonaws.com/prod/v1/avaliacao`, `.../prod/v1/graphql` e a listagem REST em `.../prod/v1/avaliacoes`.
 
 Lambdas (cada uma com 512 MB e timeout de 30 s):
 
