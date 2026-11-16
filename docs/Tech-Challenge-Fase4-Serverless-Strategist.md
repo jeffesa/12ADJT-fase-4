@@ -391,23 +391,23 @@ O deploy é feito pelo pipeline do GitHub Actions, definido em `.github/workflow
 4. **Autenticação na AWS:** por OIDC, com a role `github-actions-deploy-prod`. Não há chave de acesso guardada no GitHub.
 5. **Build e deploy:** `mvn package` gera os pacotes das funções, depois `sam build` e `sam deploy --config-env prod` atualizam a stack `feedback-api-prod`.
 
-### Segredos do GitHub (GitHub Secrets)
+### GitHub Secrets
 
-Os segredos são as únicas informações sensíveis que o pipeline usa. Ficam no GitHub, criptografados, e nunca aparecem no código nem no repositório.
+O pipeline usa cinco GitHub Secrets. Eles ficam no repositório e não aparecem no código.
 
-| Segredo | Usado por | Para que serve |
+| Nome | Usado no | Função |
 |---|---|---|
-| `AWS_DEPLOY_ROLE_ARN` | Job de deploy | Identifica a role `github-actions-deploy-prod`, que o pipeline assume na AWS |
-| `ADMIN_EMAIL` | Job de deploy | E-mail do administrador, que recebe avisos, relatórios e alarmes |
+| `AWS_DEPLOY_ROLE_ARN` | Job de deploy | ARN da role `github-actions-deploy-prod`, assumida pelo pipeline na AWS |
+| `ADMIN_EMAIL` | Job de deploy | E-mail do administrador, destinatário de avisos, relatórios e alarmes |
 | `SENDER_EMAIL` | Job de deploy | Remetente dos e-mails, uma identidade verificada no SES |
-| `API_TOKEN` | Job de deploy | Token Bearer que protege a API (ver "Ciclo de vida do token") |
+| `API_TOKEN` | Job de deploy | Token Bearer da API (ver "Ciclo de vida do token") |
 | `SONAR_TOKEN` | Job de build | Token para enviar a análise ao SonarCloud |
 
-**Sem chaves de acesso da AWS.** O pipeline não guarda `AWS_ACCESS_KEY_ID` nem `AWS_SECRET_ACCESS_KEY`. A autenticação é feita por OIDC: o GitHub apresenta uma identidade temporária, e a AWS aceita apenas o repositório e o ambiente `prod` definidos na trust policy da role.
+Não há chaves de acesso da AWS guardadas no GitHub. A autenticação na AWS é feita por OIDC: o GitHub gera uma credencial temporária, e a AWS aceita apenas o repositório e o ambiente `prod` definidos na trust policy da role.
 
-**Como conferir:** no repositório do GitHub, *Settings* → *Secrets and variables* → *Actions*. A lista mostra os nomes e a data de atualização. Os valores não podem ser lidos depois de salvos.
+Para conferir: no repositório, *Settings* → *Secrets and variables* → *Actions*. A lista mostra os nomes e a data da última atualização. O valor não aparece depois de salvo.
 
-**Como trocar um segredo:** atualize o segredo no GitHub e reexecute o deploy de produção. Sem o novo deploy, a Lambda continua com o valor antigo.
+Para trocar um valor: atualize o GitHub Secret e rode o deploy de produção de novo. A Lambda só recebe o valor novo quando o deploy termina.
 
 Para executar: o deploy de produção roda a cada merge na `main`. Para repetir sem alterar código, use "Re-run all jobs" na execução do GitHub Actions.
 
