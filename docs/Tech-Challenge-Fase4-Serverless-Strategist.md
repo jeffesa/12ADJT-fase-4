@@ -599,7 +599,18 @@ A collection do Bruno cobre as rotas, os cenários de sucesso e de erro (400 e 4
 
 O SonarCloud roda no pipeline a cada pull request. O resultado fica no painel do projeto.
 
-[PENDENTE: inserir o resultado atual do SonarCloud (quality gate, cobertura e issues) e um trecho de revisão da qualidade do código.]
+**Resultado do SonarCloud (consultado em 16/11/2026):**
+
+| Indicador | Valor |
+|---|---|
+| Quality gate | OK |
+| Cobertura de linhas | 95,7% |
+| Bugs | 0 |
+| Vulnerabilidades | 0 |
+| Security hotspots | 0 |
+| Code smells | 173 |
+
+A análise roda a cada pull request. Os 173 code smells são apontamentos de manutenibilidade, e nenhum deles é bug ou vulnerabilidade.
 
 ---
 
