@@ -561,7 +561,7 @@ Execute `./run.sh` na raiz do projeto para abrir o menu:
 
 ```
 ╔════════════════════════════════════════════════════╗
-║   Tech Challenge Fase 4 — Avaliação Serverless     ║
+║   Tech Challenge Fase 4 — Feedback Serverless      ║
 ║   Quarkus Dev Mode + AWS (sa-east-1)               ║
 ╚════════════════════════════════════════════════════╝
 
